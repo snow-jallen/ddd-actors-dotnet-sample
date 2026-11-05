@@ -48,6 +48,27 @@ public sealed class IdTokenActorTests(ITestOutputHelper output)
                 Stamped(new TokenLockedForSession(Card, AtTheDepot), lockFor.CommandId));
     }
 
+    /// <summary>
+    /// Idempotent by its state (section 15.6): the journey's lock comes again under another id,
+    /// one the shell's window no longer holds, and the token, already the session's, is told so.
+    /// </summary>
+    [Fact]
+    public async Task Given_a_token_held_by_a_session_when_it_asks_again_then_it_still_holds_it() =>
+        await Token.Given(
+                Stamped(new TokenRegistered(Card, Driver)),
+                Stamped(new TokenLockedForSession(Card, AtTheDepot)))
+            .When(new LockForSession(NewCommand, Card, AtTheDepot))
+            .ThenAsync(new TokenLocked(Card, AtTheDepot, Driver, Version: 2));
+
+    [Fact]
+    public async Task Given_an_unlocked_token_when_it_is_unlocked_again_then_nothing_changes() =>
+        await Token.Given(
+                Stamped(new TokenRegistered(Card, Driver)),
+                Stamped(new TokenLockedForSession(Card, AtTheDepot)),
+                Stamped(new TokenUnlocked(Card, AtTheDepot)))
+            .When(new UnlockFromSession(NewCommand, Card, AtTheDepot))
+            .ThenAsync(new TokenCommandAccepted(3));
+
     [Fact]
     public async Task Given_a_token_held_by_a_session_when_another_asks_then_it_is_refused() =>
         await Token.Given(

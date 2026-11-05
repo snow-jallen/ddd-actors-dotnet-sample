@@ -19,7 +19,8 @@ namespace Ohmline.Charging.Domain.Journeys;
 /// <remarks>
 /// Most effects belong to the step the journey enters: whoever enters
 /// <see cref="AwaitingHold"/> asks for a hold. So <see cref="Next"/> decides the events, folds
-/// them into the new state with <see cref="Evolve"/>, and asks that state what to do.
+/// them into the new state with <see cref="Evolve"/>, and asks that state what to do. Every
+/// request carries a key derived from the journey and the step, so asking again is safe.
 /// </remarks>
 public static class ChargingJourney
 {
@@ -28,6 +29,14 @@ public static class ChargingJourney
 
     /// <summary>How many times a capture is tried before the amount is recorded as owed.</summary>
     public const int MaxCaptureAttempts = 4;
+
+    /// <summary>
+    /// How long a step waits for another context's answer before it asks again (section 15.6).
+    /// </summary>
+    public static readonly TimeSpan ReplyTimeout = TimeSpan.FromSeconds(10);
+
+    /// <summary>How long a step asks again before the journey gives up on the answer.</summary>
+    public static readonly TimeSpan StepTimeout = TimeSpan.FromMinutes(1);
 
     public static JourneyState Initial => JourneyState.Initial;
 
@@ -40,10 +49,13 @@ public static class ChargingJourney
         JourneyState state, JourneyInput input, DecisionContext context)
     {
         ImmutableArray<JourneyEvent> events =
-            [.. Decide(state, input).Select(@event => @event with { OccurredAt = context.Now })];
+            [
+                .. Decide(state, input, context.Now)
+                    .Select(@event => @event with { OccurredAt = context.Now }),
+            ];
         if (events.IsEmpty)
         {
-            return new JourneyStep(state, [], Again(state, input));
+            return new JourneyStep(state, [], Again(state, input, context.Now));
         }
 
         var next = events.Aggregate(state, Evolve);
@@ -99,7 +111,8 @@ public static class ChargingJourney
     /// journey's own session, so another session's reply, or one that comes late or twice,
     /// finds no row and changes nothing.
     /// </summary>
-    private static ImmutableArray<JourneyEvent> Decide(JourneyState state, JourneyInput input) =>
+    private static ImmutableArray<JourneyEvent> Decide(
+        JourneyState state, JourneyInput input, DateTimeOffset now) =>
         (state, input) switch
         {
             (NotStarted, StartCharging start) => [Started(start)],
@@ -149,6 +162,18 @@ public static class ChargingJourney
                         CostOf(charging, ended.EnergyDelivered)),
                 ],
 
+            // No answer for a whole step: a lost message, asked again, and lost again.
+            (AwaitingTokenLock or AwaitingHold or AwaitingAllocation,
+                JourneyTimerElapsed { Timer: JourneyTimer.Reply })
+                when now >= SinceOf(state) + StepTimeout =>
+            [
+                Abandon(
+                    state.Terms!,
+                    AbandonReasons.NoReply,
+                    $"No answer within {StepTimeout.TotalMinutes:0} minute, asked every " +
+                    $"{ReplyTimeout.TotalSeconds:0} seconds."),
+            ],
+
             (Settling settling, PaymentCaptured captured) =>
                 [new JourneyCompleted(settling.Terms.JourneyId, captured.Amount)],
             (Settling settling, CaptureFailed failed)
@@ -180,11 +205,14 @@ public static class ChargingJourney
     /// What an input that changes nothing still asks for: a retry timer that elapses asks for
     /// its request again. Nothing is recorded; the request carries what it carried before.
     /// </summary>
-    private static ImmutableArray<JourneyEffect> Again(JourneyState state, JourneyInput input) =>
+    private static ImmutableArray<JourneyEffect> Again(
+        JourneyState state, JourneyInput input, DateTimeOffset now) =>
         (state, input) switch
         {
             (Settling settling, JourneyTimerElapsed { Timer: JourneyTimer.CaptureRetry }) =>
-                [new JourneyEffect.CapturePayment(settling.HoldId, settling.Amount)],
+                [Capture(settling)],
+            (AwaitingTokenLock or AwaitingHold or AwaitingAllocation,
+                JourneyTimerElapsed { Timer: JourneyTimer.Reply }) => Enter(state, now),
             _ => [],
         };
 
@@ -203,27 +231,41 @@ public static class ChargingJourney
         state switch
         {
             NotStarted or Completed => [],
-            AwaitingTokenLock waiting =>
-                [new JourneyEffect.LockToken(waiting.Terms.TokenUid, waiting.Terms.SessionId)],
-            AwaitingHold waiting =>
-                [new JourneyEffect.PlaceHold(waiting.Driver, waiting.Terms.Hold)],
+            AwaitingTokenLock { Terms: var terms } =>
+            [
+                new JourneyEffect.LockToken(
+                    Key(terms, IdempotencyKey.Lock), terms.TokenUid, terms.SessionId),
+                AwaitReply,
+            ],
+            AwaitingHold { Terms: var terms } waiting =>
+            [
+                new JourneyEffect.PlaceHold(
+                    Key(terms, IdempotencyKey.Hold), waiting.Driver, terms.Hold),
+                AwaitReply,
+            ],
             AwaitingAllocation { Terms: var terms } =>
             [
                 new JourneyEffect.RequestAllocation(
-                    terms.SiteId, terms.ConnectorId, terms.SessionId, terms.MaxPower),
+                    Key(terms, IdempotencyKey.Allocation),
+                    terms.SiteId,
+                    terms.ConnectorId,
+                    terms.SessionId,
+                    terms.MaxPower),
+                AwaitReply,
             ],
-            AwaitingEnergyFlow waiting =>
+            AwaitingEnergyFlow { Terms: var terms } waiting =>
             [
+                new JourneyEffect.CancelTimer(JourneyTimer.Reply),
                 new JourneyEffect.StartCharger(
-                    waiting.Terms.ConnectorId,
-                    waiting.Terms.TokenUid,
-                    waiting.Terms.SessionId,
+                    Key(terms, IdempotencyKey.Charger),
+                    terms.ConnectorId,
+                    terms.TokenUid,
+                    terms.SessionId,
                     waiting.Allocated),
                 StartTimer(JourneyTimer.EnergyFlow, waiting.Since + EnergyFlowTimeout, now),
             ],
             Charging => [new JourneyEffect.CancelTimer(JourneyTimer.EnergyFlow)],
-            Settling { FailedCaptures: 0 } settling =>
-                [new JourneyEffect.CapturePayment(settling.HoldId, settling.Amount)],
+            Settling { FailedCaptures: 0 } settling => [Capture(settling)],
             Settling settling =>
             [
                 new JourneyEffect.StartTimer(
@@ -234,24 +276,26 @@ public static class ChargingJourney
         };
 
     /// <summary>
-    /// The compensations: what the journey had obtained in the step it was abandoned in, given
-    /// back, the last obtained first.
+    /// The compensations: everything the journey asked for up to the step it was abandoned in,
+    /// given back, the last first. What it asked for, not what it was told it got: an answer
+    /// may have been lost, and giving back what was never given changes nothing, because every
+    /// receiver ignores what does not apply (section 15.6).
     /// </summary>
     private static ImmutableArray<JourneyEffect> GiveBack(JourneyState from) => from switch
     {
-        AwaitingHold { Terms: var terms } => [Unlock(terms)],
-        AwaitingAllocation { Terms: var terms } waiting =>
-            [new JourneyEffect.VoidHold(waiting.HoldId), Unlock(terms)],
-        AwaitingEnergyFlow { Terms: var terms } waiting =>
+        AwaitingTokenLock { Terms: var terms } => [Unlock(terms)],
+        AwaitingHold { Terms: var terms } => [Void(terms), Unlock(terms)],
+        AwaitingAllocation { Terms: var terms } => [Release(terms), Void(terms), Unlock(terms)],
+        AwaitingEnergyFlow { Terms: var terms } =>
         [
             new JourneyEffect.CancelTimer(JourneyTimer.EnergyFlow),
-            new JourneyEffect.ReleaseAllocation(terms.SiteId, terms.ConnectorId, terms.SessionId),
-            new JourneyEffect.VoidHold(waiting.HoldId),
+            Release(terms),
+            Void(terms),
             Unlock(terms),
         ],
 
-        // Nothing obtained yet; or a step a journey is never abandoned in.
-        NotStarted or AwaitingTokenLock or Charging or Settling or Completed or Abandoned => [],
+        // A step a journey is never abandoned in.
+        NotStarted or Charging or Settling or Completed or Abandoned => [],
         null => throw DefaultState(),
     };
 
@@ -297,8 +341,32 @@ public static class ChargingJourney
                 charging.Terms.Hold)
             .CostOf(delivered);
 
+    private static IdempotencyKey Key(JourneyTerms terms, string step) =>
+        IdempotencyKey.Of(terms.JourneyId, step);
+
+    private static JourneyEffect.StartTimer AwaitReply { get; } =
+        new(JourneyTimer.Reply, ReplyTimeout);
+
+    private static JourneyEffect.CapturePayment Capture(Settling settling) =>
+        new(Key(settling.Terms, IdempotencyKey.Capture), settling.HoldId, settling.Amount);
+
+    private static JourneyEffect.ReleaseAllocation Release(JourneyTerms terms) =>
+        new(Key(terms, IdempotencyKey.Release), terms.SiteId, terms.ConnectorId, terms.SessionId);
+
+    private static JourneyEffect.VoidHold Void(JourneyTerms terms) =>
+        new(Key(terms, IdempotencyKey.Hold));
+
     private static JourneyEffect.UnlockToken Unlock(JourneyTerms terms) =>
-        new(terms.TokenUid, terms.SessionId);
+        new(Key(terms, IdempotencyKey.Unlock), terms.TokenUid, terms.SessionId);
+
+    /// <summary>When the step that waits for an answer began.</summary>
+    private static DateTimeOffset SinceOf(JourneyState state) => state switch
+    {
+        AwaitingTokenLock waiting => waiting.Since,
+        AwaitingHold waiting => waiting.Since,
+        AwaitingAllocation waiting => waiting.Since,
+        _ => throw new InvalidOperationException("This step waits for no answer."),
+    };
 
     /// <summary>A timer that elapses at <paramref name="at"/>, or at once if it is past.</summary>
     private static JourneyEffect.StartTimer StartTimer(

@@ -65,7 +65,10 @@ public sealed class FakeContextTests(ITestOutputHelper output)
         (await contexts.Payments.ExpectMsgAsync<PortCall.PlaceHold>(cancellationToken: Ct))
             .Amount.ShouldBe(Hold);
         (await contexts.Payments.ExpectMsgAsync<PortCall.Capture>(cancellationToken: Ct))
-            .ShouldBe(new PortCall.Capture(HoldId, new Money(19.60m, Currency.Usd)));
+            .ShouldBe(new PortCall.Capture(
+                IdempotencyKey.Of(TheJourney.Journey, "capture"),
+                HoldId,
+                new Money(19.60m, Currency.Usd)));
         (await contexts.Chargers.ExpectMsgAsync<PortCall.RemoteStart>(cancellationToken: Ct))
             .Limit.ShouldBe(new Power(22m));
     }
@@ -168,7 +171,7 @@ public sealed class FakeContextTests(ITestOutputHelper output)
         {
             PortCall.PlaceHold => hold,
             PortCall.Capture capture => new PaymentCaptured(capture.HoldId, capture.Amount),
-            PortCall.Void @void => new HoldVoided(@void.HoldId),
+            PortCall.Void @void => new HoldVoided(@void.Hold.Value),
             _ => throw new InvalidOperationException($"The payment port has no {call}."),
         };
 

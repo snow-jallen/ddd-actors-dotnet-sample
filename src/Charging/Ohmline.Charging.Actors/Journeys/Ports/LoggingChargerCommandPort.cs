@@ -14,6 +14,7 @@ public sealed class LoggingChargerCommandPort(ILogger<LoggingChargerCommandPort>
     : IChargerCommandPort
 {
     public Task<ChargerCommandResult> RemoteStartAsync(
+        IdempotencyKey key,
         ConnectorId connectorId,
         TokenUid tokenUid,
         SessionId sessionId,
@@ -21,7 +22,8 @@ public sealed class LoggingChargerCommandPort(ILogger<LoggingChargerCommandPort>
         CancellationToken cancellationToken)
     {
         log.LogInformation(
-            "RemoteStart on {Connector} for {Token}, session {Session}, at most {Limit}",
+            "RemoteStart {Key} on {Connector} for {Token}, session {Session}, at most {Limit}",
+            key,
             connectorId,
             tokenUid,
             sessionId,

@@ -18,15 +18,16 @@ internal sealed class StubPaymentPort(
     public ConcurrentQueue<string> Asked { get; } = new();
 
     public Task<PaymentPortResult> PlaceHoldAsync(
-        DriverRef driver, Money amount, CancellationToken cancellationToken) =>
+        IdempotencyKey key, DriverRef driver, Money amount, CancellationToken cancellationToken) =>
         Answer($"hold {amount} for {driver}", hold);
 
     public Task<PaymentPortResult> CaptureAsync(
-        string holdId, Money amount, CancellationToken cancellationToken) =>
+        IdempotencyKey key, string holdId, Money amount, CancellationToken cancellationToken) =>
         Answer($"capture {amount} from {holdId}", capture);
 
-    public Task<PaymentPortResult> VoidAsync(string holdId, CancellationToken cancellationToken) =>
-        Answer($"void {holdId}", new HoldVoided(holdId));
+    public Task<PaymentPortResult> VoidAsync(
+        IdempotencyKey hold, CancellationToken cancellationToken) =>
+        Answer($"void {hold}", new HoldVoided(hold.Value));
 
     private Task<PaymentPortResult> Answer(string request, PaymentPortResult? answer)
     {
@@ -42,6 +43,7 @@ internal sealed class StubChargerPort : IChargerCommandPort
     public ConcurrentQueue<string> Asked { get; } = new();
 
     public Task<ChargerCommandResult> RemoteStartAsync(
+        IdempotencyKey key,
         ConnectorId connectorId,
         TokenUid tokenUid,
         SessionId sessionId,

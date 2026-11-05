@@ -43,9 +43,10 @@ We will treat these as permanent, never to be changed or reused once released:
 | Number of shards | `100` for every region (`EntityMessageExtractor.NumberOfShards`), about ten times the most nodes Ohmline will run |
 | Shard of an entity | `HashCodeMessageExtractor`'s hash of the entity id, modulo 100 |
 | Coordinator state | `StateStoreMode.DData`, set explicitly in `EntityShardOptions` |
-| Event tags (section 13.2) | `charging`, `charging-session`, `site-energy` (`ChargingTags`, `SiteEnergyTags`); a tag is stored with the event and never rewritten |
+| Event tags (section 13.2) | `charging`, `charging-session`, `site-energy` (`ChargingTags`, `SiteEnergyTags`); from section 15.3 `charging-journey`; a tag is stored with the event and never rewritten |
 | Sharded daemon process (section 13.6) | `projections`, one instance per projection stream; instance `i` runs `ChargingReadModelsExtensions.Streams[i]`, so the list is append only |
-| Projection ids (sections 13.5, 13.8, 14.6) | `session-history-v1`, `site-live-board-v1`, `driver-app-v1`; a new read-model shape is a new id, never a reused one |
+| Projection ids (sections 13.5, 13.8, 14.6, 15.1, 15.4) | `session-history-v1`, `site-live-board-v1`, `driver-app-v1`; the subscribers `session-ended-subscriber-v1` and `journey-session-relay-v1`, which keep offsets like any projection; a new read-model shape is a new id, never a reused one |
+| Idempotency keys (section 15.6) | `{journeyId}-{step}`, with the steps `lock`, `hold`, `allocation`, `charger`, `release`, `capture`, `unlock` (`IdempotencyKey`); the command id derived from a key (`GuidV7.Derive`) is how Driver Accounts and Site Energy recognise a request sent again, so neither the format nor the derivation may change while a journey is in flight |
 | DistributedPubSub topics (sections 14.4, 14.6) | `session-summaries`, `driver-app-cards` (`LiveTopics`); a subscriber to a renamed topic hears nothing, and nothing says so |
 | SignalR (section 14.5) | hub path `/hubs/charging`; groups `session-{sessionId}` and `token-{tokenUid}`; hub methods `JoinSession`, `JoinToken`; client methods `sessionSummaryChanged`, `driverCardChanged` from section 14.6 (`ChargingHub`). Released apps call them by name |
 | Driver app API (section 14.6) | route prefix `/app/v1` (`DriverAppEndpoints`); a breaking change is `/app/v2` beside it, never a change to `v1` |

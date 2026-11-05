@@ -117,9 +117,11 @@ public sealed class ChargingJourneyActor : ReceivePersistentActor, IWithTimers
         }));
         Command<JourneyTimerElapsed>(elapsed => Hear(elapsed));
 
-        // A port whose task failed: no answer, as if the message had been lost.
+        // A port whose task failed: no answer, as if the message had been lost. A hold is
+        // asked for again when the step's reply timer elapses, under the same key; a charger
+        // that never answers runs into the energy-flow timeout (section 15.6).
         Command<Status.Failure>(failure => _log.Warning(
-            failure.Cause, "{0}: a port failed; the journey stays where it is", PersistenceId));
+            failure.Cause, "{0}: a port failed; the journey waits for its timer", PersistenceId));
 
         // From the shard: passivation, a hand-off or shutdown (section 12.4).
         Command<Stop>(_ => Context.Stop(Self));
@@ -216,22 +218,28 @@ public sealed class ChargingJourneyActor : ReceivePersistentActor, IWithTimers
     /// compile until the shell knows how to carry it out. Answers come back to this actor as
     /// messages: from the regions because it is the sender, from the ports by PipeTo.
     /// </summary>
+    /// <remarks>
+    /// Another context's command takes its id from the effect's key, so a request sent again
+    /// is the same command, and the receiver's shell answers it as it did the first time.
+    /// </remarks>
     private void CarryOut(JourneyEffect effect) => _ = effect switch
     {
         JourneyEffect.LockToken lockToken => Send(
             _tokens,
-            new LockForSession(NewCommandId(), lockToken.TokenUid, lockToken.SessionId)),
-        JourneyEffect.PlaceHold hold => Pipe(
-            _payments.PlaceHoldAsync(hold.Driver, hold.Amount, CancellationToken.None)),
+            new LockForSession(
+                lockToken.Key.CommandId, lockToken.TokenUid, lockToken.SessionId)),
+        JourneyEffect.PlaceHold hold => Pipe(_payments.PlaceHoldAsync(
+            hold.Key, hold.Driver, hold.Amount, CancellationToken.None)),
         JourneyEffect.RequestAllocation request => Send(
             _budgets,
             new RequestAllocation(
-                NewCommandId(),
+                request.Key.CommandId,
                 request.SiteId,
                 request.ConnectorId,
                 request.SessionId,
                 request.Requested)),
         JourneyEffect.StartCharger start => Pipe(_chargers.RemoteStartAsync(
+            start.Key,
             start.ConnectorId,
             start.TokenUid,
             start.SessionId,
@@ -242,13 +250,17 @@ public sealed class ChargingJourneyActor : ReceivePersistentActor, IWithTimers
         JourneyEffect.ReleaseAllocation release => Send(
             _budgets,
             new ReleaseAllocation(
-                NewCommandId(), release.SiteId, release.ConnectorId, release.SessionId)),
+                release.Key.CommandId, release.SiteId, release.ConnectorId, release.SessionId)),
         JourneyEffect.VoidHold hold =>
-            Pipe(_payments.VoidAsync(hold.HoldId, CancellationToken.None)),
+            Pipe(_payments.VoidAsync(hold.Hold, CancellationToken.None)),
         JourneyEffect.CapturePayment capture => Pipe(
-            _payments.CaptureAsync(capture.HoldId, capture.Amount, CancellationToken.None)),
+            _payments.CaptureAsync(
+                capture.Key, capture.HoldId, capture.Amount, CancellationToken.None),
+            // Captured or not, nobody knows; the capture's key makes asking again safe.
+            failure: cause => new CaptureFailed(capture.HoldId, "port-failed", cause.Message)),
         JourneyEffect.UnlockToken unlock => Send(
-            _tokens, new UnlockFromSession(NewCommandId(), unlock.TokenUid, unlock.SessionId)),
+            _tokens,
+            new UnlockFromSession(unlock.Key.CommandId, unlock.TokenUid, unlock.SessionId)),
         null => throw new InvalidOperationException("The effect is default: it holds no case."),
     };
 
@@ -258,9 +270,9 @@ public sealed class ChargingJourneyActor : ReceivePersistentActor, IWithTimers
         return Unit.Value;
     }
 
-    private Unit Pipe<TResult>(Task<TResult> answer)
+    private Unit Pipe<TResult>(Task<TResult> answer, Func<Exception, object>? failure = null)
     {
-        answer.PipeTo(Self);
+        answer.PipeTo(Self, failure: failure);
         return Unit.Value;
     }
 
@@ -275,8 +287,6 @@ public sealed class ChargingJourneyActor : ReceivePersistentActor, IWithTimers
         Timers.Cancel(timer.Timer);
         return Unit.Value;
     }
-
-    private CommandId NewCommandId() => CommandId.New(_clock);
 
     /// <summary>
     /// A journey that never started, or is over, leaves memory now and is forgotten by the

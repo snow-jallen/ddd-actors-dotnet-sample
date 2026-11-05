@@ -11,8 +11,12 @@ namespace Ohmline.Charging.Actors.Journeys.Ports;
 /// </summary>
 public interface IChargerCommandPort
 {
-    /// <summary>Start a session for the token on the connector, drawing at most this.</summary>
+    /// <summary>
+    /// Start a session for the token on the connector, drawing at most the limit. The key
+    /// lets the gateway recognise the same start sent again.
+    /// </summary>
     Task<ChargerCommandResult> RemoteStartAsync(
+        IdempotencyKey key,
         ConnectorId connectorId,
         TokenUid tokenUid,
         SessionId sessionId,

@@ -61,6 +61,35 @@ internal static class TheJourney
         new SessionEnded(JourneySession, Depot, Connector, DriversCard, new Energy(30m))
             with { CommandId = Command, OccurredAt = Minute(50) };
 
+    /// <summary>The key of the journey's request at <paramref name="step"/>.</summary>
+    public static IdempotencyKey KeyFor(string step) => IdempotencyKey.Of(Journey, step);
+
+    public static JourneyEffect.LockToken AskForLock { get; } =
+        new(KeyFor(IdempotencyKey.Lock), DriversCard, JourneySession);
+
+    public static JourneyEffect.PlaceHold AskForHold { get; } =
+        new(KeyFor(IdempotencyKey.Hold), Driver, Hold);
+
+    public static JourneyEffect.RequestAllocation AskForPower { get; } =
+        new(KeyFor(IdempotencyKey.Allocation), Depot, Connector, JourneySession, MaxPower);
+
+    public static JourneyEffect.StartTimer AwaitReply { get; } =
+        new(JourneyTimer.Reply, ChargingJourney.ReplyTimeout);
+
+    public static JourneyEffect.ReleaseAllocation ReleaseThePower { get; } =
+        new(KeyFor(IdempotencyKey.Release), Depot, Connector, JourneySession);
+
+    public static JourneyEffect.VoidHold VoidTheHold { get; } = new(KeyFor(IdempotencyKey.Hold));
+
+    public static JourneyEffect.UnlockToken UnlockTheToken { get; } =
+        new(KeyFor(IdempotencyKey.Unlock), DriversCard, JourneySession);
+
+    public static JourneyEffect.StartCharger StartChargerAt(Power limit) =>
+        new(KeyFor(IdempotencyKey.Charger), Connector, DriversCard, JourneySession, limit);
+
+    public static JourneyEffect.CapturePayment Capture(Money amount) =>
+        new(KeyFor(IdempotencyKey.Capture), HoldId, amount);
+
     /// <summary>The events of the journey up to each step, as the journey records them.</summary>
     public static ImmutableArray<JourneyEvent> History(int steps) =>
     [

@@ -38,9 +38,9 @@ public sealed class TimeoutAndCompensationTests
         step.Effects.ShouldBe(
         [
             new JourneyEffect.CancelTimer(JourneyTimer.EnergyFlow),
-            new JourneyEffect.ReleaseAllocation(Depot, Connector, JourneySession),
-            new JourneyEffect.VoidHold(HoldId),
-            new JourneyEffect.UnlockToken(DriversCard, JourneySession),
+            ReleaseThePower,
+            VoidTheHold,
+            UnlockTheToken,
         ]);
     }
 
@@ -82,7 +82,7 @@ public sealed class TimeoutAndCompensationTests
 
         step.Events.ShouldBeEmpty();
         step.State.ShouldBe(failedOnce);
-        step.Effects.ShouldBe([new JourneyEffect.CapturePayment(HoldId, Twelve)]);
+        step.Effects.ShouldBe([Capture(Twelve)]);
     }
 
     [Theory]

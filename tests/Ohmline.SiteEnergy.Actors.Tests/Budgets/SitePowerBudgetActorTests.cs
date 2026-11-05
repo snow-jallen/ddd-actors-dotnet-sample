@@ -46,6 +46,20 @@ public sealed class SitePowerBudgetActorTests(ITestOutputHelper output)
                     by: Command));
 
     [Fact]
+    public async Task Given_a_released_allocation_when_it_is_released_again_then_nothing_changes()
+    {
+        var again = new ReleaseAllocation(
+            new CommandId(Guid.CreateVersion7(Morning.AddMinutes(1))), Site, Fleet1, BusSession);
+
+        await Budget.Given(
+                Configured(),
+                Granted(Fleet1, BusSession),
+                Stamped(new AllocationReleased(Site, Fleet1, BusSession)))
+            .When(again)
+            .ThenAsync(new BudgetCommandAccepted(3));
+    }
+
+    [Fact]
     public async Task Given_an_open_request_when_another_session_asks_then_it_is_rejected() =>
         await Budget.Given(Configured(), Granted(Fleet1, BusSession))
             .When(Request(Fleet1, CarSession))

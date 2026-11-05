@@ -28,7 +28,7 @@ public sealed class ChargingJourneyTests
                 Journey, Command, JourneySession, DriversCard, Connector, Depot, MaxPower, Hold)
             .At(Minute(0)));
         step.State.ShouldBe(new AwaitingTokenLock(Terms, Minute(0)));
-        step.Effects.ShouldBe([new JourneyEffect.LockToken(DriversCard, JourneySession)]);
+        step.Effects.ShouldBe([AskForLock, AwaitReply]);
     }
 
     [Fact]
@@ -42,11 +42,11 @@ public sealed class ChargingJourneyTests
 
         step.Events.ShouldBe([new TokenSecured(Journey, Driver).At(Minute(1))]);
         step.State.ShouldBe(new AwaitingHold(Terms, Driver, Minute(1)));
-        step.Effects.ShouldBe([new JourneyEffect.PlaceHold(Driver, Hold)]);
+        step.Effects.ShouldBe([AskForHold, AwaitReply]);
     }
 
     [Fact]
-    public void Given_a_started_journey_when_the_lock_is_refused_then_nothing_is_given_back()
+    public void Given_a_started_journey_when_the_lock_is_refused_then_it_is_abandoned()
     {
         var refused = new TokenLockRefused(
             DriversCard, JourneySession, "token-is-blocked", "Token 04A2B3C4D5E6F7 is blocked.");
@@ -60,7 +60,8 @@ public sealed class ChargingJourneyTests
                 .At(Minute(1)),
         ]);
         step.State.Value.ShouldBeOfType<Abandoned>().From.ShouldBe(After(1));
-        step.Effects.ShouldBeEmpty();
+        // What was asked for is given back, whatever the answer was (section 15.6).
+        step.Effects.ShouldBe([UnlockTheToken]);
     }
 
     [Fact]
@@ -70,8 +71,7 @@ public sealed class ChargingJourneyTests
 
         step.Events.ShouldBe([new HoldSecured(Journey, HoldId).At(Minute(2))]);
         step.State.ShouldBe(new AwaitingAllocation(Terms, HoldId, Minute(2)));
-        step.Effects.ShouldBe(
-            [new JourneyEffect.RequestAllocation(Depot, Connector, JourneySession, MaxPower)]);
+        step.Effects.ShouldBe([AskForPower, AwaitReply]);
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public sealed class ChargingJourneyTests
             new JourneyAbandoned(Journey, AbandonReasons.HoldDeclined, "The card was declined.")
                 .At(Minute(2)),
         ]);
-        step.Effects.ShouldBe([new JourneyEffect.UnlockToken(DriversCard, JourneySession)]);
+        step.Effects.ShouldBe([VoidTheHold, UnlockTheToken]);
     }
 
     [Fact]
@@ -99,7 +99,8 @@ public sealed class ChargingJourneyTests
         step.State.ShouldBe(new AwaitingEnergyFlow(Terms, HoldId, new Power(22m), Minute(3)));
         step.Effects.ShouldBe(
         [
-            new JourneyEffect.StartCharger(Connector, DriversCard, JourneySession, new Power(22m)),
+            new JourneyEffect.CancelTimer(JourneyTimer.Reply),
+            StartChargerAt(new Power(22m)),
             new JourneyEffect.StartTimer(JourneyTimer.EnergyFlow, TimeSpan.FromMinutes(2)),
         ]);
     }
@@ -110,12 +111,11 @@ public sealed class ChargingJourneyTests
         var step = When(3, new QueuedForPower(Depot, Connector, JourneySession, Version: 7));
 
         step.Events.ShouldBe([new PowerSecured(Journey, Power.Zero).At(Minute(3))]);
-        step.Effects[0].ShouldBe(
-            new JourneyEffect.StartCharger(Connector, DriversCard, JourneySession, Power.Zero));
+        step.Effects[1].ShouldBe(StartChargerAt(Power.Zero));
     }
 
     [Fact]
-    public void Given_a_hold_when_the_site_refuses_then_the_hold_is_voided_and_the_token_unlocked()
+    public void Given_a_hold_when_the_site_refuses_then_everything_asked_for_is_given_back()
     {
         var refused = new BudgetCommandRejected(
             "connector-has-open-request", "Connector OHM-SLC-0042/1 already has a request.");
@@ -130,11 +130,7 @@ public sealed class ChargingJourneyTests
                     "Connector OHM-SLC-0042/1 already has a request.")
                 .At(Minute(3)),
         ]);
-        step.Effects.ShouldBe(
-        [
-            new JourneyEffect.VoidHold(HoldId),
-            new JourneyEffect.UnlockToken(DriversCard, JourneySession),
-        ]);
+        step.Effects.ShouldBe([ReleaseThePower, VoidTheHold, UnlockTheToken]);
     }
 
     [Fact]
@@ -160,9 +156,9 @@ public sealed class ChargingJourneyTests
         step.Effects.ShouldBe(
         [
             new JourneyEffect.CancelTimer(JourneyTimer.EnergyFlow),
-            new JourneyEffect.ReleaseAllocation(Depot, Connector, JourneySession),
-            new JourneyEffect.VoidHold(HoldId),
-            new JourneyEffect.UnlockToken(DriversCard, JourneySession),
+            ReleaseThePower,
+            VoidTheHold,
+            UnlockTheToken,
         ]);
     }
 
@@ -185,7 +181,7 @@ public sealed class ChargingJourneyTests
         step.Events.ShouldBe(
             [new SettlementDue(Journey, new Energy(30m), Twelve).At(Minute(5))]);
         step.State.ShouldBe(new Settling(Terms, HoldId, Twelve));
-        step.Effects.ShouldBe([new JourneyEffect.CapturePayment(HoldId, Twelve)]);
+        step.Effects.ShouldBe([Capture(Twelve)]);
     }
 
     [Fact]

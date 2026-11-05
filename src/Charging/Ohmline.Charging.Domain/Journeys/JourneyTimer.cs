@@ -8,4 +8,10 @@ public enum JourneyTimer
 
     /// <summary>How long to wait before trying a failed capture again.</summary>
     CaptureRetry,
+
+    /// <summary>
+    /// How long to wait for another context's answer before asking again: a message can be
+    /// lost, and an unanswered request is asked again under the same key.
+    /// </summary>
+    Reply,
 }

@@ -16,31 +16,33 @@ namespace Ohmline.Charging.Actors.Tests.Journeys;
 internal sealed class ProbePaymentPort(IActorRef payments) : IPaymentPort
 {
     public Task<PaymentPortResult> PlaceHoldAsync(
-        DriverRef driver, Money amount, CancellationToken cancellationToken) =>
+        IdempotencyKey key, DriverRef driver, Money amount, CancellationToken cancellationToken) =>
         payments.Ask<PaymentPortResult>(
-            new PortCall.PlaceHold(driver, amount), PortCall.Timeout, cancellationToken);
+            new PortCall.PlaceHold(key, driver, amount), PortCall.Timeout, cancellationToken);
 
     public Task<PaymentPortResult> CaptureAsync(
-        string holdId, Money amount, CancellationToken cancellationToken) =>
+        IdempotencyKey key, string holdId, Money amount, CancellationToken cancellationToken) =>
         payments.Ask<PaymentPortResult>(
-            new PortCall.Capture(holdId, amount), PortCall.Timeout, cancellationToken);
+            new PortCall.Capture(key, holdId, amount), PortCall.Timeout, cancellationToken);
 
-    public Task<PaymentPortResult> VoidAsync(string holdId, CancellationToken cancellationToken) =>
+    public Task<PaymentPortResult> VoidAsync(
+        IdempotencyKey hold, CancellationToken cancellationToken) =>
         payments.Ask<PaymentPortResult>(
-            new PortCall.Void(holdId), PortCall.Timeout, cancellationToken);
+            new PortCall.Void(hold), PortCall.Timeout, cancellationToken);
 }
 
 /// <inheritdoc cref="ProbePaymentPort"/>
 internal sealed class ProbeChargerPort(IActorRef chargers) : IChargerCommandPort
 {
     public Task<ChargerCommandResult> RemoteStartAsync(
+        IdempotencyKey key,
         ConnectorId connectorId,
         TokenUid tokenUid,
         SessionId sessionId,
         Power limit,
         CancellationToken cancellationToken) =>
         chargers.Ask<ChargerCommandResult>(
-            new PortCall.RemoteStart(connectorId, tokenUid, sessionId, limit),
+            new PortCall.RemoteStart(key, connectorId, tokenUid, sessionId, limit),
             PortCall.Timeout,
             cancellationToken);
 
@@ -63,14 +65,18 @@ internal abstract record PortCall : INoSerializationVerificationNeeded
 {
     public static readonly TimeSpan Timeout = TimeSpan.FromSeconds(3);
 
-    public sealed record PlaceHold(DriverRef Driver, Money Amount) : PortCall;
+    public sealed record PlaceHold(IdempotencyKey Key, DriverRef Driver, Money Amount) : PortCall;
 
-    public sealed record Capture(string HoldId, Money Amount) : PortCall;
+    public sealed record Capture(IdempotencyKey Key, string HoldId, Money Amount) : PortCall;
 
-    public sealed record Void(string HoldId) : PortCall;
+    public sealed record Void(IdempotencyKey Hold) : PortCall;
 
     public sealed record RemoteStart(
-        ConnectorId ConnectorId, TokenUid TokenUid, SessionId SessionId, Power Limit) : PortCall;
+        IdempotencyKey Key,
+        ConnectorId ConnectorId,
+        TokenUid TokenUid,
+        SessionId SessionId,
+        Power Limit) : PortCall;
 
     public sealed record RemoteStop(ConnectorId ConnectorId, SessionId SessionId) : PortCall;
 
