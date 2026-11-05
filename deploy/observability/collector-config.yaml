@@ -1,0 +1,51 @@
+# The OpenTelemetry Collector between Ohmline's services and the backends (section 18.7). The
+# services know one endpoint, this one; where each signal goes from here is decided here.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # Refuses data before the collector runs out of memory, rather than crash with it.
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 80
+    spike_limit_percentage: 20
+  batch: {}
+  # Health probes say nothing about a charge; the services do not trace them either.
+  filter/probes:
+    error_mode: ignore
+    traces:
+      span:
+        - 'attributes["url.path"] != nil and IsMatch(attributes["url.path"], "^/health")'
+
+exporters:
+  # Prometheus 3 takes OTLP itself (--web.enable-otlp-receiver): no scrape endpoint in the
+  # services, and no beta exporter package (section 18.7).
+  otlphttp/prometheus:
+    endpoint: http://lgtm:9090/api/v1/otlp
+    tls:
+      insecure: true
+  # Traces and logs to the LGTM container's own collector, which hands them to Tempo and Loki.
+  otlp/lgtm:
+    endpoint: lgtm:4317
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp/prometheus]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, filter/probes, batch]
+      exporters: [otlp/lgtm]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/lgtm]

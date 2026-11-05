@@ -1,0 +1,31 @@
+# A production-shaped telemetry stack on a laptop (section 18.7): the services export OTLP to an
+# OpenTelemetry Collector, which sends metrics to Prometheus 3's own OTLP receiver and traces and
+# logs on to Tempo and Loki. Grafana shows all three. grafana/otel-lgtm runs Prometheus (with
+# --web.enable-otlp-receiver), Tempo, Loki and Grafana in one container: fine for a laptop,
+# never for production, where each is a service of its own.
+#
+#   podman compose -f deploy/observability/compose.yaml up -d
+#   export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+#   Grafana: http://localhost:3000 (admin/admin)   Prometheus: http://localhost:9090
+name: ohmline-observability
+
+services:
+  collector:
+    image: docker.io/otel/opentelemetry-collector-contrib:0.142.0
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    volumes:
+      - ./collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro,Z
+    ports:
+      - "4317:4317" # OTLP over gRPC, where the services export
+      - "4318:4318" # OTLP over HTTP
+    depends_on:
+      - lgtm
+
+  lgtm:
+    image: docker.io/grafana/otel-lgtm:0.39.0
+    ports:
+      - "3000:3000" # Grafana
+      - "9090:9090" # Prometheus: its UI, its query API and, at /api/v1/otlp, its OTLP receiver
+    volumes:
+      - ./dashboards:/otel-lgtm/ohmline-dashboards:ro,Z
+      - ./grafana-dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/ohmline.yaml:ro,Z

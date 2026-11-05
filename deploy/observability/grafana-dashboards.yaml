@@ -1,0 +1,9 @@
+# Grafana loads Ohmline's dashboards from the folder compose.yaml mounts (section 18.7).
+apiVersion: 1
+
+providers:
+  - name: Ohmline
+    folder: Ohmline
+    type: file
+    options:
+      path: /otel-lgtm/ohmline-dashboards
