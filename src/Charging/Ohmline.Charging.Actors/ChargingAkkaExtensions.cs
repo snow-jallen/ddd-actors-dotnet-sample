@@ -27,6 +27,11 @@ public static class ChargingAkkaExtensions
         /// region is registered under its key from the contracts, such as
         /// <see cref="ChargePointRegion"/>. The journal and the cluster are the host's choice.
         /// </summary>
+        /// <remarks>
+        /// An entity's actor is made by the container: the region passes the id it routed
+        /// on, and everything else the constructor asks for, the clock first, comes from the
+        /// host's services. A test that registers a fake clock gets entities that live by it.
+        /// </remarks>
         public AkkaConfigurationBuilder AddChargingContext() =>
             akka
                 .WithCustomSerializer(
@@ -35,32 +40,20 @@ public static class ChargingAkkaExtensions
                     system => new ChargingSerializer(system))
                 .WithShardRegion<ChargePointRegion>(
                     ChargePointActor.TypeName,
-                    (_, _, resolver) =>
-                    {
-                        var clock = resolver.GetService<TimeProvider>();
-                        return entityId =>
-                            ChargePointActor.Props(new ChargePointId(entityId), clock);
-                    },
+                    (_, _, resolver) => entityId =>
+                        resolver.Props<ChargePointActor>(new ChargePointId(entityId)),
                     ChargingMessageExtractors.ChargePoints,
                     EntityShardOptions.Create())
                 .WithShardRegion<ChargingSessionRegion>(
                     ChargingSessionActor.TypeName,
-                    (_, _, resolver) =>
-                    {
-                        var clock = resolver.GetService<TimeProvider>();
-                        return entityId =>
-                            ChargingSessionActor.Props(new SessionId(Guid.Parse(entityId)), clock);
-                    },
+                    (_, _, resolver) => entityId =>
+                        resolver.Props<ChargingSessionActor>(new SessionId(Guid.Parse(entityId))),
                     ChargingMessageExtractors.Sessions,
                     EntityShardOptions.Create())
                 .WithShardRegion<ChargePointListingRegion>(
                     ChargePointListingActor.TypeName,
-                    (_, _, resolver) =>
-                    {
-                        var clock = resolver.GetService<TimeProvider>();
-                        return entityId =>
-                            ChargePointListingActor.Props(new ChargePointId(entityId), clock);
-                    },
+                    (_, _, resolver) => entityId =>
+                        resolver.Props<ChargePointListingActor>(new ChargePointId(entityId)),
                     ChargingMessageExtractors.Listings,
                     EntityShardOptions.Create());
     }

@@ -8,7 +8,8 @@ using Ohmline.SiteEnergy.Actors;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// The one clock of the node. Actors read it once per command into a DecisionContext.
+// The one clock of the node. The container passes it to every entity it makes for a shard
+// region, and the entity reads it once per command into a DecisionContext.
 builder.Services.AddSingleton(TimeProvider.System);
 
 var journal = builder.Configuration.GetConnectionString("journal")

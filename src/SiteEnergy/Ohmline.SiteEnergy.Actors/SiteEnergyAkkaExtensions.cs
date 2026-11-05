@@ -15,7 +15,8 @@ public static class SiteEnergyAkkaExtensions
     {
         /// <summary>
         /// Site Energy's serializer, bound to every message family it owns, and the site power
-        /// budget shard region, registered as <see cref="SitePowerBudgetRegion"/>.
+        /// budget shard region, registered as <see cref="SitePowerBudgetRegion"/>. The container
+        /// makes each budget's actor, with the site id and the host's clock.
         /// </summary>
         public AkkaConfigurationBuilder AddSiteEnergyContext() =>
             akka
@@ -25,11 +26,8 @@ public static class SiteEnergyAkkaExtensions
                     system => new SiteEnergySerializer(system))
                 .WithShardRegion<SitePowerBudgetRegion>(
                     SitePowerBudgetActor.TypeName,
-                    (_, _, resolver) =>
-                    {
-                        var clock = resolver.GetService<TimeProvider>();
-                        return entityId => SitePowerBudgetActor.Props(new SiteId(entityId), clock);
-                    },
+                    (_, _, resolver) => entityId =>
+                        resolver.Props<SitePowerBudgetActor>(new SiteId(entityId)),
                     SiteEnergyMessageExtractors.Budgets,
                     EntityShardOptions.Create());
     }

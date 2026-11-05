@@ -62,6 +62,22 @@ public sealed class ShardRegionTests
             ignoreOrder: true);
     }
 
+    [Fact]
+    public async Task Given_a_fake_clock_among_the_services_then_the_entities_decide_by_it()
+    {
+        using var database = new TemporaryDatabase();
+        var clock = new FakeTimeProvider(Morning);
+        await using var node = await SqliteNode.StartAsync(database, clock, Ct);
+        await node.AskAsync<CommandReply>(Register(), Ct);
+        clock.Advance(TimeSpan.FromMinutes(5));
+
+        (await node.AskAsync<CommandReply>(Reserve(1, DriversCard), Ct))
+            .ShouldBe(new CommandAccepted(2));
+
+        (await node.AskAsync<ChargePointStatus>(Status(), Ct))
+            .Connectors[0].ReservedUntil.ShouldBe(Morning.AddMinutes(5 + 15));
+    }
+
     private static ReviseChargePointListing Revise() => new(
         Command,
         Charger,

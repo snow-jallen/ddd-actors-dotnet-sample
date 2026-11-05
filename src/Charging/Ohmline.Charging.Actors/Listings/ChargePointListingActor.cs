@@ -28,6 +28,10 @@ public sealed class ChargePointListingActor
     public static string PersistenceIdOf(ChargePointId chargePointId) =>
         $"{TypeName}-{chargePointId}";
 
+    /// <summary>
+    /// For a test that starts the actor itself, with a clock of its choosing. In a node, the
+    /// shard region has the container make it (section 12.3).
+    /// </summary>
     public static Props Props(ChargePointId chargePointId, TimeProvider clock) =>
         Akka.Actor.Props.Create(() => new ChargePointListingActor(chargePointId, clock));
 

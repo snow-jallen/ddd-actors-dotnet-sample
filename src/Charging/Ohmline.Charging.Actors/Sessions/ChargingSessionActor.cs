@@ -24,6 +24,10 @@ public sealed class ChargingSessionActor
 
     public static string PersistenceIdOf(SessionId sessionId) => $"{TypeName}-{sessionId}";
 
+    /// <summary>
+    /// For a test that starts the actor itself, with a clock of its choosing. In a node, the
+    /// shard region has the container make it (section 12.3).
+    /// </summary>
     public static Props Props(SessionId sessionId, TimeProvider clock) =>
         Akka.Actor.Props.Create(() => new ChargingSessionActor(sessionId, clock));
 

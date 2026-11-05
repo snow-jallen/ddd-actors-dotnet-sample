@@ -40,7 +40,7 @@ internal sealed class SqliteNode : IAsyncDisposable
     {
         var builder = Host.CreateApplicationBuilder();
         builder.Logging.ClearProviders();
-        builder.Services.AddSingleton(clock);
+        builder.Services.AddSingleton(clock); // The container gives it to every entity.
         builder.Services.AddAkka("ohmline", akka => akka
             .WithRemoting("localhost", 0) // Any free port: tests run in parallel.
             .WithClustering(new ClusterOptions { Roles = [ClusterRoles.Charging] })

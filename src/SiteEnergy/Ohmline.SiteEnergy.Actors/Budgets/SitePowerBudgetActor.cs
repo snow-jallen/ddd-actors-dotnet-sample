@@ -26,6 +26,10 @@ public sealed class SitePowerBudgetActor
 
     public static string PersistenceIdOf(SiteId siteId) => $"{TypeName}-{siteId}";
 
+    /// <summary>
+    /// For a test that starts the actor itself, with a clock of its choosing. In a node, the
+    /// shard region has the container make it (section 12.3).
+    /// </summary>
     public static Props Props(SiteId siteId, TimeProvider clock) =>
         Akka.Actor.Props.Create(() => new SitePowerBudgetActor(siteId, clock));
 
