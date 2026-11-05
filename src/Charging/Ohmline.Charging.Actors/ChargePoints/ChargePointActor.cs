@@ -75,7 +75,9 @@ public sealed class ChargePointActor
 
     protected override object? ToSnapshot(
         ChargePointState state, ImmutableArray<RecentCommand> recent) =>
-        state.ToSnapshot() is { } snapshot ? snapshot with { RecentCommands = recent } : null;
+        state.ToSnapshot(_clock.GetUtcNow()) is { } snapshot
+            ? snapshot with { RecentCommands = recent }
+            : null;
 
     protected override (ChargePointState State, ImmutableArray<RecentCommand> Recent) FromSnapshot(
         object snapshot)

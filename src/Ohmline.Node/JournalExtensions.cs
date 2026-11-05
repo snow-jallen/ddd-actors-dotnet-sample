@@ -2,6 +2,7 @@ using Akka.Hosting;
 using Akka.Persistence.Sql.Config;
 using Akka.Persistence.Sql.Hosting;
 using LinqToDB;
+using Ohmline.ActorShell.Deciders;
 using Ohmline.ActorShell.Health;
 using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Actors;
@@ -38,19 +39,21 @@ public static class JournalExtensions
                         "set. In Development, appsettings.Development.json sets the second."),
                     ProviderName.SQLiteMS);
 
-            return akka.WithSqlPersistence(
-                connectionString: connectionString,
-                providerName: provider,
-                autoInitialize: true, // Creates missing tables; Chapter 20 owns the schema instead.
-                tagStorageMode: TagMode.TagTable,
-                journalBuilder: journal => journal
-                    .AddChargingTagger()
-                    .AddChargingLegacyEvents()
-                    .AddSiteEnergyTagger()
-                    .AddTraceEnvelopeTagger<TracedEventTagger>()
-                    .WithConnectivityCheck(tags: [HealthTags.Ready, "akka", "persistence"]),
-                snapshotBuilder: snapshots => snapshots
-                    .WithConnectivityCheck(tags: [HealthTags.Ready, "akka", "persistence"]));
+            return akka
+                .WithOptionalSnapshots() // Snapshots are a cache (section 20.6).
+                .WithSqlPersistence(
+                    connectionString: connectionString,
+                    providerName: provider,
+                    autoInitialize: true, // Creates missing tables (until section 20.8).
+                    tagStorageMode: TagMode.TagTable,
+                    journalBuilder: journal => journal
+                        .AddChargingTagger()
+                        .AddChargingLegacyEvents()
+                        .AddSiteEnergyTagger()
+                        .AddTraceEnvelopeTagger<TracedEventTagger>()
+                        .WithConnectivityCheck(tags: [HealthTags.Ready, "akka", "persistence"]),
+                    snapshotBuilder: snapshots => snapshots
+                        .WithConnectivityCheck(tags: [HealthTags.Ready, "akka", "persistence"]));
         }
     }
 }

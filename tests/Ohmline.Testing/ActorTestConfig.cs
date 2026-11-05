@@ -11,7 +11,8 @@ namespace Ohmline.Testing;
 /// The configuration every actor test in Ohmline runs with. Every message is serialized and
 /// deserialized on its way to an actor, as it would be between two cluster nodes, so a message
 /// that cannot make the trip (a union, a type without a manifest) fails here and not first in
-/// production. Props are not serialized: an actor's constructor may take a clock.
+/// production. Props are not serialized: an actor's constructor may take a clock. Snapshots are
+/// optional, as the node configures them (<c>OptionalSnapshots</c>, section 20.6).
 /// </summary>
 public static class ActorTestConfig
 {
@@ -22,6 +23,7 @@ public static class ActorTestConfig
         $"""
         akka.actor.serialize-messages = on
         akka.actor.serialize-creators = off
+        akka.persistence.snapshot-store-plugin-fallback.snapshot-is-optional = on
         akka.test.timefactor = {TimeFactor.ToString(CultureInfo.InvariantCulture)}
         """);
 

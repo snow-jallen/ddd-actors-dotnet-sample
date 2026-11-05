@@ -162,9 +162,10 @@ internal static class ChargingSamples
         new ChargePointSnapshot(
             ChargePoint,
             Depot,
+            TakenAt: At.AddMinutes(5),
             [
                 new ConnectorSnapshot.Available(1, new Power(22m)),
-                new ConnectorSnapshot.Reserved(2, new Power(22m), Token, At.AddMinutes(15)),
+                new ConnectorSnapshot.Reserved(2, new Power(22m), Token, TimeSpan.FromMinutes(10)),
                 new ConnectorSnapshot.Occupied(3, new Power(150m), Session),
                 new ConnectorSnapshot.Faulted(4, new Power(150m), "GroundFailure"),
                 new ConnectorSnapshot.Unavailable(5, new Power(7.4m)),

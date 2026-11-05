@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Ohmline.ActorShell.Clustering;
+using Ohmline.ActorShell.Deciders;
 using Ohmline.Charging.Actors.Diagnostics;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.Testing;
@@ -51,6 +52,7 @@ internal sealed class SqliteNode : IAsyncDisposable
                 var cluster = Cluster.Get(system);
                 cluster.Join(cluster.SelfAddress);
             })
+            .WithOptionalSnapshots()
             .WithSqlPersistence(
                 connectionString: database.ConnectionString,
                 providerName: ProviderName.SQLiteMS,

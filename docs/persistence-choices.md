@@ -83,8 +83,10 @@ persistence_id=charge-point-listing-OHM-SLC-0042 | sequence_number=3
   restart the next revision is accepted as version 4. Its payload is still readable in the row,
   so "deleted" does not mean erased (Chapter 20 deals with data that must really go).
 - **One snapshot**, at 3, with its own manifest. It is now the only copy of the listing, which
-  is why its DTO (`ChargePointListingSnapshot`) has a golden file like any event, and why
-  `snapshot-is-optional` must stay off.
+  is why its DTO (`ChargePointListingSnapshot`) has a golden file like any event. From section
+  20.6 `snapshot-is-optional` is on for every aggregate; if the listing's snapshot cannot be
+  read, `DeciderActor` sees that its events no longer start at 1 and stops it, with an ERROR,
+  rather than let it start empty.
 
 ## Consequences for the listing
 

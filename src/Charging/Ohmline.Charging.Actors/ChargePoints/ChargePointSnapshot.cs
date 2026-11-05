@@ -11,8 +11,16 @@ namespace Ohmline.Charging.Actors.ChargePoints;
 /// the fold of the events before it, never a replacement for them. Equal when the values are
 /// equal: a record alone would compare the array by reference.
 /// </summary>
+/// <remarks>
+/// Its second version (section 20.6) records when it was taken, and each reservation as how long
+/// it had left then: it reads as the charge point stood at that moment, which is what operators
+/// look for in it. The first version is read through an upcaster.
+/// </remarks>
 public sealed record ChargePointSnapshot(
-    ChargePointId ChargePointId, SiteId SiteId, ImmutableArray<ConnectorSnapshot> Connectors)
+    ChargePointId ChargePointId,
+    SiteId SiteId,
+    DateTimeOffset TakenAt,
+    ImmutableArray<ConnectorSnapshot> Connectors)
 {
     /// <summary>
     /// The commands it accepted most recently, so that a duplicate after a restart still gets
@@ -28,6 +36,7 @@ public sealed record ChargePointSnapshot(
         other is not null
         && ChargePointId == other.ChargePointId
         && SiteId == other.SiteId
+        && TakenAt == other.TakenAt
         && Connectors.SequenceEqual(other.Connectors)
         && RecentCommands.SequenceEqual(other.RecentCommands);
 

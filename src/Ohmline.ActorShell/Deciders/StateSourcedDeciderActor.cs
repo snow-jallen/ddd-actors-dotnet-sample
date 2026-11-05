@@ -14,7 +14,9 @@ namespace Ohmline.ActorShell.Deciders;
 /// <remarks>
 /// Only for aggregates whose history nobody will ever ask for: the deleted events are gone for
 /// projections too. The snapshot is the only copy of the state, so its DTO and manifest must be
-/// as stable as any event's, and <c>snapshot-is-optional</c> must stay off.
+/// as stable as any event's. With <c>snapshot-is-optional</c> on (section 20.6), an unreadable
+/// snapshot is skipped, the journal no longer starts at 1, and the shell stops the aggregate
+/// rather than start it empty.
 /// </remarks>
 public abstract class StateSourcedDeciderActor<TDecider, TState, TCommand, TEvent, TError>
     : DeciderActor<TDecider, TState, TCommand, TEvent, TError>

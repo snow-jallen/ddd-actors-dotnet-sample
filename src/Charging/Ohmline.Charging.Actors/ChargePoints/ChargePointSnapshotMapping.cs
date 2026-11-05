@@ -12,17 +12,20 @@ public static class ChargePointSnapshotMapping
 {
     extension(ChargePointState state)
     {
-        /// <summary>Null before registration: there is nothing to keep.</summary>
-        public ChargePointSnapshot? ToSnapshot() => state switch
+        /// <summary>
+        /// The state as it stands at <paramref name="takenAt"/>; null before registration.
+        /// </summary>
+        public ChargePointSnapshot? ToSnapshot(DateTimeOffset takenAt) => state switch
         {
             Unregistered => null,
             Registered registered => new(
                 registered.ChargePointId,
                 registered.SiteId,
+                takenAt,
                 [
                     .. registered.Connectors
                         .OrderBy(pair => pair.Key)
-                        .Select(pair => Of(pair.Value)),
+                        .Select(pair => Of(pair.Value, takenAt)),
                 ]),
             null => throw new InvalidOperationException("The state is default: it holds no case."),
         };
@@ -38,28 +41,32 @@ public static class ChargePointSnapshotMapping
                 connector => new Connector(
                     new ConnectorId(snapshot.ChargePointId, connector.Number),
                     connector.MaxPower,
-                    StateOf(connector))));
+                    StateOf(connector, snapshot.TakenAt))));
     }
 
-    private static ConnectorSnapshot Of(Connector connector) => connector.State switch
-    {
-        Available => new ConnectorSnapshot.Available(connector.Id.Number, connector.MaxPower),
-        Reserved held => new ConnectorSnapshot.Reserved(
-            connector.Id.Number, connector.MaxPower, held.TokenUid, held.ExpiresAt),
-        Occupied occupied => new ConnectorSnapshot.Occupied(
-            connector.Id.Number, connector.MaxPower, occupied.SessionId),
-        Faulted fault => new ConnectorSnapshot.Faulted(
-            connector.Id.Number, connector.MaxPower, fault.ErrorCode),
-        Unavailable => new ConnectorSnapshot.Unavailable(connector.Id.Number, connector.MaxPower),
-        null => throw new InvalidOperationException("The connector's state is default."),
-    };
+    private static ConnectorSnapshot Of(Connector connector, DateTimeOffset takenAt) =>
+        connector.State switch
+        {
+            Available => new ConnectorSnapshot.Available(connector.Id.Number, connector.MaxPower),
+            Reserved held => new ConnectorSnapshot.Reserved(
+                connector.Id.Number, connector.MaxPower, held.TokenUid, held.ExpiresAt - takenAt),
+            Occupied occupied => new ConnectorSnapshot.Occupied(
+                connector.Id.Number, connector.MaxPower, occupied.SessionId),
+            Faulted fault => new ConnectorSnapshot.Faulted(
+                connector.Id.Number, connector.MaxPower, fault.ErrorCode),
+            Unavailable =>
+                new ConnectorSnapshot.Unavailable(connector.Id.Number, connector.MaxPower),
+            null => throw new InvalidOperationException("The connector's state is default."),
+        };
 
-    private static ConnectorState StateOf(ConnectorSnapshot connector) => connector switch
-    {
-        ConnectorSnapshot.Available => new Available(),
-        ConnectorSnapshot.Reserved held => new Reserved(held.TokenUid, held.ExpiresAt),
-        ConnectorSnapshot.Occupied occupied => new Occupied(occupied.SessionId),
-        ConnectorSnapshot.Faulted fault => new Faulted(fault.ErrorCode),
-        ConnectorSnapshot.Unavailable => new Unavailable(),
-    };
+    private static ConnectorState StateOf(ConnectorSnapshot connector, DateTimeOffset takenAt) =>
+        connector switch
+        {
+            ConnectorSnapshot.Available => new Available(),
+            ConnectorSnapshot.Reserved held =>
+                new Reserved(held.TokenUid, takenAt + held.ExpiresIn),
+            ConnectorSnapshot.Occupied occupied => new Occupied(occupied.SessionId),
+            ConnectorSnapshot.Faulted fault => new Faulted(fault.ErrorCode),
+            ConnectorSnapshot.Unavailable => new Unavailable(),
+        };
 }

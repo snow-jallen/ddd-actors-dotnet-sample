@@ -110,7 +110,7 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         [typeof(CommandAccepted)] = "charging.command-accepted.v1",
         [typeof(CommandRejected)] = "charging.command-rejected.v1",
 
-        [typeof(ChargePointSnapshot)] = "charging.charge-point-snapshot.v1",
+        [typeof(ChargePointSnapshot)] = "charging.charge-point-snapshot.v2",
         [typeof(ChargingSessionSnapshot)] = "charging.charging-session-snapshot.v1",
 
         [typeof(ReviseChargePointListing)] = "charging.revise-charge-point-listing.v1",
@@ -164,6 +164,7 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         new Dictionary<string, Upcaster>
         {
             ["charging.meter-value-recorded.v1"] = MeterValueRecordedV1.Upcaster,
+            ["charging.charge-point-snapshot.v1"] = ChargePointSnapshotV1.Upcaster,
         }.ToFrozenDictionary();
 
     /// <summary>Permanent: Ohmline's serializer ids are listed in ADR 0007.</summary>

@@ -74,10 +74,14 @@ line.
   change to history that no event records.
 - **Never insert a "fixing" event by hand.** If the domain needs a correction, a command makes
   it, through the decider, after the aggregate recovers.
-- **Never turn on `snapshot-is-optional` to get past an unreadable event.** It only skips an
-  unreadable snapshot, and it is unsafe when events have been deleted (section 11.7).
+- **`snapshot-is-optional` does not help with an unreadable event.** It is on from section 20.6,
+  and it only skips an unreadable snapshot.
 
-An unreadable **snapshot** is the one case where deleting a row is safe, because a snapshot is a
-cache: delete that `snapshot` row and the aggregate recovers from its events. That is not true
-for an aggregate whose older events were deleted after its snapshot was taken (state sourcing,
-section 11.7): there the snapshot is the only copy, and the serializer must be fixed instead.
+An unreadable **snapshot** needs no one at all: a snapshot is a cache, and since section 20.6 the
+store skips it (`Snapshot load error for persistenceId [...]. Replaying all events since
+snapshot-is-optional=true`, at INFO), the aggregate replays its events from the first, and saves
+a snapshot it can read once it has replayed `SnapshotEvery` events or more. That is not true for
+an aggregate whose older events were deleted after its snapshot was taken (state sourcing,
+section 11.7): there the snapshot is the only copy, the shell stops the aggregate with
+`... cannot recover: no snapshot was read, and its events start at sequence number N, not 1`,
+and the serializer must be fixed to read the snapshot.

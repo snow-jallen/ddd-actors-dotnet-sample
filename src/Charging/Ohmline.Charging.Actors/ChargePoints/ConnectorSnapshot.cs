@@ -13,8 +13,9 @@ public closed record ConnectorSnapshot(int Number, Power MaxPower)
     public sealed record Available(int Number, Power MaxPower)
         : ConnectorSnapshot(Number, MaxPower);
 
+    /// <summary>Held for a token, for <paramref name="ExpiresIn"/> after the snapshot.</summary>
     public sealed record Reserved(
-        int Number, Power MaxPower, TokenUid TokenUid, DateTimeOffset ExpiresAt)
+        int Number, Power MaxPower, TokenUid TokenUid, TimeSpan ExpiresIn)
         : ConnectorSnapshot(Number, MaxPower);
 
     public sealed record Occupied(int Number, Power MaxPower, SessionId SessionId)

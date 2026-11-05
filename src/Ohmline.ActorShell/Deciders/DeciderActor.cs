@@ -39,6 +39,7 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     private readonly RecentCommands _recent = new();
     private readonly long _startedAt = Stopwatch.GetTimestamp();
     private int _eventsReplayed;
+    private long? _firstReplayed;
     private long _snapshotSequenceNr;
     private IActorRef? _writeFor;
 
@@ -90,6 +91,15 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     }
 
     public override string PersistenceId { get; }
+
+    /// <summary>
+    /// Whether recovery saw the whole history: a snapshot and the events after it, or every
+    /// event from sequence number 1. Not so when no snapshot was read (none was stored, or the
+    /// store could not read it and skipped it, section 20.6) and the journal no longer starts at
+    /// 1, because events were deleted (section 11.7).
+    /// </summary>
+    protected bool RecoveredWholeHistory =>
+        _snapshotSequenceNr > 0 || (_firstReplayed ?? LastSequenceNr + 1) == 1;
 
     /// <summary>The fold of every event so far, changed only here, through Evolve.</summary>
     protected TState State { get; private set; } = TDecider.Initial;
@@ -219,6 +229,7 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     {
         State = TDecider.Evolve(State, @event);
         _recent.Record(CausationOf(@event), LastSequenceNr);
+        _firstReplayed ??= LastSequenceNr;
         _eventsReplayed++;
     }
 
@@ -228,8 +239,25 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     /// it took, from the actor's start, includes any wait for a recovery permit (section 11.3),
     /// and is recorded by the actor's type (section 18.2).
     /// </summary>
+    /// <remarks>
+    /// An aggregate that recovered only part of its history stops instead, loudly: its state
+    /// would be quietly wrong. One that replayed many events because it had no snapshot to start
+    /// from saves one at once, so the cache fills again without waiting for the next events.
+    /// </remarks>
     private void Recovered()
     {
+        if (!RecoveredWholeHistory)
+        {
+            _log.Error(
+                "{0} cannot recover: no snapshot was read, and its events start at sequence " +
+                "number {1}, not 1. It stops rather than run on part of its history; see " +
+                "docs/runbooks/poison-event.md",
+                PersistenceId,
+                _firstReplayed ?? LastSequenceNr + 1);
+            Context.Stop(Self);
+            return;
+        }
+
         var took = Stopwatch.GetElapsedTime(_startedAt);
         ActorShellMetrics.For(Context.System).Recovered(GetType(), took);
         _log.Info(
@@ -239,6 +267,12 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
             (long)took.TotalMilliseconds,
             _snapshotSequenceNr > 0 ? $"snapshot at {_snapshotSequenceNr}" : "no snapshot",
             _eventsReplayed);
+        if (_snapshotSequenceNr == 0 && SnapshotEvery > 0 && _eventsReplayed >= SnapshotEvery
+            && ToSnapshot(State, _recent.ToSnapshot()) is { } snapshot)
+        {
+            SaveSnapshot(snapshot);
+        }
+
         OnRecovered();
     }
 

@@ -1,6 +1,7 @@
 {
   "chargePointId": "OHM-SLC-0042",
   "siteId": "slc-depot",
+  "takenAt": "2026-11-04T07:45:00-07:00",
   "connectors": [
     {
       "$kind": "available",
@@ -10,7 +11,7 @@
     {
       "$kind": "reserved",
       "tokenUid": "04A2B3C4D5E6F7",
-      "expiresAt": "2026-11-04T07:55:00-07:00",
+      "expiresIn": "00:10:00",
       "number": 2,
       "maxPower": 22
     },

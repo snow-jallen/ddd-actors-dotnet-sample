@@ -147,7 +147,7 @@ public sealed class JournalTourTests(ITestOutputHelper output)
 
         snapshot.PersistenceId.ShouldBe("charge-point-OHM-SLC-0042");
         snapshot.SequenceNumber.ShouldBe(200); // The one at 100 was deleted.
-        snapshot.Manifest.ShouldBe("charging.charge-point-snapshot.v1");
+        snapshot.Manifest.ShouldBe("charging.charge-point-snapshot.v2");
         snapshot.SerializerId.ShouldBe(9101);
         snapshot.CreatedAt.ShouldBeInRange(before, DateTimeOffset.UtcNow);
         node.System.Serialization
