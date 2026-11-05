@@ -158,6 +158,13 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch10-s08` | 10.8 A guided tour of the journal | `JournalTourTests`, `JournalTourQueries`, `docs/journal-tour.md` |
 | `ch10-s09` | 10.9 One writer per persistence id: sequence numbers instead of locks | `TwoIncarnationsTests`; "Two writers" in `docs/journal-tour.md` |
 | `ch10-s10` | 10.10 A reusable DeciderActor and the other aggregates | `DeciderActor`, `ChargingSessionActor`, `SitePowerBudgetActor`, `SiteEnergySerializer` (9102) |
+| `ch11-s01` | 11.1 Recovery in depth | The recovery INFO line in `DeciderActor`, `RecoveryTests`, `JournalProbe` |
+| `ch11-s02` | 11.2 Snapshots: a cache with a cost model | Snapshot DTOs and manifests for the three aggregates, `SnapshotEvery`, the snapshot row in `docs/journal-tour.md` |
+| `ch11-s03` | 11.3 Recovery at scale: throttling, storms and the poison event | `max-concurrent-recoveries` in the node, `OnRecoveryFailure`, `PoisonEventTests`, `docs/runbooks/poison-event.md` |
+| `ch11-s04` | 11.4 Timers derived from state: reservation expiry | Reservation timers in `ChargePointActor`, `ReservationExpiryTests` on virtual time |
+| `ch11-s06` | 11.6 Failure semantics: errors versus failures | `OnPersistFailure`/`OnPersistRejected`, `persistence-rejected`, a backoff supervisor, ADR 0008 |
+| `ch11-s07` | 11.7 Durable State: the non-event-sourced alternative | `ChargePointListing`, `StateSourcedDeciderActor`, `docs/persistence-choices.md` |
+| `ch11-s08` | 11.8 Testing the shell with Akka.Persistence.TestKit | `PersistenceShellSpec`; the actor tests rewritten on it; `SnapshotFailureTests` |
 
 ## Licence and disclaimers
 

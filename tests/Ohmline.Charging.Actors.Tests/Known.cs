@@ -1,4 +1,5 @@
 using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Domain.ChargePoints;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Units;
 
@@ -42,4 +43,19 @@ internal static class Known
 
     public static GetChargePointStatus Status(ChargePointId? chargePoint = null) =>
         new(chargePoint ?? Charger);
+
+    /// <summary>What <see cref="Register"/> records, stamped as the decider stamps it.</summary>
+    public static ChargePointEvent Registered() =>
+        Stamped(new ChargePointRegistered(Charger, Depot, [new Power(22m), new Power(22m)]));
+
+    /// <summary>What <see cref="Reserve"/> records when decided at <paramref name="at"/>.</summary>
+    public static ChargePointEvent Reserved(
+        int connector, TokenUid token, DateTimeOffset? at = null) =>
+        Stamped(
+            new ConnectorReserved(
+                Charger, connector, token, (at ?? Morning) + ChargePoint.ReservationHold),
+            at);
+
+    public static ChargePointEvent Stamped(ChargePointEvent @event, DateTimeOffset? at = null) =>
+        @event with { CommandId = Command, OccurredAt = at ?? Morning };
 }

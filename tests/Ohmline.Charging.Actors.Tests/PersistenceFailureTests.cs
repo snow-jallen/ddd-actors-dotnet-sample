@@ -1,6 +1,5 @@
 using Akka.Actor;
 using Akka.Event;
-using Akka.Persistence.TestKit;
 using Microsoft.Extensions.Time.Testing;
 using Ohmline.Charging.Actors.ChargePoints;
 using Ohmline.Charging.Contracts;
@@ -16,34 +15,27 @@ namespace Ohmline.Charging.Actors.Tests;
 /// the actor lives on. The test journal fails and rejects on cue.
 /// </summary>
 public sealed class PersistenceFailureTests(ITestOutputHelper output)
-    : PersistenceTestKit(
+    : PersistenceShellSpec(
         ActorTestConfig.With(Serializers.Charging), nameof(PersistenceFailureTests), output)
 {
     private static readonly TimeSpan Quiet = TimeSpan.FromMilliseconds(300);
 
     private readonly FakeTimeProvider _clock = new(Morning);
 
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+    private PersistenceShellSpec.Scenario ChargePoint =>
+        Shell(ChargePointActor.Props(Charger, _clock), ChargePointActor.PersistenceIdOf(Charger));
 
     [Fact]
-    public async Task Given_a_failed_write_then_the_actor_stops_and_its_sender_hears_nothing()
-    {
-        var chargePoint = await RegisteredAsync();
-        await WatchAsync(chargePoint);
-
-        await WithJournalWrite(write => write.Fail(), async () =>
-        {
-            chargePoint.Tell(Reserve(1, DriversCard), TestActor);
-            await ExpectTerminatedAsync(chargePoint, cancellationToken: Ct);
-        });
-
-        await ExpectNoMsgAsync(Quiet, Ct);
-    }
+    public async Task Given_a_failed_write_then_the_actor_stops_and_its_sender_hears_nothing() =>
+        await ChargePoint.Given(Registered())
+            .When(Reserve(1, DriversCard))
+            .WithJournalWrite(write => write.Fail())
+            .ThenStopsAsync();
 
     [Fact]
     public async Task Given_a_failed_write_then_the_commands_stashed_behind_it_are_dead_letters()
     {
-        var chargePoint = await RegisteredAsync();
+        var chargePoint = await ChargePoint.Given(Registered()).StartAsync();
         var deadLetters = CreateTestProbe();
         Sys.EventStream.Subscribe(deadLetters.Ref, typeof(DeadLetter));
 
@@ -61,17 +53,20 @@ public sealed class PersistenceFailureTests(ITestOutputHelper output)
     [Fact]
     public async Task Given_a_rejected_write_then_the_sender_is_told_and_the_actor_lives_on()
     {
-        var chargePoint = await RegisteredAsync();
+        IActorRef chargePoint = ActorRefs.Nobody;
+        await EventFilter
+            .Error(start: "charge-point-OHM-SLC-0042 could not persist ConnectorReserved")
+            .ExpectOneAsync(
+                async () => chargePoint = await ChargePoint.Given(Registered())
+                    .When(Reserve(1, DriversCard))
+                    .WithJournalWrite(write => write.Reject())
+                    .ThenAsync<CommandRejected>(
+                        rejected => rejected.Code.ShouldBe("persistence-rejected")),
+                Ct);
+        await ExpectNoMsgAsync(Quiet, Ct); // And no CommandAccepted after it.
 
-        await WithJournalWrite(write => write.Reject(), async () =>
-        {
-            chargePoint.Tell(Reserve(1, DriversCard), TestActor);
-            var rejected = await ExpectMsgAsync<CommandRejected>(cancellationToken: Ct);
-            rejected.Code.ShouldBe("persistence-rejected");
-            await ExpectNoMsgAsync(Quiet, Ct); // And no CommandAccepted after it.
-        });
-
-        var status = await StatusAsync(chargePoint);
+        chargePoint.Tell(Status(), TestActor);
+        var status = await ExpectMsgAsync<ChargePointStatus>(cancellationToken: Ct);
         status.Connectors[0].State.ShouldBe(ConnectorStatus.Available); // Nothing was applied.
         status.Version.ShouldBe(2); // But the rejected event used up sequence number 2.
         chargePoint.Tell(Reserve(1, DriversCard), TestActor);
@@ -108,19 +103,5 @@ public sealed class PersistenceFailureTests(ITestOutputHelper output)
             duration: Dilated(TimeSpan.FromSeconds(5)),
             interval: TimeSpan.FromMilliseconds(100),
             cancellationToken: Ct);
-    }
-
-    private async Task<IActorRef> RegisteredAsync()
-    {
-        var chargePoint = Sys.ActorOf(ChargePointActor.Props(Charger, _clock));
-        chargePoint.Tell(Register(), TestActor);
-        await ExpectMsgAsync(new CommandAccepted(1), cancellationToken: Ct);
-        return chargePoint;
-    }
-
-    private async Task<ChargePointStatus> StatusAsync(IActorRef chargePoint)
-    {
-        chargePoint.Tell(Status(), TestActor);
-        return await ExpectMsgAsync<ChargePointStatus>(cancellationToken: Ct);
     }
 }
