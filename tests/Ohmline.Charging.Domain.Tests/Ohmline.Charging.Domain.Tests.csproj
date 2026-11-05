@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference
+      Include="../../src/Charging/Ohmline.Charging.Domain/Ohmline.Charging.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
