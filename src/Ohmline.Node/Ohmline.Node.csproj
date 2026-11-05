@@ -12,7 +12,7 @@
     <PackageReference Include="Akka.Persistence.Hosting" />
     <PackageReference Include="Akka.Persistence.Sql.Hosting" />
     <PackageReference Include="Microsoft.Data.Sqlite" />
-    <!-- PostgreSQL, when ConnectionStrings:ohmline is set (section 12.10). -->
+    <!-- PostgreSQL, when ConnectionStrings:ohmline is set (sections 12.10 and 13.6). -->
     <PackageReference Include="Npgsql" />
   </ItemGroup>
 
@@ -21,6 +21,8 @@
     <ProjectReference
       Include="../Charging/Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
     <ProjectReference Include="../Charging/Ohmline.Charging.Api/Ohmline.Charging.Api.csproj" />
+    <ProjectReference
+      Include="../Charging/Ohmline.Charging.ReadModels/Ohmline.Charging.ReadModels.csproj" />
     <ProjectReference
       Include="../SiteEnergy/Ohmline.SiteEnergy.Actors/Ohmline.SiteEnergy.Actors.csproj" />
     <ProjectReference

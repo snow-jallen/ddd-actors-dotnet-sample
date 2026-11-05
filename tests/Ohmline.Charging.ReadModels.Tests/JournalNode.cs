@@ -9,6 +9,7 @@ using LinqToDB;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using Ohmline.ActorShell.Clustering;
 using Ohmline.Charging.Actors;
 using Ohmline.Testing;
@@ -35,27 +36,46 @@ internal sealed class JournalNode : IAsyncDisposable
 
     public ActorSystem System => _host.Services.GetRequiredService<ActorSystem>();
 
+    /// <summary>
+    /// Starts the node. With <paramref name="readModels"/>, it also runs Charging's projections
+    /// as the node does, as sharded daemons, into that database (section 13.6).
+    /// </summary>
     public static async Task<JournalNode> StartAsync(
-        TemporaryDatabase database, TimeProvider clock, CancellationToken cancellationToken)
+        TemporaryDatabase database,
+        TimeProvider clock,
+        CancellationToken cancellationToken,
+        NpgsqlDataSource? readModels = null)
     {
         var builder = Host.CreateApplicationBuilder();
         builder.Logging.ClearProviders();
         builder.Services.AddSingleton(clock);
-        builder.Services.AddAkka("ohmline", akka => akka
-            .WithRemoting("localhost", 0) // Any free port: tests run in parallel.
-            .WithClustering(new ClusterOptions { Roles = [ClusterRoles.Charging] })
-            .AddStartup((system, _) =>
+        if (readModels is not null)
+        {
+            builder.Services.AddSingleton(readModels);
+        }
+
+        builder.Services.AddAkka("ohmline", akka =>
+        {
+            akka
+                .WithRemoting("localhost", 0) // Any free port: tests run in parallel.
+                .WithClustering(new ClusterOptions { Roles = [ClusterRoles.Charging] })
+                .AddStartup((system, _) =>
+                {
+                    var cluster = Cluster.Get(system);
+                    cluster.Join(cluster.SelfAddress);
+                })
+                .WithSqlPersistence(
+                    connectionString: database.ConnectionString,
+                    providerName: ProviderName.SQLiteMS,
+                    autoInitialize: true,
+                    tagStorageMode: TagMode.TagTable,
+                    journalBuilder: journal => journal.AddChargingTagger())
+                .AddChargingContext();
+            if (readModels is not null)
             {
-                var cluster = Cluster.Get(system);
-                cluster.Join(cluster.SelfAddress);
-            })
-            .WithSqlPersistence(
-                connectionString: database.ConnectionString,
-                providerName: ProviderName.SQLiteMS,
-                autoInitialize: true,
-                tagStorageMode: TagMode.TagTable,
-                journalBuilder: journal => journal.AddChargingTagger())
-            .AddChargingContext());
+                akka.AddChargingReadModels();
+            }
+        });
 
         var host = builder.Build();
         await host.StartAsync(cancellationToken);

@@ -17,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton(TimeProvider.System);
 
 builder.AddServiceDefaults();
+builder.Services.AddOhmlineReadModels(builder.Configuration);
 
 builder.Services.AddAkka("ohmline", akka => akka
     .ConfigureLoggers(loggers =>
@@ -33,7 +34,8 @@ builder.Services.AddAkka("ohmline", akka => akka
     .AddChargingContext()
     .AddSiteEnergyContext()
     .AddDriverAccountsContext()
-    .AddTariffsContext());
+    .AddTariffsContext()
+    .WithOhmlineReadModels(builder.Configuration));
 
 builder.Services.AddProblemDetails();
 builder.Services.AddChargingApi();
@@ -54,5 +56,5 @@ if (app.Environment.IsDevelopment())
 
 app.Run();
 
-/// <summary>Visible to <c>WebApplicationFactory&lt;Program&gt;</c> in the integration tests.</summary>
+/// <summary>Visible to <c>WebApplicationFactory&lt;Program&gt;</c> in integration tests.</summary>
 public partial class Program;

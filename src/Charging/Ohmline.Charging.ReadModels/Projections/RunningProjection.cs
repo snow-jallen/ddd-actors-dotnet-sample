@@ -14,12 +14,15 @@ public sealed class RunningProjection(
     public Task Completion { get; } = completion;
 
     /// <summary>
-    /// Stops reading. The event being handled, if any, finishes or rolls back; either way the
-    /// stored offset says where the next start resumes.
+    /// Stops reading, without waiting. The event being handled, if any, finishes or rolls back;
+    /// either way the stored offset says where the next start resumes.
     /// </summary>
+    public void Stop() => killSwitch.Shutdown();
+
+    /// <summary>Stops reading and waits until the stream has stopped.</summary>
     public async ValueTask DisposeAsync()
     {
-        killSwitch.Shutdown();
+        Stop();
         await Completion.ContinueWith(_ => { }, TaskScheduler.Default);
     }
 }
