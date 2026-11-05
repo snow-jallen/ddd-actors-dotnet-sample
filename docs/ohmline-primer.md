@@ -11,7 +11,8 @@ app, and Ohmline has to keep three promises at once:
   released.
 
 This primer introduces the vocabulary by following one charge from plug-in to receipt. The terms
-in *italics* are part of the ubiquitous language and are defined in `docs/glossary.md`.
+in *italics* are part of the ubiquitous language; `docs/glossary.md` defines the most important
+of them and grows with the book.
 
 ## One site
 
