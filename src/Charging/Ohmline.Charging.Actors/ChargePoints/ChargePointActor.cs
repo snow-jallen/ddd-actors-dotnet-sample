@@ -56,9 +56,9 @@ public sealed class ChargePointActor : ReceivePersistentActor
                 replyTo.Tell(new CommandAccepted(LastSequenceNr));
                 break;
             case Ok<ImmutableArray<ChargePointEvent>> accepted:
-                // One decision, one atomic write. Each event is applied once it is stored, and
-                // the sender hears yes only after the last one.
-                PersistAll(
+                // WRONG ON PURPOSE (branch wrong/ch10-s06-persist-async-decider): nothing waits
+                // for this write, so the next command is decided before these events are applied.
+                PersistAllAsync(
                     accepted.Value,
                     Apply,
                     () => replyTo.Tell(new CommandAccepted(LastSequenceNr)));
