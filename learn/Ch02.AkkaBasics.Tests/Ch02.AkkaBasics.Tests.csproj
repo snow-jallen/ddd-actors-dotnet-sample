@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The actors live in this test project: chapter 2 writes no product code. -->
+  <ItemGroup>
+    <PackageReference Include="Akka" />
+    <PackageReference Include="Akka.TestKit.Xunit" />
+  </ItemGroup>
+
+</Project>

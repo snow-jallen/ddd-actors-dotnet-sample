@@ -12,6 +12,7 @@
 
   <!-- Every Akka.* package uses Version="$(AkkaVersion)", so an upgrade is a one-line change. -->
   <ItemGroup Label="Akka.NET">
+    <PackageVersion Include="Akka" Version="$(AkkaVersion)" />
   </ItemGroup>
 
   <ItemGroup Label="Hosting and Aspire">
@@ -30,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Testing">
+    <PackageVersion Include="Akka.TestKit.Xunit" Version="$(AkkaVersion)" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="xunit.v3" Version="4.0.2" />
   </ItemGroup>
