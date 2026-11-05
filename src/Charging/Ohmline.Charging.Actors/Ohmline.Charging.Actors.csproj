@@ -16,6 +16,9 @@
     <ProjectReference Include="../Ohmline.Charging.Domain/Ohmline.Charging.Domain.csproj" />
     <ProjectReference Include="../Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
     <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+    <!-- Billing's hold API, which the journey's payment port calls (section 16.5). -->
+    <ProjectReference
+      Include="../../Billing/Ohmline.Billing.Contracts/Ohmline.Billing.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

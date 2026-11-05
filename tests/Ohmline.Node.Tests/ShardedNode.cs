@@ -39,6 +39,8 @@ public abstract class ShardedNode(ITestOutputHelper output)
         base.ConfigureServices(context, services);
         services.AddSingleton<TimeProvider>(Clock);
         services.AddDevelopmentJourneyPorts(); // As the node does in Development.
+        // Billing is not in the test: payments in memory, behind the same port.
+        services.AddSingleton<IPaymentPort, InMemoryPaymentPort>();
     }
 
     protected override void ConfigureAkka(

@@ -7,9 +7,10 @@ using Ohmline.SharedKernel.Monetary;
 namespace Ohmline.Charging.Actors.Journeys.Ports;
 
 /// <summary>
-/// Payments in this process's memory, until Billing takes them over (section 16.5): every hold
-/// is placed, a capture takes at most what is held, and a void releases the hold. Nothing leaves
-/// the process and nothing survives it, so a node registers it only in Development.
+/// Payments in this process's memory: every hold is placed, a capture takes at most what is
+/// held, and a void releases the hold. Nothing leaves the process and nothing survives it.
+/// Retired from the node when Billing took the payments over (section 16.5); tests that run a
+/// journey without Billing put it behind the port instead.
 /// </summary>
 /// <remarks>
 /// Every call is idempotent by its key (section 15.6): a hold or a capture asked for again

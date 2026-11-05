@@ -11,12 +11,11 @@ public static class DevelopmentPortsExtensions
     extension(IServiceCollection services)
     {
         /// <summary>
-        /// Stand-ins for Development (section 15.4): payments in memory, and charge points that
-        /// only log. Chapter 16 puts Billing and the Device Gateway behind the same ports.
+        /// The stand-in left for Development (section 15.4): charge points that only log, until
+        /// the Device Gateway connects real ones (section 16.7). Payments go to Billing since
+        /// section 16.5.
         /// </summary>
         public IServiceCollection AddDevelopmentJourneyPorts() =>
-            services
-                .AddSingleton<IPaymentPort, InMemoryPaymentPort>()
-                .AddSingleton<IChargerCommandPort, LoggingChargerCommandPort>();
+            services.AddSingleton<IChargerCommandPort, LoggingChargerCommandPort>();
     }
 }

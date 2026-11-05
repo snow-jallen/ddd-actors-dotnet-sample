@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Ohmline.Charging.Contracts.Integration;
 
@@ -27,7 +28,11 @@ public sealed record ChargingFeedPage(ImmutableArray<ChargingFeedEntry> Entries,
 /// </summary>
 public sealed record ChargingFeedEntry(long Position, JsonElement Event)
 {
-    /// <summary>The wire name, such as <c>ohmline.charging.session-completed.v1</c>.</summary>
+    /// <summary>
+    /// The event's wire name, such as <c>ohmline.charging.session-completed.v1</c>: read from
+    /// the event, never written beside it.
+    /// </summary>
+    [JsonIgnore]
     public string? Type =>
         Event.ValueKind is JsonValueKind.Object
         && Event.TryGetProperty("type", out var type)
