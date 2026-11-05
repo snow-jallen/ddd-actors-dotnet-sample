@@ -1,0 +1,34 @@
+# Who must review a change, by path (section 5.5). When several patterns match a file, the last
+# one wins, so the general rules come first.
+#
+# The owners are e-mail addresses at ohmline.example, a domain reserved for examples, so that
+# nobody real is ever asked for a review. A real repository names GitHub teams instead
+# (@your-org/sessions). The two review groups below stand for one reviewer from each team:
+#   charging-contracts@  Sessions, Gateway and Finance IT
+#   kernel-reviewers@    Sessions, Gateway, Energy, Pricing and Accounts, Finance IT
+
+# Anything not listed below: the architecture group.
+*                                           architecture@ohmline.example
+
+# Each context belongs to the team that owns it on the context map.
+/src/Charging/                              sessions@ohmline.example
+/src/SiteEnergy/                            energy@ohmline.example
+/src/Tariffs/                               pricing-accounts@ohmline.example
+/src/DriverAccounts/                        pricing-accounts@ohmline.example
+/src/Billing/                               finance-it@ohmline.example
+
+# Partnership: the gateway translates straight into Charging's commands, so both teams review.
+/src/DeviceGateway/                         gateway@ohmline.example sessions@ohmline.example
+
+# Published Language and Customer/Supplier contracts: the supplier and its consumers review.
+/src/Charging/Ohmline.Charging.Contracts/   charging-contracts@ohmline.example
+/src/Billing/Ohmline.Billing.Contracts/     finance-it@ohmline.example sessions@ohmline.example
+
+# Shared Kernel: every team that uses it reviews (src/Ohmline.SharedKernel/GOVERNANCE.md).
+/src/Ohmline.SharedKernel/                  kernel-reviewers@ohmline.example
+
+# The rules that keep the layout honest, and this file itself.
+/build/                                     architecture@ohmline.example
+/tests/Ohmline.ArchitectureTests/           architecture@ohmline.example
+/docs/context-map.md                        architecture@ohmline.example
+/.github/CODEOWNERS                         architecture@ohmline.example
