@@ -35,7 +35,8 @@ public sealed class ChargingSessionTests
         Started,
         Recorded(1_205_000),
         Anomaly(1_000),
-        new ChargingSuspended(Session).At(Morning.AddMinutes(12)),
+        new ChargingSuspendedByCharger(Session).At(Morning.AddMinutes(12)),
+        new ChargingSuspendedByEv(Session).At(Morning.AddMinutes(13)),
         new ChargingResumed(Session).At(Morning.AddMinutes(15)),
         new SpendCapReached(Session, new Money(10.50m, Currency.Usd), Cap).At(Morning),
         new SessionEnded(Session, Depot, Connector, DriversCard, new Energy(21m)).At(Later),
@@ -67,7 +68,8 @@ public sealed class ChargingSessionTests
 
     [Theory]
     [InlineData("active")]
-    [InlineData("suspended")]
+    [InlineData("suspended by EV")]
+    [InlineData("suspended by charger")]
     [InlineData("ended")]
     public void Given_a_session_that_has_started_when_started_again_then_it_is_refused(
         string state)
@@ -86,7 +88,7 @@ public sealed class ChargingSessionTests
         SessionCommand early = command switch
         {
             "meter value" => new RecordMeterValue(Command, Session, 1_200_100, Morning),
-            "suspend" => new SuspendCharging(Command, Session),
+            "suspend" => Suspend("EV"),
             "resume" => new ResumeCharging(Command, Session),
             "stop" => new StopSession(Command, Session),
             _ => throw new ArgumentOutOfRangeException(nameof(command)),
@@ -99,7 +101,8 @@ public sealed class ChargingSessionTests
 
     [Theory]
     [InlineData("active")]
-    [InlineData("suspended")]
+    [InlineData("suspended by EV")]
+    [InlineData("suspended by charger")]
     public void Given_a_running_session_when_a_higher_register_arrives_then_it_is_recorded(
         string state)
     {
@@ -175,25 +178,34 @@ public sealed class ChargingSessionTests
                 new MeterValueRecorded(Session, 1_220_500, Morning.AddMinutes(41)).At(Morning));
     }
 
-    // SuspendCharging and ResumeCharging
+    // SuspendCharging and ResumeCharging: who suspended the charge?
 
-    [Fact]
-    public void Given_an_active_session_when_suspended_then_it_is_suspended_at_the_contexts_time()
+    [Theory]
+    [InlineData("active", "EV")]
+    [InlineData("suspended by charger", "EV")]
+    [InlineData("active", "charger")]
+    [InlineData("suspended by EV", "charger")]
+    public void Given_a_running_session_when_suspended_then_the_event_says_who_suspended_it(
+        string state, string by)
     {
-        Decide(History("active"), new SuspendCharging(Command, Session), at: Later)
-            .ShouldAccept(new ChargingSuspended(Session).At(Later));
+        Decide(History(state), Suspend(by), at: Later).ShouldAccept(Suspension(by).At(Later));
     }
 
-    [Fact]
-    public void Given_a_suspended_session_when_suspended_again_then_nothing_changes()
+    [Theory]
+    [InlineData("suspended by EV", "EV")]
+    [InlineData("suspended by charger", "charger")]
+    public void Given_a_suspended_session_when_the_same_side_suspends_it_again_then_nothing_changes(
+        string state, string by)
     {
-        Decide(History("suspended"), new SuspendCharging(Command, Session)).ShouldAccept();
+        Decide(History(state), Suspend(by)).ShouldAccept();
     }
 
-    [Fact]
-    public void Given_a_suspended_session_when_resumed_then_charging_continues()
+    [Theory]
+    [InlineData("suspended by EV")]
+    [InlineData("suspended by charger")]
+    public void Given_a_suspended_session_when_resumed_then_charging_continues(string state)
     {
-        Decide(History("suspended"), new ResumeCharging(Command, Session), at: Later)
+        Decide(History(state), new ResumeCharging(Command, Session), at: Later)
             .ShouldAccept(new ChargingResumed(Session).At(Later));
     }
 
@@ -206,17 +218,34 @@ public sealed class ChargingSessionTests
     [Fact]
     public void Given_an_ended_session_when_suspended_or_resumed_then_it_has_already_ended()
     {
-        Decide(History("ended"), new SuspendCharging(Command, Session))
+        Decide(History("ended"), Suspend("EV"))
             .ShouldReject(new SessionError.AlreadyEnded(Session));
         Decide(History("ended"), new ResumeCharging(Command, Session))
             .ShouldReject(new SessionError.AlreadyEnded(Session));
+    }
+
+    [Fact]
+    public void Given_a_curtailment_and_then_a_full_car_then_the_driver_is_idle_from_when_full()
+    {
+        var curtailed = Morning.AddMinutes(23);
+        var full = Morning.AddMinutes(48);
+
+        var state = ChargingSession.Fold(
+        [
+            Started,
+            new ChargingSuspendedByCharger(Session).At(curtailed),
+            new ChargingSuspendedByEv(Session).At(full),
+        ]);
+
+        state.Value.ShouldBeOfType<SuspendedByEv>().Since.ShouldBe(full);
     }
 
     // StopSession: idempotent by state
 
     [Theory]
     [InlineData("active")]
-    [InlineData("suspended")]
+    [InlineData("suspended by EV")]
+    [InlineData("suspended by charger")]
     public void Given_a_running_session_when_stopped_then_it_ends_with_the_energy_delivered(
         string state)
     {
@@ -276,7 +305,7 @@ public sealed class ChargingSessionTests
             [
                 primer,
                 Recorded(1_215_000, minutes: 20),
-                new ChargingSuspended(Session).At(Morning.AddMinutes(48)),
+                new ChargingSuspendedByEv(Session).At(Morning.AddMinutes(48)),
                 Recorded(1_227_600, minutes: 60),
                 new SessionEnded(Session, Depot, Connector, DriversCard, new(27.6m)).At(ended),
             ])
@@ -298,7 +327,10 @@ public sealed class ChargingSessionTests
     private static SessionEvent[] History(string state) => state switch
     {
         "active" => [Started],
-        "suspended" => [Started, new ChargingSuspended(Session).At(Morning.AddMinutes(5))],
+        "suspended by EV" =>
+            [Started, new ChargingSuspendedByEv(Session).At(Morning.AddMinutes(5))],
+        "suspended by charger" =>
+            [Started, new ChargingSuspendedByCharger(Session).At(Morning.AddMinutes(5))],
         "ended" =>
         [
             Started,
@@ -310,6 +342,20 @@ public sealed class ChargingSessionTests
 
     private static StartSession Start(Money? spendCap = null) =>
         new(Command, Session, Depot, Connector, DriversCard, Tariff, spendCap ?? Cap, 1_200_000);
+
+    private static SuspendCharging Suspend(string by) => new(Command, Session, by switch
+    {
+        "EV" => new ByEv(),
+        "charger" => new ByCharger(),
+        _ => throw new ArgumentOutOfRangeException(nameof(by)),
+    });
+
+    private static SessionEvent Suspension(string by) => by switch
+    {
+        "EV" => new ChargingSuspendedByEv(Session),
+        "charger" => new ChargingSuspendedByCharger(Session),
+        _ => throw new ArgumentOutOfRangeException(nameof(by)),
+    };
 
     private static SessionEvent Recorded(long registerWh, int minutes = 10) =>
         new MeterValueRecorded(Session, registerWh, Morning.AddMinutes(minutes))

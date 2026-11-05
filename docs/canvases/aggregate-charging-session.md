@@ -20,10 +20,15 @@ point does) or how much power flows (the site power budget does).
 stateDiagram-v2
     [*] --> NoSession
     NoSession --> Active: SessionStarted
-    Active --> Suspended: ChargingSuspended
-    Suspended --> Active: ChargingResumed
+    Active --> SuspendedByEv: ChargingSuspendedByEv
+    Active --> SuspendedByCharger: ChargingSuspendedByCharger
+    SuspendedByCharger --> SuspendedByEv: ChargingSuspendedByEv
+    SuspendedByEv --> SuspendedByCharger: ChargingSuspendedByCharger
+    SuspendedByEv --> Active: ChargingResumed
+    SuspendedByCharger --> Active: ChargingResumed
     Active --> Ended: SessionEnded
-    Suspended --> Ended: SessionEnded
+    SuspendedByEv --> Ended: SessionEnded
+    SuspendedByCharger --> Ended: SessionEnded
     Ended --> [*]
 ```
 
@@ -63,14 +68,14 @@ good reading. Likewise, reaching the spend cap is not a rejection but a fact,
 |---|---|---|
 | `StartSession` | Charging journey | No session yet, with a valid spend cap |
 | `RecordMeterValue` | Device Gateway | Active or suspended; a duplicate of the latest reading or a late reading after the end changes nothing |
-| `SuspendCharging` | Device Gateway | Active; already suspended is a no-op |
+| `SuspendCharging` | Device Gateway | Active, or suspended by the other side (the latest report says who); suspended again by the same side is a no-op |
 | `ResumeCharging` | Device Gateway | Suspended; already active is a no-op |
 | `StopSession` | Device Gateway, charging journey | Active or suspended; **already ended is a no-op**, so a repeated stop is harmless |
 
 ## Created events
 
-`SessionStarted`, `MeterValueRecorded`, `MeterAnomalyDetected`, `ChargingSuspended`,
-`ChargingResumed`, `SpendCapReached`, `SessionEnded`.
+`SessionStarted`, `MeterValueRecorded`, `MeterAnomalyDetected`, `ChargingSuspendedByEv`,
+`ChargingSuspendedByCharger`, `ChargingResumed`, `SpendCapReached`, `SessionEnded`.
 
 ## Throughput
 

@@ -55,7 +55,13 @@ public sealed record MeterAnomalyDetected(
     DateTimeOffset LastMeasuredAt)
     : SessionEvent(SessionId);
 
-public sealed record ChargingSuspended(SessionId SessionId) : SessionEvent(SessionId);
+/// <summary>The car stopped drawing power while plugged in: the driver is idle from now.</summary>
+public sealed record ChargingSuspendedByEv(SessionId SessionId) : SessionEvent(SessionId);
+
+/// <summary>
+/// The charge point stopped delivering power, at Ohmline's request: the driver is not idle.
+/// </summary>
+public sealed record ChargingSuspendedByCharger(SessionId SessionId) : SessionEvent(SessionId);
 
 public sealed record ChargingResumed(SessionId SessionId) : SessionEvent(SessionId);
 

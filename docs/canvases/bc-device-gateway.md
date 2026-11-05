@@ -53,7 +53,7 @@ becomes inside Ohmline.
 | Transaction (OCPP transaction) | Charging session |
 | StartTransaction / StopTransaction | `StartSession` / `StopSession` |
 | Authorize | `LockForSession`, through the charging journey |
-| StatusNotification "Charging", "SuspendedEV", "Faulted" | `OccupyConnector`, `SuspendCharging`, `ReportConnectorFault` |
+| StatusNotification "Charging", "SuspendedEV", "SuspendedEVSE", "Faulted" | `OccupyConnector`, `SuspendCharging` with `ByEv` or `ByCharger` (section 8.6), `ReportConnectorFault` |
 | MeterValues (in Wh or kWh, by vendor) | `RecordMeterValue` (always an `Energy` register) |
 | Charging profile (`SetChargingProfile`) | Keeps its external name |
 

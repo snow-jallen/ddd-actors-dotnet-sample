@@ -37,22 +37,30 @@ public sealed class ChargingSession
             (NoSession, StartSession start) => Start(start),
             (NoSession, RecordMeterValue or SuspendCharging or ResumeCharging or StopSession) =>
                 Reject(new SessionError.NotStarted(command.SessionId)),
-            (Active or Suspended or Ended, StartSession) =>
+            (Active or SuspendedByEv or SuspendedByCharger or Ended, StartSession) =>
                 Reject(new SessionError.AlreadyStarted(command.SessionId)),
 
             (Active active, RecordMeterValue value) => Record(active.Terms, active.Meter, value),
-            (Suspended paused, RecordMeterValue value) => Record(paused.Terms, paused.Meter, value),
+            (SuspendedByEv idle, RecordMeterValue value) => Record(idle.Terms, idle.Meter, value),
+            (SuspendedByCharger paused, RecordMeterValue value) =>
+                Record(paused.Terms, paused.Meter, value),
             (Ended, RecordMeterValue) => NoChange,
 
-            (Active, SuspendCharging suspend) => Accept(new ChargingSuspended(suspend.SessionId)),
-            (Suspended, SuspendCharging) => NoChange,
-            (Suspended, ResumeCharging resume) => Accept(new ChargingResumed(resume.SessionId)),
+            (Active or SuspendedByCharger, SuspendCharging { By: ByEv } suspend) =>
+                Accept(new ChargingSuspendedByEv(suspend.SessionId)),
+            (SuspendedByEv, SuspendCharging { By: ByEv }) => NoChange,
+            (Active or SuspendedByEv, SuspendCharging { By: ByCharger } suspend) =>
+                Accept(new ChargingSuspendedByCharger(suspend.SessionId)),
+            (SuspendedByCharger, SuspendCharging { By: ByCharger }) => NoChange,
+            (SuspendedByEv or SuspendedByCharger, ResumeCharging resume) =>
+                Accept(new ChargingResumed(resume.SessionId)),
             (Active, ResumeCharging) => NoChange,
             (Ended, SuspendCharging or ResumeCharging) =>
                 Reject(new SessionError.AlreadyEnded(command.SessionId)),
 
             (Active active, StopSession) => Accept(End(active.Terms, active.Meter)),
-            (Suspended paused, StopSession) => Accept(End(paused.Terms, paused.Meter)),
+            (SuspendedByEv idle, StopSession) => Accept(End(idle.Terms, idle.Meter)),
+            (SuspendedByCharger paused, StopSession) => Accept(End(paused.Terms, paused.Meter)),
             (Ended, StopSession) => NoChange,
 
             (null, _) => throw DefaultState(),
@@ -67,20 +75,34 @@ public sealed class ChargingSession
                     MeterReading.FromWattHours(started.MeterStartWh, started.OccurredAt))),
             (Active active, MeterValueRecorded recorded) =>
                 active with { Meter = active.Meter.Advance(Reading(recorded)) },
-            (Suspended paused, MeterValueRecorded recorded) =>
+            (SuspendedByEv idle, MeterValueRecorded recorded) =>
+                idle with { Meter = idle.Meter.Advance(Reading(recorded)) },
+            (SuspendedByCharger paused, MeterValueRecorded recorded) =>
                 paused with { Meter = paused.Meter.Advance(Reading(recorded)) },
-            (Active active, ChargingSuspended suspended) =>
-                new Suspended(active.Terms, active.Meter, suspended.OccurredAt),
-            (Suspended paused, ChargingResumed) => new Active(paused.Terms, paused.Meter),
+
+            (Active active, ChargingSuspendedByEv suspended) =>
+                new SuspendedByEv(active.Terms, active.Meter, suspended.OccurredAt),
+            (SuspendedByCharger paused, ChargingSuspendedByEv suspended) =>
+                new SuspendedByEv(paused.Terms, paused.Meter, suspended.OccurredAt),
+            (Active active, ChargingSuspendedByCharger suspended) =>
+                new SuspendedByCharger(active.Terms, active.Meter, suspended.OccurredAt),
+            (SuspendedByEv idle, ChargingSuspendedByCharger suspended) =>
+                new SuspendedByCharger(idle.Terms, idle.Meter, suspended.OccurredAt),
+            (SuspendedByEv idle, ChargingResumed) => new Active(idle.Terms, idle.Meter),
+            (SuspendedByCharger paused, ChargingResumed) => new Active(paused.Terms, paused.Meter),
+
             (Active active, SessionEnded ended) =>
                 new Ended(active.Terms, ended.EnergyDelivered, ended.OccurredAt),
-            (Suspended paused, SessionEnded ended) =>
+            (SuspendedByEv idle, SessionEnded ended) =>
+                new Ended(idle.Terms, ended.EnergyDelivered, ended.OccurredAt),
+            (SuspendedByCharger paused, SessionEnded ended) =>
                 new Ended(paused.Terms, ended.EnergyDelivered, ended.OccurredAt),
 
             // Anomalies and the spend cap are facts to remember in the journal, not in memory,
             // and an event that meets a state Decide would not have produced it in changes
             // nothing. Evolve never refuses.
-            (NoSession or Active or Suspended or Ended, SessionEvent) => state,
+            (NoSession or Active or SuspendedByEv or SuspendedByCharger or Ended, SessionEvent) =>
+                state,
             (null, _) => throw DefaultState(),
         };
 

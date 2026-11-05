@@ -30,9 +30,10 @@ public sealed class SpecificationTests
     private static readonly DateTimeOffset Full = Morning.AddMinutes(48);
 
     [Theory]
-    [InlineData("suspended", 14, false)]
-    [InlineData("suspended", 15, true)]
-    [InlineData("suspended", 25, true)]
+    [InlineData("suspended by EV", 14, false)]
+    [InlineData("suspended by EV", 15, true)]
+    [InlineData("suspended by EV", 25, true)]
+    [InlineData("suspended by charger", 25, false)]
     [InlineData("active", 25, false)]
     [InlineData("ended", 25, false)]
     public void Given_a_session_then_the_idle_fee_applies_once_the_grace_period_is_over(
@@ -48,7 +49,7 @@ public sealed class SpecificationTests
     [Fact]
     public void Given_a_tariff_without_an_idle_fee_then_it_never_applies()
     {
-        var session = Session("suspended", StandardTariff(0.42m));
+        var session = Session("suspended by EV", StandardTariff(0.42m));
 
         SessionPredicates.IdleFeeApplies(session, Full.AddHours(3)).ShouldBeFalse();
     }
@@ -62,9 +63,10 @@ public sealed class SpecificationTests
         SessionState[] depot =
         [
             Session("active", WithIdleFee),
-            Session("suspended", WithIdleFee),
-            Session("suspended", WithIdleFee, suspendedAt: Full.AddMinutes(-10)),
-            Session("suspended", WithIdleFee, suspendedAt: Full.AddMinutes(10)),
+            Session("suspended by EV", WithIdleFee),
+            Session("suspended by EV", WithIdleFee, suspendedAt: Full.AddMinutes(-10)),
+            Session("suspended by EV", WithIdleFee, suspendedAt: Full.AddMinutes(10)),
+            Session("suspended by charger", WithIdleFee, suspendedAt: Full.AddMinutes(-10)),
         ];
 
         depot.Where(startsWithinFiveMinutes.IsSatisfiedBy).ShouldBe([depot[1]]);
@@ -119,15 +121,20 @@ public sealed class SpecificationTests
         ChargingSession.Fold(state switch
         {
             "active" => [Started(tariff)],
-            "suspended" =>
+            "suspended by EV" =>
             [
                 Started(tariff),
-                new ChargingSuspended(Known.Session).At(suspendedAt ?? Full),
+                new ChargingSuspendedByEv(Known.Session).At(suspendedAt ?? Full),
+            ],
+            "suspended by charger" =>
+            [
+                Started(tariff),
+                new ChargingSuspendedByCharger(Known.Session).At(suspendedAt ?? Full),
             ],
             "ended" =>
             [
                 Started(tariff),
-                new ChargingSuspended(Known.Session).At(Full),
+                new ChargingSuspendedByEv(Known.Session).At(Full),
                 new SessionEnded(Known.Session, Depot, Connector, DriversCard, new(27.6m))
                     .At(Full.AddMinutes(25)),
             ],

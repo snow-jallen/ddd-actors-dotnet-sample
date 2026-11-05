@@ -56,9 +56,9 @@ public sealed class DomainEventTests
     public void Given_a_suspension_when_replayed_then_the_session_is_paused_since_it_occurred()
     {
         var paused = ChargingSession.Fold(
-            [Started(), new ChargingSuspended(Session).At(Morning.AddMinutes(48))]);
+            [Started(), new ChargingSuspendedByEv(Session).At(Morning.AddMinutes(48))]);
 
-        paused.Value.ShouldBeOfType<Suspended>().Since.ShouldBe(Morning.AddMinutes(48));
+        paused.Value.ShouldBeOfType<SuspendedByEv>().Since.ShouldBe(Morning.AddMinutes(48));
     }
 
     [Fact]

@@ -13,11 +13,11 @@ namespace Ohmline.Charging.Domain.Sessions;
 public static class SessionPredicates
 {
     /// <summary>
-    /// The idle fee applies at a moment when charging is suspended, the tariff has an idle fee,
-    /// and its grace period has run out.
+    /// The idle fee applies at a moment when the car has stopped charging, the tariff has an
+    /// idle fee, and its grace period has run out. Never when the charge point stopped it.
     /// </summary>
     public static bool IdleFeeApplies(SessionState session, DateTimeOffset at) =>
-        session is Suspended { Since: var since, Terms.Tariff.Components: var components }
+        session is SuspendedByEv { Since: var since, Terms.Tariff.Components: var components }
         && components.OfType<IdleFee>().SingleOrDefault() is { GracePeriod: var grace }
         && at >= since + grace;
 

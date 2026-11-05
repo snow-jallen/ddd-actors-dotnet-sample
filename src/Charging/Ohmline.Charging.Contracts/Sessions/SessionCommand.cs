@@ -32,8 +32,8 @@ public sealed record RecordMeterValue(
     CommandId CommandId, SessionId SessionId, long RegisterWh, DateTimeOffset MeasuredAt)
     : SessionCommand(CommandId, SessionId);
 
-/// <summary>Charging paused while the car stays plugged in.</summary>
-public sealed record SuspendCharging(CommandId CommandId, SessionId SessionId)
+/// <summary>Charging paused while the car stays plugged in, and who paused it.</summary>
+public sealed record SuspendCharging(CommandId CommandId, SessionId SessionId, SuspendedBy By)
     : SessionCommand(CommandId, SessionId);
 
 /// <summary>Charging continues after a pause.</summary>

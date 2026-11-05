@@ -46,7 +46,7 @@ The context that runs charge points, connectors, reservations and charging sessi
 | Meter anomaly | A meter reading that breaks the rules, such as a register that went backwards. Recorded, never rejected | `MeterAnomalyDetected` |
 | Energy delivered | Energy between two meter readings, or over a whole session | `Energy` |
 | Active (session) | A session that is running and not suspended. In code `Active`, never `Charging`, which is the context's namespace | `Active` |
-| Suspended | Charging paused during a session while the car stays plugged in | `SuspendCharging`, `ChargingSuspended` |
+| Suspended by EV / by charger | Charging paused while the car stays plugged in: by the car (full, or its own schedule; the driver is idle and the idle fee applies after the grace period) or by the charge point at Ohmline's request (a curtailment; no idle fee). Split in section 8.6 | `SuspendedByEv`, `SuspendedByCharger`, `SuspendCharging` with `ByEv` or `ByCharger` |
 | Spend cap | The most the driver pre-authorized; reaching it stops charging | `SpendCapReached` |
 | Tariff snapshot | The version of the site's tariff copied into a session when it starts; later tariff changes never affect that session | `TariffSnapshot` |
 | Charging journey | The process from "start charging" to a settled payment, across several contexts | `ChargingJourney`, `JourneyId` |

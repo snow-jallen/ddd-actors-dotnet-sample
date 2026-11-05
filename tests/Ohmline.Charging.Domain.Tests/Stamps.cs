@@ -5,7 +5,7 @@ namespace Ohmline.Charging.Domain.Tests;
 
 /// <summary>
 /// An expected event as a decision records it: caused by <see cref="Known.Command"/>, at the
-/// time given. <c>new ChargingSuspended(Session).At(Later)</c> reads as the fact it is.
+/// time given. <c>new ChargingResumed(Session).At(Later)</c> reads as the fact it is.
 /// </summary>
 internal static class Stamps
 {

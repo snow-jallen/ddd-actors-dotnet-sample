@@ -33,7 +33,7 @@ public sealed class PolicyTests
         new SessionStarted(Session, Depot, Connector, DriversCard, Terms.Tariff, Usd(40m), 0)
             .At(Morning),
         new MeterValueRecorded(Session, 27_600, Full).At(Full),
-        new ChargingSuspended(Session).At(Full),
+        new ChargingSuspendedByEv(Session).At(Full),
         new SessionEnded(Session, Depot, Connector, DriversCard, new Energy(27.6m)).At(Unplugged),
     ];
 
@@ -60,6 +60,13 @@ public sealed class PolicyTests
     {
         new IdleFeePolicy(Idle).React(PrimersCharge[2]).ShouldBe(
             [new ChargingIntent.WarnOfIdleFee(Session, Full.AddMinutes(15), Usd(0.40m))]);
+    }
+
+    [Fact]
+    public void Whenever_the_charge_point_suspends_charging_then_nobody_is_warned()
+    {
+        new IdleFeePolicy(Idle).React(new ChargingSuspendedByCharger(Session).At(Full))
+            .ShouldBeEmpty();
     }
 
     [Fact]

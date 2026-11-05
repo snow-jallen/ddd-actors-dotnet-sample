@@ -102,7 +102,8 @@ Three things on these rows were argued about:
 - `SpendCapReached` has no command of its own. The session records it when a meter value pushes
   the price to the cap, in the same decision as `MeterValueRecorded`.
 - `ChargingSuspended` still carries hotspot H2: the idle fee depends on *who* suspended the
-  charge. The group left the sticky as it is and wrote the question on it. Section 8.6 answers it.
+  charge. The group left the sticky as it is and wrote the question on it. Section 8.6 answers it
+  by splitting the sticky into `ChargingSuspendedByEv` and `ChargingSuspendedByCharger`.
 
 ## Stickies that did not become aggregates
 
