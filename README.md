@@ -190,6 +190,13 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch14-s05` | 14.5 Live push to app clients with SignalR | `ChargingHub` at `/hubs/charging`, `LiveUpdatesBridge` |
 | `ch14-s06` | 14.6 Many read models from one stream, including one for the driver app | `DriverAppProjection` (`driver-app-v1`), the driver app cards and feed, `GET /app/v1/tokens/{uid}/cards` and `/feed`, `driverCardChanged` |
 | `ch14-s07` | 14.7 Testing projections | `ProjectionRulesTests` and `InMemoryRunnerTests` on Akka.Persistence.Query.InMemory, `ReplayTests` |
+| `ch15-s01` | 15.1 Saga or process manager? Choreography first | `SessionEndedSubscriber` (`session-ended-subscriber-v1`): a session's end releases its allocation and unlocks its token; `CommandId.Derive` |
+| `ch15-s02` | 15.2 The charging journey as a pure state machine | `ChargingJourney.Next` over the `JourneyInput` union, `JourneyState`, `JourneyEffect`, the journey's events; Site Energy's `PowerAllocated` and `QueuedForPower` |
+| `ch15-s03` | 15.3 The journey actor: persistent, sharded, with timers | `ChargingJourneyActor` in the `charging-journey` region (remember-entities on), journey manifests and tag, `POST /journeys`, `GET /journeys/{id}` |
+| `ch15-s04` | 15.4 Ports to other contexts | `IPaymentPort`, `IChargerCommandPort`, `InMemoryPaymentPort` and `LoggingChargerCommandPort` in Development, `JourneySessionRelay` (`journey-session-relay-v1`), fake contexts with autopilots |
+| `ch15-s05` | 15.5 Timeouts and compensation | The energy-flow timeout gives everything back; capture retries with backoff, then `DebtRecorded` |
+| `ch15-s06` | 15.6 Delivery guarantees and idempotency keys | `IdempotencyKey` on every request, reply timers, idempotent ports and receivers, ADR 0011 |
+| `ch15-s07` | 15.7 Testing time-driven processes | `JourneyTransitionTableTests`, `ChargingJourneyActorTests` on the `TestScheduler` with autopilots |
 
 ## Licence and disclaimers
 

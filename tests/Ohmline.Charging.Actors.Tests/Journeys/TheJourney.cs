@@ -1,5 +1,7 @@
+using Ohmline.Charging.Actors.Tests.Serialization;
 using Ohmline.Charging.Contracts.Journeys;
 using Ohmline.Charging.Domain.Journeys;
+using Ohmline.Charging.Domain.Sessions;
 using Ohmline.DriverAccounts.Contracts.Tokens;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Monetary;
@@ -40,4 +42,21 @@ internal static class TheJourney
         Stamped(new PowerSecured(Journey, new Power(22m)));
 
     public static JourneyEvent Stamped(JourneyEvent @event) => @event with { OccurredAt = Morning };
+
+    /// <summary>The session's start, a minute in, as the relay brings it to the journey.</summary>
+    public static SessionStarted SessionBegan() =>
+        new SessionStarted(
+                JourneySession,
+                Depot,
+                Connector,
+                DriversCard,
+                ChargingSamples.Tariff,
+                Hold,
+                MeterStartWh: 1_200_000)
+            with { CommandId = Command, OccurredAt = Morning.AddMinutes(1) };
+
+    /// <summary>The session's end, forty minutes in, with this much energy delivered.</summary>
+    public static SessionEnded SessionOver(Energy delivered) =>
+        new SessionEnded(JourneySession, Depot, Connector, DriversCard, delivered)
+            with { CommandId = Command, OccurredAt = Morning.AddMinutes(40) };
 }

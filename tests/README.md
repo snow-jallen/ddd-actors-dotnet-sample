@@ -24,6 +24,9 @@ someone about to write a test: where the helpers are, and the smells to avoid.
 | A runner without a journal file | `MemoryJournal` for the events (its tag offsets start at 0) and `PostgresFixture` for the read model's transaction | `InMemoryRunnerTests` |
 | That replaying the journal changes no read model | Set the projections' offsets back to 0, start a new `OhmlineNode`, and compare the rows | `ReplayTests` in `Ohmline.IntegrationTests` |
 | The shape of what is persisted or sent | `Golden.Verify` in `Ohmline.Testing`, one file per manifest in `tests/golden/`; accept a new file with `OHMLINE_ACCEPT_GOLDEN=1` | `SerializationTests` in `Ohmline.Charging.Actors.Tests` |
+| A process manager's steps | Its pure `Next` as a transition table: in this step, when this happens, then that step, doing this; timers are inputs like any other | `JourneyTransitionTableTests` in `Ohmline.Charging.Domain.Tests` |
+| Other contexts, as a process manager sees them | `TestProbe`s with autopilots that answer as those contexts would, behind the ports and in place of their shard regions (`FakeContexts`) | `FakeContextTests` in `Ohmline.Charging.Actors.Tests` |
+| An actor's timers | `ActorTestConfig.VirtualTime` (Akka's `TestScheduler`) and a `FakeTimeProvider`, moved on together; ask the actor something first, as a barrier, so the timer exists before time moves. Never with clustering | `ChargingJourneyActorTests`, `ReservationExpiryTests` |
 
 Fixtures are named for the domain: `Known` (Charging), `TheDepot` (Site Energy) and
 `TheDepotTariff` (Tariffs) hold the people, places, tariffs and fixed instants the tests talk

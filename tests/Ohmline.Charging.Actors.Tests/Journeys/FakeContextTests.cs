@@ -43,9 +43,9 @@ public sealed class FakeContextTests(ITestOutputHelper output)
         journey.Tell(Start(), TestActor);
         await ExpectMsgAsync(new CommandAccepted(1), cancellationToken: Ct);
         await StepAsync(journey, JourneyView.AwaitingEnergyFlow);
-        journey.Tell(SessionStarted(), TestActor);
+        journey.Tell(SessionBegan(), TestActor);
         await ExpectMsgAsync(new CommandAccepted(5), cancellationToken: Ct);
-        journey.Tell(SessionEnded(new Energy(30m)), TestActor);
+        journey.Tell(SessionOver(new Energy(30m)), TestActor);
         await ExpectMsgAsync(new CommandAccepted(6), cancellationToken: Ct);
 
         (await shard.ExpectMsgAsync<Passivate>(cancellationToken: Ct)).ShouldNotBeNull();
@@ -103,10 +103,10 @@ public sealed class FakeContextTests(ITestOutputHelper output)
         journey.Tell(Start(), TestActor);
         await ExpectMsgAsync(new CommandAccepted(1), cancellationToken: Ct);
         await StepAsync(journey, JourneyView.AwaitingEnergyFlow);
-        journey.Tell(SessionStarted(), TestActor);
+        journey.Tell(SessionBegan(), TestActor);
         await ExpectMsgAsync(new CommandAccepted(5), cancellationToken: Ct);
 
-        journey.Tell(SessionEnded(new Energy(30m)), TestActor);
+        journey.Tell(SessionOver(new Energy(30m)), TestActor);
         await ExpectMsgAsync(new CommandAccepted(6), cancellationToken: Ct);
 
         await AwaitAssertAsync(
@@ -123,65 +123,13 @@ public sealed class FakeContextTests(ITestOutputHelper output)
     private static string PersistenceId => ChargingJourneyActor.PersistenceIdOf(TheJourney.Journey);
 
     private PersistenceShellSpec.Scenario Journey(FakeContexts contexts) =>
-        Shell(
-            ChargingJourneyActor.Props(
-                TheJourney.Journey,
-                _clock,
-                new Region<IdTokenRegion>(contexts.Tokens.Ref),
-                new Region<SitePowerBudgetRegion>(contexts.Budgets.Ref),
-                new ProbePaymentPort(contexts.Payments.Ref),
-                new ProbeChargerPort(contexts.Chargers.Ref)),
-            PersistenceId);
+        Shell(contexts.Journey(TheJourney.Journey, _clock), PersistenceId);
 
-    /// <summary>
-    /// Four fake contexts that agree to everything, except that the payment side answers a hold
-    /// as the test says.
-    /// </summary>
-    private FakeContexts Contexts(Func<PortCall, PaymentPortResult> payments)
-    {
-        var contexts = new FakeContexts(
-            CreateTestProbe("driver-accounts"),
-            CreateTestProbe("site-energy"),
-            CreateTestProbe("payments"),
-            CreateTestProbe("charge-points"));
-        AnswerWith(contexts.Tokens, message => message switch
-        {
-            LockForSession lockFor =>
-                new TokenLocked(lockFor.TokenUid, lockFor.SessionId, Driver, Version: 2),
-            _ => new TokenCommandAccepted(Version: 3),
-        });
-        AnswerWith(contexts.Budgets, message => message switch
-        {
-            RequestAllocation request => new PowerAllocated(
-                request.SiteId,
-                request.ConnectorId,
-                request.SessionId,
-                request.Requested,
-                Version: 7),
-            _ => new BudgetCommandAccepted(Version: 8),
-        });
-        AnswerWith(contexts.Payments, message => payments((PortCall)message));
-        AnswerWith(contexts.Chargers, message => new ChargerAccepted(
-            ((PortCall.RemoteStart)message).ConnectorId));
-        return contexts;
-    }
+    private FakeContexts Contexts(Func<PortCall, PaymentPortResult> payments) =>
+        FakeContexts.SayingYes(this, payments);
 
     private static Func<PortCall, PaymentPortResult> PlaceHoldThen(PaymentPortResult hold) =>
-        call => call switch
-        {
-            PortCall.PlaceHold => hold,
-            PortCall.Capture capture => new PaymentCaptured(capture.HoldId, capture.Amount),
-            PortCall.Void @void => new HoldVoided(@void.Hold.Value),
-            _ => throw new InvalidOperationException($"The payment port has no {call}."),
-        };
-
-    /// <summary>The probe answers every message it gets, and keeps it for the test.</summary>
-    private static void AnswerWith(TestProbe probe, Func<object, object> answer) =>
-        probe.SetAutoPilot(new DelegateAutoPilot((sender, message) =>
-        {
-            sender.Tell(answer(message));
-            return AutoPilot.KeepRunning;
-        }));
+        FakeContexts.PlaceHoldThen(hold);
 
     private async Task StepAsync(IActorRef journey, string step) =>
         await AwaitAssertAsync(
@@ -189,22 +137,4 @@ public sealed class FakeContextTests(ITestOutputHelper output)
                     new GetJourney(TheJourney.Journey), PortCall.Timeout, Ct))
                 .Step.ShouldBe(step),
             cancellationToken: Ct);
-
-    private static SessionStarted SessionStarted() =>
-        new SessionStarted(
-                JourneySession,
-                Depot,
-                Connector,
-                DriversCard,
-                ChargingSamples.Tariff,
-                Hold,
-                MeterStartWh: 1_200_000)
-            with { CommandId = Command, OccurredAt = Morning.AddMinutes(1) };
-
-    private static SessionEnded SessionEnded(Energy delivered) =>
-        new SessionEnded(JourneySession, Depot, Connector, DriversCard, delivered)
-            with { CommandId = Command, OccurredAt = Morning.AddMinutes(40) };
-
-    private sealed record FakeContexts(
-        TestProbe Tokens, TestProbe Budgets, TestProbe Payments, TestProbe Chargers);
 }
