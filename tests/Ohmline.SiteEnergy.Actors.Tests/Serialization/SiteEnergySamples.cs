@@ -43,6 +43,8 @@ internal static class SiteEnergySamples
         new BudgetCommandRejected(
             "connector-has-open-request",
             $"Connector {Fleet1} already has a request, for session {BusSession}."),
+        new PowerAllocated(Site, Fleet1, BusSession, new Power(50m), Version: 2),
+        new QueuedForPower(Site, Public2, CarSession, Version: 3),
 
         new SitePowerBudgetSnapshot(
             Depot,

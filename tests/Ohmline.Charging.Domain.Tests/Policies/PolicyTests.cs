@@ -106,9 +106,12 @@ public sealed class PolicyTests
 
         intents.ShouldNotBeEmpty();
         intents.ShouldAllBe(intent => intent.Assembly == typeof(ChargingIntent).Assembly);
-        typeof(ChargingIntent).Assembly.GetReferencedAssemblies()
-            .ShouldNotContain(reference => reference.Name!.StartsWith("Ohmline.SiteEnergy")
-                || reference.Name.StartsWith("Ohmline.DriverAccounts"));
+        // The assembly conforms to Site Energy's and Driver Accounts' contracts since the
+        // charging journey (section 15.2); an intent still holds none of their types.
+        intents.SelectMany(intent => intent.GetProperties())
+            .Select(property => property.PropertyType.Assembly.GetName().Name!)
+            .ShouldNotContain(name => name.StartsWith("Ohmline.SiteEnergy")
+                || name.StartsWith("Ohmline.DriverAccounts"));
     }
 
     private static Money Usd(decimal amount) => new(amount, Currency.Usd);

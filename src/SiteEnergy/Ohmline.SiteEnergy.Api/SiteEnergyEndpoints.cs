@@ -78,6 +78,8 @@ public static class SiteEnergyEndpoints
                 BudgetCommandAccepted accepted => TypedResults.Accepted(
                     $"/sites/{siteId}/budget", new CommandAcceptedResponse(accepted.Version)),
                 BudgetCommandRejected rejected => Problems.Rejected(rejected),
+                PowerAllocated or QueuedForPower => throw new InvalidOperationException(
+                    $"ConfigureSite is not answered with {reply.GetType().Name}."),
             };
         }
         catch (AskTimeoutException)

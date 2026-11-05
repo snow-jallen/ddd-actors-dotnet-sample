@@ -48,6 +48,8 @@ public sealed class SiteEnergySerializer(ExtendedActorSystem system)
 
         [typeof(BudgetCommandAccepted)] = "site-energy.budget-command-accepted.v1",
         [typeof(BudgetCommandRejected)] = "site-energy.budget-command-rejected.v1",
+        [typeof(PowerAllocated)] = "site-energy.power-allocated.v1",
+        [typeof(QueuedForPower)] = "site-energy.queued-for-power.v1",
 
         [typeof(SitePowerBudgetSnapshot)] = "site-energy.site-power-budget-snapshot.v1",
 
