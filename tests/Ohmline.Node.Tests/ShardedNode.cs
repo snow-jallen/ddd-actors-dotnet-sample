@@ -7,6 +7,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Time.Testing;
 using Ohmline.Charging.Actors;
+using Ohmline.Charging.Actors.Journeys.Ports;
 using Ohmline.DriverAccounts.Actors;
 using Ohmline.SiteEnergy.Actors;
 using Ohmline.Tariffs.Actors;
@@ -37,6 +38,7 @@ public abstract class ShardedNode(ITestOutputHelper output)
     {
         base.ConfigureServices(context, services);
         services.AddSingleton<TimeProvider>(Clock);
+        services.AddDevelopmentJourneyPorts(); // As the node does in Development.
     }
 
     protected override void ConfigureAkka(

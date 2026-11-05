@@ -69,21 +69,44 @@ public sealed class RegionTests(ITestOutputHelper output) : ShardedNode(output)
     [Fact]
     public async Task Given_a_site_then_its_budget_region_configures_it()
     {
-        var configure = new ConfigureSite(
-            NewCommand,
-            Depot,
-            new Power(200m),
-            new Power(10m),
-            "America/Denver",
-            [
-                new ConnectorLimits(
-                    new ConnectorId(Charger, 1), new Power(5m), new Power(50m), new Fleet()),
-            ]);
-
-        (await AskAsync<SitePowerBudgetRegion, BudgetCommandReply>(configure))
+        (await AskAsync<SitePowerBudgetRegion, BudgetCommandReply>(ConfigureDepot()))
             .ShouldBe(new BudgetCommandAccepted(1));
         (await AskAsync<SitePowerBudgetRegion, SitePowerBudgetView>(new GetSitePowerBudget(Depot)))
             .EffectiveCapacity.ShouldBe(new Power(190m));
+    }
+
+    [Fact]
+    public async Task Given_a_token_and_a_site_then_a_journey_gets_as_far_as_the_charger()
+    {
+        (await AskAsync<IdTokenRegion, TokenCommandReply>(
+                new RegisterToken(NewCommand, Card, Driver)))
+            .ShouldBe(new TokenCommandAccepted(1));
+        (await AskAsync<SitePowerBudgetRegion, BudgetCommandReply>(ConfigureDepot()))
+            .ShouldBe(new BudgetCommandAccepted(1));
+        var journey = new JourneyId(Guid.CreateVersion7(Morning));
+        var start = new StartCharging(
+            NewCommand,
+            journey,
+            Card,
+            new ConnectorId(Charger, 1),
+            Depot,
+            new Power(22m),
+            new Money(50m, Currency.Usd));
+
+        (await AskAsync<ChargingJourneyRegion, CommandReply>(start))
+            .ShouldBe(new CommandAccepted(1));
+
+        // Through Driver Accounts, the node's payment port and Site Energy, to the charger port.
+        await AwaitAssertAsync(
+            async () =>
+            {
+                var view = await AskAsync<ChargingJourneyRegion, JourneyView>(
+                    new GetJourney(journey), TimeSpan.FromMilliseconds(500));
+                view.Step.ShouldBe(JourneyView.AwaitingEnergyFlow);
+                view.Version.ShouldBe(4);
+            },
+            Patience,
+            cancellationToken: Ct);
     }
 
     [Fact]
@@ -167,4 +190,15 @@ public sealed class RegionTests(ITestOutputHelper output) : ShardedNode(output)
 
     private RegisterChargePoint Register() =>
         new(NewCommand, Charger, Depot, [new Power(22m), new Power(22m)]);
+
+    private ConfigureSite ConfigureDepot() => new(
+        NewCommand,
+        Depot,
+        new Power(200m),
+        new Power(10m),
+        "America/Denver",
+        [
+            new ConnectorLimits(
+                new ConnectorId(Charger, 1), new Power(5m), new Power(50m), new Fleet()),
+        ]);
 }

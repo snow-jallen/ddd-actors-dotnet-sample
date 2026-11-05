@@ -1,5 +1,6 @@
 using Akka.Hosting;
 using Ohmline.Charging.Actors;
+using Ohmline.Charging.Actors.Journeys.Ports;
 using Ohmline.Charging.Api;
 using Ohmline.Charging.Api.Development;
 using Ohmline.Charging.Api.Live;
@@ -19,6 +20,12 @@ builder.Services.AddSingleton(TimeProvider.System);
 
 builder.AddServiceDefaults();
 builder.Services.AddOhmlineReadModels(builder.Configuration);
+if (builder.Environment.IsDevelopment())
+{
+    // The journey's payments and charge points, faked until Chapter 16 brings Billing and
+    // the Device Gateway. Outside Development, nothing stands behind the ports yet.
+    builder.Services.AddDevelopmentJourneyPorts();
+}
 
 builder.Services.AddAkka("ohmline", akka => akka
     .ConfigureLoggers(loggers =>
