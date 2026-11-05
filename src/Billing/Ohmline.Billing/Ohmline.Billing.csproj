@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    Billing: an ordinary web service with Npgsql, an inbox and an outbox, and no Akka.NET
+    (ADR 0004). It reads Charging's Published Language and serves its own contracts.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../Ohmline.Billing.Contracts/Ohmline.Billing.Contracts.csproj" />
+    <ProjectReference
+      Include="../../Charging/Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

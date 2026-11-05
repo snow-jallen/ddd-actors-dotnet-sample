@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Driver Accounts' actor shell: the actor that hosts the id token decider, and its
+    serializer.
+  -->
+
+  <ItemGroup>
+    <ProjectReference
+      Include="../Ohmline.DriverAccounts.Domain/Ohmline.DriverAccounts.Domain.csproj" />
+    <ProjectReference
+      Include="../Ohmline.DriverAccounts.Contracts/Ohmline.DriverAccounts.Contracts.csproj" />
+    <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+  </ItemGroup>
+
+</Project>

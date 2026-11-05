@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Charging's HTTP edge: endpoints that turn requests into commands and ask the shard
+    regions. It speaks Charging's contracts, not its domain.
+  -->
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
+    <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+  </ItemGroup>
+
+</Project>

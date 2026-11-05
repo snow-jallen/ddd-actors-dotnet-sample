@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Driver Accounts' model: the id token. Pure: the shared kernel, Driver Accounts' own
+    contracts and the base class library only.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
+    <ProjectReference
+      Include="../Ohmline.DriverAccounts.Contracts/Ohmline.DriverAccounts.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

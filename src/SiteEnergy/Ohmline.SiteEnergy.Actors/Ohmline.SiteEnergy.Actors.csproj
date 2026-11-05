@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Site Energy's actor shell: the actor that hosts the site power budget decider, its
+    serializer and AddSiteEnergyContext().
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../Ohmline.SiteEnergy.Domain/Ohmline.SiteEnergy.Domain.csproj" />
+    <ProjectReference
+      Include="../Ohmline.SiteEnergy.Contracts/Ohmline.SiteEnergy.Contracts.csproj" />
+    <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+  </ItemGroup>
+
+</Project>

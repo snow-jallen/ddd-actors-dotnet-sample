@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The actor shell's reusable parts: the decider actor base, serialization, sharding and
+    tracing helpers. It knows the shared kernel and Akka.NET, and no bounded context.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

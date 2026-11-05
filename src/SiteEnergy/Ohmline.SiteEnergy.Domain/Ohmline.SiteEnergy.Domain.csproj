@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Site Energy's model: site power budgets and the fair-share allocator. Pure: the shared
+    kernel, Site Energy's own contracts and the base class library only.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
+    <ProjectReference
+      Include="../Ohmline.SiteEnergy.Contracts/Ohmline.SiteEnergy.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

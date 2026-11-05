@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Charging's read side: projections from the journal, the offset store and the outbox
+    relay. It reads Charging's events; it never decides anything.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../Ohmline.Charging.Domain/Ohmline.Charging.Domain.csproj" />
+    <ProjectReference Include="../Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
+    <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+  </ItemGroup>
+
+</Project>

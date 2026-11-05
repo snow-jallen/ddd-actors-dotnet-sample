@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Charging's actor shell: the actors that host Charging's deciders, its serializer and
+    AddChargingContext(). Adapters around the pure model, not part of it.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../Ohmline.Charging.Domain/Ohmline.Charging.Domain.csproj" />
+    <ProjectReference Include="../Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
+    <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+  </ItemGroup>
+
+</Project>

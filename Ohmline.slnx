@@ -9,11 +9,40 @@
     <Project Path="learn/Ch03.LanguageLab.Tests/Ch03.LanguageLab.Tests.csproj" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
     <Project Path="src/Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
   </Folder>
+  <Folder Name="/src/Billing/">
+    <Project Path="src/Billing/Ohmline.Billing.Contracts/Ohmline.Billing.Contracts.csproj" />
+    <Project Path="src/Billing/Ohmline.Billing/Ohmline.Billing.csproj" />
+  </Folder>
   <Folder Name="/src/Charging/">
+    <Project Path="src/Charging/Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
+    <Project Path="src/Charging/Ohmline.Charging.Api/Ohmline.Charging.Api.csproj" />
     <Project Path="src/Charging/Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
     <Project Path="src/Charging/Ohmline.Charging.Domain/Ohmline.Charging.Domain.csproj" />
+    <Project Path="src/Charging/Ohmline.Charging.ReadModels/Ohmline.Charging.ReadModels.csproj" />
+  </Folder>
+  <Folder Name="/src/DeviceGateway/">
+    <Project Path="src/DeviceGateway/Ohmline.DeviceGateway.Ocpp/Ohmline.DeviceGateway.Ocpp.csproj" />
+    <Project Path="src/DeviceGateway/Ohmline.DeviceGateway/Ohmline.DeviceGateway.csproj" />
+  </Folder>
+  <Folder Name="/src/DriverAccounts/">
+    <Project Path="src/DriverAccounts/Ohmline.DriverAccounts.Actors/Ohmline.DriverAccounts.Actors.csproj" />
+    <Project Path="src/DriverAccounts/Ohmline.DriverAccounts.Api/Ohmline.DriverAccounts.Api.csproj" />
+    <Project Path="src/DriverAccounts/Ohmline.DriverAccounts.Contracts/Ohmline.DriverAccounts.Contracts.csproj" />
+    <Project Path="src/DriverAccounts/Ohmline.DriverAccounts.Domain/Ohmline.DriverAccounts.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/SiteEnergy/">
+    <Project Path="src/SiteEnergy/Ohmline.SiteEnergy.Actors/Ohmline.SiteEnergy.Actors.csproj" />
+    <Project Path="src/SiteEnergy/Ohmline.SiteEnergy.Api/Ohmline.SiteEnergy.Api.csproj" />
+    <Project Path="src/SiteEnergy/Ohmline.SiteEnergy.Contracts/Ohmline.SiteEnergy.Contracts.csproj" />
+    <Project Path="src/SiteEnergy/Ohmline.SiteEnergy.Domain/Ohmline.SiteEnergy.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Tariffs/">
+    <Project Path="src/Tariffs/Ohmline.Tariffs.Actors/Ohmline.Tariffs.Actors.csproj" />
+    <Project Path="src/Tariffs/Ohmline.Tariffs.Contracts/Ohmline.Tariffs.Contracts.csproj" />
+    <Project Path="src/Tariffs/Ohmline.Tariffs.Domain/Ohmline.Tariffs.Domain.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Ohmline.SharedKernel.Tests/Ohmline.SharedKernel.Tests.csproj" />

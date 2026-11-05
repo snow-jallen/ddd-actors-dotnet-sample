@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Tariffs' model: versioned tariffs as a Knowledge Level and the price calculator. Pure:
+    the shared kernel, Tariffs' own contracts and the base class library only.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
+    <ProjectReference Include="../Ohmline.Tariffs.Contracts/Ohmline.Tariffs.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Tariffs' actor shell: the tariff book singleton and its serializer.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../Ohmline.Tariffs.Domain/Ohmline.Tariffs.Domain.csproj" />
+    <ProjectReference Include="../Ohmline.Tariffs.Contracts/Ohmline.Tariffs.Contracts.csproj" />
+    <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+  </ItemGroup>
+
+</Project>

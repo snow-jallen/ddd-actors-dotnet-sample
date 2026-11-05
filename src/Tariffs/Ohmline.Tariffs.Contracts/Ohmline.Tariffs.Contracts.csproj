@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The commands, queries and replies other parts of Ohmline exchange with Tariffs.
+    Contracts reference the shared kernel and nothing else.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

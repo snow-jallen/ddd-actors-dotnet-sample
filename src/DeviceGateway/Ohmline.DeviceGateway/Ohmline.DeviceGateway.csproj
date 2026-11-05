@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    The Device Gateway host: one connection actor per charge point, in the Akka.NET cluster
+    with the role gateway. It forwards translated commands to Charging's shard regions.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../Ohmline.DeviceGateway.Ocpp/Ohmline.DeviceGateway.Ocpp.csproj" />
+    <ProjectReference
+      Include="../../Charging/Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
+    <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The request and response shapes of Billing's hold API, used by Charging's payment port.
+    Contracts reference the shared kernel and nothing else.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

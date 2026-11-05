@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The charger protocol, in the style of OCPP 1.6J: a pure frame parser and a translator
+    into Charging's commands. No Akka.NET: everything here is a function.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
+    <ProjectReference
+      Include="../../Charging/Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>
