@@ -5,9 +5,9 @@ using Ohmline.Charging.Contracts;
 namespace Ohmline.Charging.Api;
 
 /// <summary>
-/// Every way Charging's edge says no, as RFC 9457 problem details: what the client sent is not
-/// valid (422), the resource does not exist (404), the aggregate refused the command (409), or
-/// it did not answer in time (504).
+/// Every way Charging's edge says no, as RFC 9457 problem details: what the client sent
+/// contradicts itself (400) or is not valid (422), the resource does not exist (404), the
+/// aggregate refused the command (409), or it did not answer in time (504).
 /// </summary>
 internal static class Problems
 {
@@ -30,6 +30,17 @@ internal static class Problems
 
         return TypedResults.Problem(problem);
     }
+
+    /// <summary>
+    /// A request that contradicts itself, such as an <c>Idempotency-Key</c> header that names
+    /// another command than the body: a client's bug, which sending again will not fix.
+    /// </summary>
+    public static ProblemHttpResult BadRequest(string code, string detail) =>
+        TypedResults.Problem(
+            detail,
+            statusCode: StatusCodes.Status400BadRequest,
+            title: "The request contradicts itself.",
+            extensions: new Dictionary<string, object?> { ["code"] = code });
 
     /// <summary>
     /// A command the app sent that names something the server does not know, such as a

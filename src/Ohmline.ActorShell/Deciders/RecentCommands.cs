@@ -16,7 +16,8 @@ namespace Ohmline.ActorShell.Deciders;
 public sealed class RecentCommands(int capacity = RecentCommands.DefaultCapacity)
 {
     /// <summary>
-    /// Enough for retries, which come within seconds, and small enough to keep in every entity
+    /// Enough for retries, from the edge within seconds and from the driver app for up to 24
+    /// hours (<c>docs/idempotency-contract.md</c>), and small enough to keep in every entity
     /// and every snapshot.
     /// </summary>
     public const int DefaultCapacity = 256;

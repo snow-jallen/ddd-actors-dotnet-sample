@@ -1,5 +1,6 @@
 using Akka.Hosting;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Ohmline.Charging.Client.Contracts;
 using Ohmline.Charging.Client.Contracts.Replies;
@@ -18,7 +19,9 @@ namespace Ohmline.Charging.Api.App;
 /// published language into Charging's commands, which go to the shard regions as any other.
 /// Every request carries the command's id, made on the phone, and every answer is a 202 with a
 /// <see cref="CommandAcceptedDto"/> or a problem with one of the <see cref="RejectionCodes"/>:
-/// 422 for what the app sent, 409 for what the aggregate refused, 504 for no answer in time.
+/// 400 or 422 for what the app sent, 409 for what the aggregate refused, 504 for no answer in
+/// time. The id goes into the command as it is, so a request sent again is the same command,
+/// and the aggregate answers it as it did the first time (section 19.3).
 /// </summary>
 public static class DriverAppCommands
 {
@@ -35,11 +38,17 @@ public static class DriverAppCommands
     public static async Task<Results<Accepted<CommandAcceptedDto>, ProblemHttpResult>>
         StartChargingAsync(
             StartChargingRequest request,
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
             IRequiredActor<ChargePointRegion> chargePoints,
             IRequiredActor<ChargingJourneyRegion> journeys,
             IOptions<ChargingApiOptions> options,
             CancellationToken cancellationToken)
     {
+        if (KeyMismatch(idempotencyKey, request.CommandId) is { } mismatch)
+        {
+            return mismatch;
+        }
+
         var fields = new RequestFields();
         var commandId = fields.Read("commandId", CommandId.TryCreate(request.CommandId));
         var journeyId = fields.Read("journeyId", JourneyId.TryCreate(request.JourneyId));
@@ -87,10 +96,16 @@ public static class DriverAppCommands
         StopChargingAsync(
             Guid id,
             StopChargingRequest request,
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
             IRequiredActor<ChargingSessionRegion> sessions,
             IOptions<ChargingApiOptions> options,
             CancellationToken cancellationToken)
     {
+        if (KeyMismatch(idempotencyKey, request.CommandId) is { } mismatch)
+        {
+            return mismatch;
+        }
+
         var fields = new RequestFields();
         var sessionId = fields.Read("id", SessionId.TryCreate(id));
         var commandId = fields.Read("commandId", CommandId.TryCreate(request.CommandId));
@@ -117,10 +132,16 @@ public static class DriverAppCommands
             string id,
             int number,
             ReserveConnectorRequest request,
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
             IRequiredActor<ChargePointRegion> chargePoints,
             IOptions<ChargingApiOptions> options,
             CancellationToken cancellationToken)
     {
+        if (KeyMismatch(idempotencyKey, request.CommandId) is { } mismatch)
+        {
+            return mismatch;
+        }
+
         var fields = new RequestFields();
         var chargePointId = fields.Read("id", ChargePointId.TryCreate(id));
         var commandId = fields.Read("commandId", CommandId.TryCreate(request.CommandId));
@@ -138,6 +159,18 @@ public static class DriverAppCommands
             options.Value.AskTimeout,
             cancellationToken);
     }
+
+    /// <summary>
+    /// A client may send an <c>Idempotency-Key</c> header as well, as HTTP clients that retry
+    /// by themselves do, but it must name the body's command: a request with two ids would be
+    /// two commands when it is sent again. It is refused before anything is sent.
+    /// </summary>
+    private static ProblemHttpResult? KeyMismatch(string? idempotencyKey, Guid commandId) =>
+        idempotencyKey is null || (Guid.TryParse(idempotencyKey, out var key) && key == commandId)
+            ? null
+            : Problems.BadRequest(
+                RejectionCodes.IdempotencyKeyMismatch,
+                $"Idempotency-Key '{idempotencyKey}' is not the body's commandId {commandId}.");
 
     /// <summary>The currency the app asked for, if it is the one charging is paid in.</summary>
     private static Result<Currency, ValidationError> PaidIn(string paidIn, string requested) =>

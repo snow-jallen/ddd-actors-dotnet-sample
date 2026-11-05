@@ -33,7 +33,7 @@ internal static class TheJourney
     public const string HoldId = "hold-8812";
 
     public static readonly JourneyTerms Terms =
-        new(Journey, JourneySession, DriversCard, Connector, Depot, MaxPower, Hold);
+        new(Journey, JourneySession, DriversCard, Connector, Depot, MaxPower, Hold, Command);
 
     /// <summary>The minute of each step: the start at 07:52, the next step at 07:53...</summary>
     public static DateTimeOffset Minute(int step) => Morning.AddMinutes(step);

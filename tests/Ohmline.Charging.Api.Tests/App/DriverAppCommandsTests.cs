@@ -100,6 +100,7 @@ public sealed class DriverAppCommandsTests(ITestOutputHelper output) : EdgeTestK
         var answer = DriverAppCommands.StopChargingAsync(
             sessionId,
             new StopChargingRequest(CommandId),
+            idempotencyKey: null,
             RegionOf<ChargingSessionRegion>(sessions),
             Options,
             Ct);
@@ -120,6 +121,7 @@ public sealed class DriverAppCommandsTests(ITestOutputHelper output) : EdgeTestK
             "OHM-SLC-0042",
             1,
             new ReserveConnectorRequest(CommandId, "04A2B3C4D5E6F7"),
+            idempotencyKey: null,
             RegionOf<ChargePointRegion>(chargePoints),
             Options,
             Ct);
@@ -139,6 +141,7 @@ public sealed class DriverAppCommandsTests(ITestOutputHelper output) : EdgeTestK
         var answer = await DriverAppCommands.StopChargingAsync(
             Guid.CreateVersion7(Morning),
             new StopChargingRequest(CommandId),
+            idempotencyKey: null,
             RegionOf<ChargingSessionRegion>(CreateTestProbe()),
             Options,
             Ct);
@@ -146,10 +149,56 @@ public sealed class DriverAppCommandsTests(ITestOutputHelper output) : EdgeTestK
         Problem(answer.Result, StatusCodes.Status504GatewayTimeout);
     }
 
+    [Fact]
+    public async Task Given_an_idempotency_key_that_is_the_command_id_then_the_start_is_sent()
+    {
+        var chargePoints = CreateTestProbe();
+        var journeys = CreateTestProbe();
+
+        var answer = StartAsync(Start, chargePoints, journeys, CommandId.ToString());
+        await AnswerAsync<GetChargePointStatus>(chargePoints, Registered);
+        await AnswerAsync<StartCharging>(journeys, new CommandAccepted(1));
+
+        (await answer).Result.ShouldBeOfType<Accepted<CommandAcceptedDto>>();
+    }
+
+    [Fact]
+    public async Task Given_an_idempotency_key_that_names_another_command_then_400_and_no_command()
+    {
+        var chargePoints = CreateTestProbe();
+        var another = Guid.CreateVersion7(Morning).ToString();
+
+        var answer = await StartAsync(Start, chargePoints, CreateTestProbe(), another);
+
+        Problem(answer.Result, StatusCodes.Status400BadRequest)
+            .ProblemDetails.Extensions["code"].ShouldBe(RejectionCodes.IdempotencyKeyMismatch);
+        await chargePoints.ExpectNoMsgAsync(TimeSpan.FromMilliseconds(100), Ct);
+    }
+
+    [Fact]
+    public async Task Given_a_journey_another_command_started_then_409_journey_exists()
+    {
+        var chargePoints = CreateTestProbe();
+        var journeys = CreateTestProbe();
+
+        var answer = StartAsync(Start, chargePoints, journeys);
+        await AnswerAsync<GetChargePointStatus>(chargePoints, Registered);
+        await AnswerAsync<StartCharging>(
+            journeys,
+            new CommandRejected(RejectionCodes.JourneyExists, "Started by another command."));
+
+        Problem((await answer).Result, StatusCodes.Status409Conflict)
+            .ProblemDetails.Extensions["code"].ShouldBe(RejectionCodes.JourneyExists);
+    }
+
     private Task<Results<Accepted<CommandAcceptedDto>, ProblemHttpResult>> StartAsync(
-        StartChargingRequest request, TestProbe chargePoints, TestProbe journeys) =>
+        StartChargingRequest request,
+        TestProbe chargePoints,
+        TestProbe journeys,
+        string? idempotencyKey = null) =>
         DriverAppCommands.StartChargingAsync(
             request,
+            idempotencyKey,
             RegionOf<ChargePointRegion>(chargePoints),
             RegionOf<ChargingJourneyRegion>(journeys),
             Options,

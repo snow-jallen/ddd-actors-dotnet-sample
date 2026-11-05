@@ -48,6 +48,11 @@ public static class ChargingJourney
     public static JourneyStep Next(
         JourneyState state, JourneyInput input, DecisionContext context)
     {
+        if (input.Value is StartCharging start && state.Terms is { } terms)
+        {
+            return StartedAlready(state, start, terms);
+        }
+
         ImmutableArray<JourneyEvent> events =
             [
                 .. Decide(state, input, context.Now)
@@ -61,6 +66,24 @@ public static class ChargingJourney
         var next = events.Aggregate(state, Evolve);
         return new JourneyStep(next, events, Enter(next, context.Now));
     }
+
+    /// <summary>
+    /// A start for a journey that has started (section 19.3). The same command again, sent by
+    /// an app that never heard the answer, records nothing and is answered as it was the first
+    /// time. Another command under the same journey id is refused: the app makes the journey id
+    /// at the tap, with the command's, so a second command with it is a bug, never a second
+    /// driver, and must not be told that its journey started.
+    /// </summary>
+    private static JourneyStep StartedAlready(
+        JourneyState state, StartCharging start, JourneyTerms terms) =>
+        new(state, [], [])
+        {
+            Answer = start.CommandId == terms.StartedBy
+                ? new AcceptedAsBefore()
+                : new Refused(
+                    JourneyRefusals.JourneyExists,
+                    $"Journey {terms.JourneyId} was started by another command."),
+        };
 
     /// <summary>
     /// Applies a recorded step. Total: an event that does not fit changes nothing.
@@ -322,7 +345,8 @@ public static class ChargingJourney
         started.ConnectorId,
         started.SiteId,
         started.MaxPower,
-        started.Hold);
+        started.Hold,
+        started.CommandId);
 
     private static JourneyAbandoned Abandon(JourneyTerms terms, string reason, string detail) =>
         new(terms.JourneyId, reason, detail);

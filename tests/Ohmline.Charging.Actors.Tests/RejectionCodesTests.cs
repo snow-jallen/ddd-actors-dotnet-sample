@@ -1,5 +1,6 @@
 using Ohmline.Charging.Client.Contracts;
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.Charging.Domain.Journeys;
 using Ohmline.Charging.Domain.Sessions;
 using Ohmline.SharedKernel.Identity;
 
@@ -45,6 +46,12 @@ public sealed class RejectionCodesTests
     public void Every_code_a_stop_can_be_refused_with_is_published()
     {
         StopRefusals.Select(error => error.Code).ShouldBeSubsetOf(RejectionCodes.All);
+    }
+
+    [Fact]
+    public void The_code_a_start_can_be_refused_with_is_published()
+    {
+        RejectionCodes.All.ShouldContain(JourneyRefusals.JourneyExists);
     }
 
     [Fact]

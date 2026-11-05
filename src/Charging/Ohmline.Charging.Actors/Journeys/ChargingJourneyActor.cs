@@ -50,6 +50,7 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
     private readonly ILogger _log;
     private JourneyState _state = ChargingJourney.Initial;
     private DateTimeOffset? _startedAt;
+    private long _startedVersion;
 
     public ChargingJourneyActor(
         JourneyId journeyId,
@@ -220,13 +221,15 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
 
     /// <summary>
     /// When the journey started, from its first event, stored or replayed: a journey that
-    /// recovers halfway still knows how long its driver has waited.
+    /// recovers halfway still knows how long its driver has waited, and the version its start
+    /// was accepted at, to answer the same start with again (section 19.3).
     /// </summary>
     private void Remember(JourneyEvent @event)
     {
         if (@event is JourneyStarted started)
         {
             _startedAt = started.OccurredAt;
+            _startedVersion = LastSequenceNr;
         }
     }
 
@@ -262,9 +265,18 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
             CarryOut(effect);
         }
 
-        replyTo?.Tell(new CommandAccepted(LastSequenceNr));
+        replyTo?.Tell(AnswerTo(step));
         PassivateIfDone();
     }
+
+    /// <summary>The step's answer as the edge hears it: a reply, which crosses the wire.</summary>
+    private CommandReply AnswerTo(JourneyStep step) => step.Answer switch
+    {
+        AcceptedNow => new CommandAccepted(LastSequenceNr),
+        AcceptedAsBefore => new CommandAccepted(_startedVersion),
+        Refused refused => new CommandRejected(refused.Code, refused.Message),
+        null => throw new InvalidOperationException("The answer is default: it holds no case."),
+    };
 
     /// <summary>
     /// The last message of recovery: the journey does again what its step needs, and starts

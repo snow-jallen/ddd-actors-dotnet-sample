@@ -32,6 +32,17 @@ public static class RejectionCodes
     /// <summary>The session to stop has already ended.</summary>
     public const string AlreadyEnded = "already-ended";
 
+    /// <summary>
+    /// Another command already started the journey the request names (section 19.3): the app
+    /// made a new command but reused a journey id.
+    /// </summary>
+    public const string JourneyExists = "journey-exists";
+
+    /// <summary>
+    /// The request's <c>Idempotency-Key</c> header names another command than its body (400).
+    /// </summary>
+    public const string IdempotencyKeyMismatch = "idempotency-key-mismatch";
+
     /// <summary>Every code this version of the published language knows, oldest first.</summary>
     public static IReadOnlyList<string> All { get; } =
     [
@@ -43,5 +54,7 @@ public static class RejectionCodes
         ConnectorFaulted,
         NotStarted,
         AlreadyEnded,
+        JourneyExists,
+        IdempotencyKeyMismatch,
     ];
 }

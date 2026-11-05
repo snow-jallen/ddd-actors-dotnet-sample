@@ -28,9 +28,13 @@ survive trimming or NativeAOT.
 |---|---|---|---|
 | Accepted | 202 | `CommandAcceptedDto(CommandId, Version)` | Done; keep the pending overlay until a read shows `Version` |
 | Rejected by the aggregate | 409 | problem with `code` | Terminal: show the sentence for the code, never send again |
+| Contradicts itself (an `Idempotency-Key` header that is not the body's `commandId`) | 400 | problem with `code` (`idempotency-key-mismatch`) | Terminal: a bug in the app |
 | Not valid, or names something unknown | 422 | problem with `code` (`invalid-request`, `unknown-connector`) | Terminal |
 | No answer in time | 504 | problem | Transient: send again later with the same `CommandId` |
 | Unavailable | 503 | problem | Transient |
+
+Sending a command again is safe, and expected, after a transient answer:
+`docs/idempotency-contract.md` says how long the server remembers a command (section 19.3).
 
 ## Versioning rules
 
