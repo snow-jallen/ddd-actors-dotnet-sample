@@ -2,8 +2,9 @@
 
   <!--
     The contracts between contexts (section 16.10): every version of Charging's Published
-    Language and every DTO of Billing's hold and receipt API as golden JSON, and Billing's
-    reader run over what Charging writes. A contract change shows up here, in review, before
+    Language, every DTO of Billing's hold and receipt API and every client DTO the driver app
+    reads or sends (section 19.2) as golden JSON, and Billing's reader run over what Charging
+    writes. A contract change shows up here, in review, before
     any consumer meets it.
   -->
 
@@ -12,6 +13,9 @@
       Include="../../src/Charging/Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
     <ProjectReference
       Include="../../src/Billing/Ohmline.Billing.Contracts/Ohmline.Billing.Contracts.csproj" />
+    <!-- The driver app's published language (section 19.2). -->
+    <ProjectReference
+      Include="../../src/Charging/Ohmline.Charging.Client.Contracts/Ohmline.Charging.Client.Contracts.csproj" />
     <!-- Billing's own reader of the charging feed: the consumer side of the contract. -->
     <ProjectReference Include="../../src/Billing/Ohmline.Billing/Ohmline.Billing.csproj" />
     <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />

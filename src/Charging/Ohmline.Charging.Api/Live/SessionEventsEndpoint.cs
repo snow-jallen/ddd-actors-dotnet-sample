@@ -9,8 +9,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
+using Ohmline.Charging.Api.App;
 using Ohmline.Charging.Api.Queries;
-using Ohmline.Charging.Contracts.Live;
+using Ohmline.Charging.Client.Contracts.Notifications;
+using Internal = Ohmline.Charging.Contracts.Live;
 using Ohmline.SharedKernel.Identity;
 
 namespace Ohmline.Charging.Api.Live;
@@ -37,7 +39,7 @@ public static class SessionEventsEndpoint
     };
 
     public static async Task<
-            Results<ServerSentEventsResult<SessionSummaryDto>, NoContent, ProblemHttpResult>>
+            Results<ServerSentEventsResult<SessionSummaryChanged>, NoContent, ProblemHttpResult>>
         GetAsync(
             Guid id,
             [FromHeader(Name = "Last-Event-ID")] string? lastEventId,
@@ -64,7 +66,7 @@ public static class SessionEventsEndpoint
             sessionId, seen, system, mediator.ActorRef, readModels, cancellationToken));
     }
 
-    private static async IAsyncEnumerable<SseItem<SessionSummaryDto>> SummariesAsync(
+    private static async IAsyncEnumerable<SseItem<SessionSummaryChanged>> SummariesAsync(
         SessionId sessionId,
         long seen,
         ActorSystem system,
@@ -72,7 +74,7 @@ public static class SessionEventsEndpoint
         NpgsqlDataSource readModels,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var changes = Channel.CreateBounded<SessionSummaryChanged>(Newest);
+        var changes = Channel.CreateBounded<Internal.SessionSummaryChanged>(Newest);
         var subscribed =
             new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var subscriber = system.ActorOf(
@@ -83,10 +85,10 @@ public static class SessionEventsEndpoint
             await subscribed.Task.WaitAsync(cancellationToken);
             var current = await SessionEndpoint.FindAsync(readModels, sessionId, cancellationToken);
             var summaries = changes.Reader.ReadAllAsync(cancellationToken)
-                .Select(SessionSummaryDto.From);
+                .Select(changed => changed.ToClient());
             if (current is not null)
             {
-                summaries = summaries.Prepend(SessionSummaryDto.From(current));
+                summaries = summaries.Prepend(current.ToSummary());
             }
 
             await foreach (var summary in summaries)
@@ -97,7 +99,7 @@ public static class SessionEventsEndpoint
                 }
 
                 seen = summary.Version;
-                yield return new SseItem<SessionSummaryDto>(summary)
+                yield return new SseItem<SessionSummaryChanged>(summary)
                 {
                     EventId = summary.Version.ToString(CultureInfo.InvariantCulture),
                 };

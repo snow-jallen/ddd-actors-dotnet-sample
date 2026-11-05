@@ -46,7 +46,7 @@ public sealed class JourneyTests(PostgresFixture postgres)
     }
 
     /// <summary>A charger, a site and a token of the test's own: the database is shared.</summary>
-    private static async Task<(string Site, string Connector, string Token)> SetUpAsync(
+    internal static async Task<(string Site, string Connector, string Token)> SetUpAsync(
         HttpClient http)
     {
         var chargePoint = Chargers.Next();
@@ -91,7 +91,7 @@ public sealed class JourneyTests(PostgresFixture postgres)
         meterStartWh = 1_200_000L,
     };
 
-    private static async Task<Journey> StepAsync(HttpClient http, string journey, string step)
+    internal static async Task<Journey> StepAsync(HttpClient http, string journey, string step)
     {
         var deadline = DateTimeOffset.UtcNow + Patience;
         while (true)
@@ -111,7 +111,7 @@ public sealed class JourneyTests(PostgresFixture postgres)
         }
     }
 
-    private sealed record Journey(
+    internal sealed record Journey(
         Guid JourneyId,
         long Version,
         string Step,

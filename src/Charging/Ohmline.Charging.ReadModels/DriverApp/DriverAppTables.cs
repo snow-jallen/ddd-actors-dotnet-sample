@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Npgsql;
 using NpgsqlTypes;
+using Ohmline.Charging.Client.Contracts;
 
 namespace Ohmline.Charging.ReadModels.DriverApp;
 
@@ -10,8 +11,6 @@ namespace Ohmline.Charging.ReadModels.DriverApp;
 /// </summary>
 public static class DriverAppTables
 {
-    private static readonly JsonSerializerOptions Web = new(JsonSerializerDefaults.Web);
-
     public static async Task<DriverAppCard?> FindCardAsync(
         NpgsqlTransaction transaction, Guid sessionId, CancellationToken cancellationToken)
     {
@@ -102,8 +101,9 @@ public static class DriverAppTables
         insert.Parameters.AddWithValue("token_uid", card.TokenUid);
         insert.Parameters.AddWithValue("session_id", card.SessionId);
         insert.Parameters.AddWithValue("version", card.Version);
-        insert.Parameters.AddWithValue(
-            "payload", NpgsqlDbType.Jsonb, JsonSerializer.Serialize(card, Web));
+        var payload = JsonSerializer.Serialize(
+            card.ToClient(), ChargingClientJsonContext.Default.DriverSessionCard);
+        insert.Parameters.AddWithValue("payload", NpgsqlDbType.Jsonb, payload);
         return (long)(await insert.ExecuteScalarAsync(cancellationToken))!;
     }
 }

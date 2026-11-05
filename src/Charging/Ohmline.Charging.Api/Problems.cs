@@ -11,12 +11,37 @@ namespace Ohmline.Charging.Api;
 /// </summary>
 internal static class Problems
 {
-    public static ProblemHttpResult Invalid(IDictionary<string, string[]> errors) =>
-        TypedResults.Problem(new HttpValidationProblemDetails(errors)
+    /// <summary>
+    /// The fields that are not valid, each with its message. The driver app's endpoints add a
+    /// <c>code</c>, as for every problem they answer with (section 19.2).
+    /// </summary>
+    public static ProblemHttpResult Invalid(
+        IDictionary<string, string[]> errors, string? code = null)
+    {
+        var problem = new HttpValidationProblemDetails(errors)
         {
             Status = StatusCodes.Status422UnprocessableEntity,
             Title = "Some fields of the request are not valid.",
-        });
+        };
+        if (code is not null)
+        {
+            problem.Extensions["code"] = code;
+        }
+
+        return TypedResults.Problem(problem);
+    }
+
+    /// <summary>
+    /// A command the app sent that names something the server does not know, such as a
+    /// connector no charge point has: 422 with the code, never 404, which a client could take
+    /// for a wrong URL.
+    /// </summary>
+    public static ProblemHttpResult Unprocessable(string code, string detail) =>
+        TypedResults.Problem(
+            detail,
+            statusCode: StatusCodes.Status422UnprocessableEntity,
+            title: "The command cannot be carried out.",
+            extensions: new Dictionary<string, object?> { ["code"] = code });
 
     public static ProblemHttpResult NotFound(string detail) => TypedResults.Problem(
         detail, statusCode: StatusCodes.Status404NotFound, title: "Not found.");

@@ -21,6 +21,9 @@
       Include="../../src/DriverAccounts/Ohmline.DriverAccounts.Actors/Ohmline.DriverAccounts.Actors.csproj" />
     <ProjectReference
       Include="../../src/SiteEnergy/Ohmline.SiteEnergy.Actors/Ohmline.SiteEnergy.Actors.csproj" />
+    <!-- The codes the driver app knows, checked against the ones the actors answer with. -->
+    <ProjectReference
+      Include="../../src/Charging/Ohmline.Charging.Client.Contracts/Ohmline.Charging.Client.Contracts.csproj" />
     <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
   </ItemGroup>
 

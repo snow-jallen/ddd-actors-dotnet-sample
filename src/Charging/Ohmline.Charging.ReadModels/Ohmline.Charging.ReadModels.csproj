@@ -17,6 +17,9 @@
   <ItemGroup>
     <ProjectReference Include="../Ohmline.Charging.Domain/Ohmline.Charging.Domain.csproj" />
     <ProjectReference Include="../Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
+    <!-- The driver app's feed is written in its published language (section 19.2). -->
+    <ProjectReference
+      Include="../Ohmline.Charging.Client.Contracts/Ohmline.Charging.Client.Contracts.csproj" />
     <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
     <!-- The journey's charger port, through which the dispatcher sends profiles (16.8). -->
     <ProjectReference Include="../Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />

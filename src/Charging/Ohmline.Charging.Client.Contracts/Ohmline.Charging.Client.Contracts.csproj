@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Charging's Published Language for client apps (section 19.2): the plain DTOs the driver app
+    sends and reads over /app/v1 and the hub, and the source-generated JSON context for them.
+    It references nothing, not even the shared kernel: the server's Shared Kernel is not the
+    phone's, and whatever is referenced here ships in every app package. AOT-compatible, so the
+    trimming and AOT analyzers check it on every build.
+  -->
+
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+</Project>

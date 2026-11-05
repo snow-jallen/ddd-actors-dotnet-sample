@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Api.Responses;
+using Ohmline.Charging.Client.Contracts.Replies;
 using Ohmline.Charging.Contracts;
+using Ohmline.SharedKernel.Identity;
 
 namespace Ohmline.Charging.Api;
 
@@ -35,23 +37,35 @@ internal static class Edge
             object command,
             Func<long, string> locationAt,
             TimeSpan timeout,
-            CancellationToken cancellationToken)
-    {
-        try
+            CancellationToken cancellationToken) =>
+        await AskCommandAsync(region, command, timeout, cancellationToken) switch
         {
-            var reply = await region.AskTraced<CommandReply>(command, timeout, cancellationToken);
-            return reply switch
-            {
-                CommandAccepted accepted => TypedResults.Accepted(
-                    locationAt(accepted.Version), new CommandAcceptedResponse(accepted.Version)),
-                CommandRejected rejected => Problems.Rejected(rejected),
-            };
-        }
-        catch (AskTimeoutException)
+            CommandAccepted accepted => TypedResults.Accepted(
+                locationAt(accepted.Version), new CommandAcceptedResponse(accepted.Version)),
+            CommandRejected rejected => Problems.Rejected(rejected),
+            null => Problems.Timeout(timeout),
+        };
+
+    /// <summary>
+    /// The same for the driver app (section 19.2), in its published language: the 202's body
+    /// names the command by the id the app gave it, beside the aggregate's new version.
+    /// </summary>
+    public static async Task<Results<Accepted<CommandAcceptedDto>, ProblemHttpResult>>
+        SendForAppAsync(
+            IActorRef region,
+            object command,
+            CommandId commandId,
+            Func<long, string> locationAt,
+            TimeSpan timeout,
+            CancellationToken cancellationToken) =>
+        await AskCommandAsync(region, command, timeout, cancellationToken) switch
         {
-            return Problems.Timeout(timeout);
-        }
-    }
+            CommandAccepted accepted => TypedResults.Accepted(
+                locationAt(accepted.Version),
+                new CommandAcceptedDto(commandId.Value, accepted.Version)),
+            CommandRejected rejected => Problems.Rejected(rejected),
+            null => Problems.Timeout(timeout),
+        };
 
     /// <summary>The aggregate's answer to a question, or null when none came in time.</summary>
     public static async Task<TReply?> AskAsync<TReply>(
@@ -67,4 +81,9 @@ internal static class Edge
             return null;
         }
     }
+
+    /// <summary>The aggregate's reply to a command, or null when none came in time.</summary>
+    private static Task<CommandReply?> AskCommandAsync(
+        IActorRef region, object command, TimeSpan timeout, CancellationToken cancellationToken) =>
+        AskAsync<CommandReply>(region, command, timeout, cancellationToken);
 }

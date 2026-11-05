@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Ohmline.Charging.Client.Contracts.ReadModels;
 using Ohmline.Charging.Domain.Sessions;
 using Ohmline.SharedKernel.Units;
 
@@ -6,7 +6,8 @@ namespace Ohmline.Charging.ReadModels.DriverApp;
 
 /// <summary>
 /// One session as the driver app's session card shows it (section 14.6): a row of
-/// <c>read_models.driver_app_cards</c>, and as JSON the payload of the token's change feed. It
+/// <c>read_models.driver_app_cards</c>, and, as <see cref="DriverSessionCard"/> in the client
+/// contracts' JSON (section 19.2), the payload of the token's change feed. It
 /// is shaped for one screen: everything the card shows, with the charge point's display name
 /// already in it, so a phone on a cellular link makes one request, not one per charge point.
 /// <paramref name="Version"/> is the session's version, the sequence number of its last event
@@ -20,11 +21,26 @@ public sealed record DriverAppCard(
     string ConnectorId,
     string? ChargePointDisplayName,
     decimal EnergyKwh,
-    [property: JsonIgnore] long MeterStartWh,
+    long MeterStartWh,
     DateTimeOffset StartedAt,
     DateTimeOffset? EndedAt,
     long Version)
 {
+    /// <summary>
+    /// The card in the published language for client apps: what the app shows, without the
+    /// meter's start, which only the projection needs.
+    /// </summary>
+    public DriverSessionCard ToClient() => new(
+        SessionId,
+        TokenUid,
+        Status,
+        ConnectorId,
+        ChargePointDisplayName,
+        EnergyKwh,
+        StartedAt,
+        EndedAt,
+        Version);
+
     /// <summary>
     /// The card after one more of the session's events, numbered <paramref name="sequenceNr"/>:
     /// a pure function. <paramref name="displayName"/> is the charge point's display name if

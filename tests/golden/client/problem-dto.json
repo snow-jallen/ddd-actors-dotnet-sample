@@ -1,0 +1,8 @@
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.10",
+  "title": "The command was rejected.",
+  "status": 409,
+  "detail": "Connector 1 is reserved for another token until 2026-11-04T14:55:00+00:00.",
+  "code": "reserved-for-another-token",
+  "errors": null
+}

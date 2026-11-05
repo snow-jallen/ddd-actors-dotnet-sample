@@ -20,6 +20,9 @@
 
   <ItemGroup>
     <ProjectReference Include="../Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
+    <!-- The driver app's published language (section 19.2): /app/v1 and the hub speak it. -->
+    <ProjectReference
+      Include="../Ohmline.Charging.Client.Contracts/Ohmline.Charging.Client.Contracts.csproj" />
     <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
   </ItemGroup>
 

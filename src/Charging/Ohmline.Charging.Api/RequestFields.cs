@@ -44,5 +44,6 @@ internal sealed class RequestFields
     /// <summary>Records a problem no smart constructor can find, such as an empty list.</summary>
     public void Invalid(string field, string message) => _errors[field] = [message];
 
-    public ProblemHttpResult Problem() => Problems.Invalid(_errors);
+    /// <summary>422 naming every field that is not valid, with a <c>code</c> if given.</summary>
+    public ProblemHttpResult Problem(string? code = null) => Problems.Invalid(_errors, code);
 }

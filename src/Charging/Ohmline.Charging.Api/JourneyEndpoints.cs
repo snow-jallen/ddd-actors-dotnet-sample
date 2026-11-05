@@ -40,34 +40,30 @@ public static class JourneyEndpoints
         }
 
         var timeout = options.Value.AskTimeout;
-        var status = await Edge.AskAsync<ChargePointStatus>(
-            chargePoints.ActorRef,
-            new GetChargePointStatus(connectorId.ChargePointId),
-            timeout,
-            cancellationToken);
-        if (status is null)
-        {
-            return Problems.Timeout(timeout);
-        }
-
-        var connector = status.Connectors.FirstOrDefault(
-            connector => connector.ConnectorNumber == connectorId.Number);
-        if (status.SiteId is not { } siteId || connector is null)
-        {
-            return Problems.NotFound($"Connector {connectorId} is not registered.");
-        }
-
         var journeyId = new JourneyId(GuidV7.Derive(commandId.Value, "journey"));
-        var start = new StartCharging(
-            commandId,
-            journeyId,
-            tokenUid,
-            connectorId,
-            siteId,
-            connector.MaxPower,
-            new Money(options.Value.HoldAmount, new Currency(options.Value.HoldCurrency)));
-        return await Edge.SendAsync(
-            journeys.ActorRef, start, $"/journeys/{journeyId}", timeout, cancellationToken);
+        var hold = new Money(options.Value.HoldAmount, new Currency(options.Value.HoldCurrency));
+        var placement = await ConnectorPlacement.FindAsync(
+            chargePoints.ActorRef, connectorId, timeout, cancellationToken);
+        return placement switch
+        {
+            ConnectorPlaced placed => await Edge.SendAsync(
+                journeys.ActorRef,
+                new StartCharging(
+                    commandId,
+                    journeyId,
+                    tokenUid,
+                    connectorId,
+                    placed.SiteId,
+                    placed.MaxPower,
+                    hold),
+                $"/journeys/{journeyId}",
+                timeout,
+                cancellationToken),
+            ConnectorNotRegistered =>
+                Problems.NotFound($"Connector {connectorId} is not registered."),
+            ChargePointSilent => Problems.Timeout(timeout),
+            null => throw new InvalidOperationException("The placement is default."),
+        };
     }
 
     /// <summary>The journey as it knows itself now: never stale.</summary>

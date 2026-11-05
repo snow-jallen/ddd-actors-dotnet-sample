@@ -23,6 +23,7 @@
   <Folder Name="/src/Charging/">
     <Project Path="src/Charging/Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
     <Project Path="src/Charging/Ohmline.Charging.Api/Ohmline.Charging.Api.csproj" />
+    <Project Path="src/Charging/Ohmline.Charging.Client.Contracts/Ohmline.Charging.Client.Contracts.csproj" />
     <Project Path="src/Charging/Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
     <Project Path="src/Charging/Ohmline.Charging.Domain/Ohmline.Charging.Domain.csproj" />
     <Project Path="src/Charging/Ohmline.Charging.ReadModels/Ohmline.Charging.ReadModels.csproj" />

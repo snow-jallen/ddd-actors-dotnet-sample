@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Ohmline.Charging.Api.App;
 using Ohmline.Charging.Api.Queries;
 using Ohmline.Charging.Api.Tariffs;
+using Ohmline.Charging.Client.Contracts;
 
 namespace Ohmline.Charging.Api;
 
@@ -18,11 +20,14 @@ public static class ChargingEndpoints
     {
         /// <summary>
         /// The edge's settings, from <c>Ohmline:Charging</c> and <c>Ohmline:ReadModels</c>,
-        /// checked at start, read-your-writes for the query endpoints, and the tariff book as
-        /// the catalog a starting session copies its tariff from.
+        /// checked at start, read-your-writes for the query endpoints, the tariff book as
+        /// the catalog a starting session copies its tariff from, and the client contracts'
+        /// generated JSON first, so the app's DTOs are written as the app reads them.
         /// </summary>
         public IServiceCollection AddChargingApi()
         {
+            services.ConfigureHttpJsonOptions(json => json.SerializerOptions
+                .TypeInfoResolverChain.Insert(0, ChargingClientJsonContext.Default));
             services.AddOptions<ChargingApiOptions>()
                 .BindConfiguration(ChargingApiOptions.Section)
                 .ValidateDataAnnotations()
@@ -62,6 +67,7 @@ public static class ChargingEndpoints
             tariffs.MapPost("", TariffEndpoints.PublishAsync);
             tariffs.MapGet("/{id}", TariffEndpoints.GetAsync);
 
+            endpoints.MapDriverAppCommandEndpoints();
             return endpoints;
         }
     }

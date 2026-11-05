@@ -1,7 +1,7 @@
 using Akka.Actor;
 using Akka.Cluster.Tools.PublishSubscribe;
 using Microsoft.AspNetCore.SignalR;
-using Ohmline.Charging.Api.App.Dtos;
+using Ohmline.Charging.Api.App;
 using Ohmline.Charging.Contracts.Live;
 
 namespace Ohmline.Charging.Api.Live;
@@ -10,7 +10,8 @@ namespace Ohmline.Charging.Api.Live;
 /// Passes the projections' live updates on to the SignalR clients connected to this node
 /// (section 14.5). One per node, subscribed to the same DistributedPubSub topics as the
 /// Server-Sent Events: DistributedPubSub is the backplane, so every node hears every update and
-/// sends it to its own connections, and no Redis is needed.
+/// sends it to its own connections, and no Redis is needed. What it sends is the published
+/// language for client apps (section 19.2), never Charging's own messages.
 /// </summary>
 /// <remarks>
 /// It sends one update at a time, so a session's versions reach its group in the order they
@@ -26,10 +27,10 @@ public sealed class LiveUpdatesBridge : ReceiveActor
     {
         ReceiveAsync<SessionSummaryChanged>(changed => hub.Clients
             .Group(ChargingHub.SessionGroup(changed.SessionId))
-            .SendAsync(ChargingHub.SessionSummaryChanged, SessionSummaryDto.From(changed)));
+            .SendAsync(ChargingHub.SessionSummaryChanged, changed.ToClient()));
         ReceiveAsync<DriverCardChanged>(changed => hub.Clients
             .Group(ChargingHub.TokenGroup(changed.TokenUid))
-            .SendAsync(ChargingHub.DriverCardChanged, DriverAppFeedEntryDto.From(changed)));
+            .SendAsync(ChargingHub.DriverCardChanged, changed.ToClient()));
         Receive<SubscribeAck>(_ => { });
     }
 
