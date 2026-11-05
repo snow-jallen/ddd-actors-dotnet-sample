@@ -124,6 +124,8 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         [typeof(SettlementDue)] = "charging.settlement-due.v1",
         [typeof(JourneyCompleted)] = "charging.journey-completed.v1",
         [typeof(JourneyAbandoned)] = "charging.journey-abandoned.v1",
+        [typeof(CaptureAttemptFailed)] = "charging.capture-attempt-failed.v1",
+        [typeof(DebtRecorded)] = "charging.debt-recorded.v1",
         [typeof(GetJourney)] = "charging.get-journey.v1",
         [typeof(JourneyView)] = "charging.journey-view.v1",
         [typeof(HoldPlaced)] = "charging.hold-placed.v1",

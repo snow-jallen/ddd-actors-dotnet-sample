@@ -162,10 +162,30 @@ public sealed class ChargingJourneyActor : ReceivePersistentActor, IWithTimers
             return;
         }
 
-        PersistAll(
-            step.Events,
-            @event => _state = ChargingJourney.Evolve(_state, @event),
-            () => Done(step, replyTo));
+        PersistAll(step.Events, Apply, () => Done(step, replyTo));
+    }
+
+    private void Apply(JourneyEvent @event)
+    {
+        _state = ChargingJourney.Evolve(_state, @event);
+        switch (@event)
+        {
+            case JourneyAbandoned abandoned:
+                _log.Info(
+                    "{0} abandoned ({1}): {2}", PersistenceId, abandoned.Reason, abandoned.Detail);
+                break;
+            case CaptureAttemptFailed failed:
+                _log.Warning(
+                    "{0}: capture attempt {1} failed ({2}); it is tried again later",
+                    PersistenceId,
+                    failed.Attempt,
+                    failed.Code);
+                break;
+            case DebtRecorded debt:
+                _log.Warning(
+                    "{0}: {1} recorded as owed. {2}", PersistenceId, debt.Amount, debt.Reason);
+                break;
+        }
     }
 
     private void Done(JourneyStep step, IActorRef? replyTo)

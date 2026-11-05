@@ -87,6 +87,36 @@ public sealed class FakeContextTests(ITestOutputHelper output)
         await contexts.Budgets.ExpectNoMsgAsync(TimeSpan.FromMilliseconds(300), Ct);
     }
 
+    [Fact]
+    public async Task Given_a_capture_that_fails_then_the_attempt_is_stored_and_retried_later()
+    {
+        var failed = new CaptureFailed(HoldId, "provider-unavailable", "No answer.");
+        var contexts = Contexts(call => call switch
+        {
+            PortCall.PlaceHold => new HoldPlaced(HoldId, Hold),
+            _ => failed,
+        });
+        var journey = await Journey(contexts).StartAsync();
+        journey.Tell(Start(), TestActor);
+        await ExpectMsgAsync(new CommandAccepted(1), cancellationToken: Ct);
+        await StepAsync(journey, JourneyView.AwaitingEnergyFlow);
+        journey.Tell(SessionStarted(), TestActor);
+        await ExpectMsgAsync(new CommandAccepted(5), cancellationToken: Ct);
+
+        journey.Tell(SessionEnded(new Energy(30m)), TestActor);
+        await ExpectMsgAsync(new CommandAccepted(6), cancellationToken: Ct);
+
+        await AwaitAssertAsync(
+            async () => (await JournalProbe.EventsAsync<JourneyEvent>(Sys, PersistenceId, Ct))
+                .Last().ShouldBeOfType<CaptureAttemptFailed>().Attempt.ShouldBe(1),
+            cancellationToken: Ct);
+        await StepAsync(journey, JourneyView.Settling);
+        await contexts.Payments.ExpectMsgAsync<PortCall.PlaceHold>(cancellationToken: Ct);
+        await contexts.Payments.ExpectMsgAsync<PortCall.Capture>(cancellationToken: Ct);
+        // The next attempt waits for its timer, 30 seconds away; section 15.7 moves time on.
+        await contexts.Payments.ExpectNoMsgAsync(TimeSpan.FromMilliseconds(300), Ct);
+    }
+
     private static string PersistenceId => ChargingJourneyActor.PersistenceIdOf(TheJourney.Journey);
 
     private PersistenceShellSpec.Scenario Journey(FakeContexts contexts) =>

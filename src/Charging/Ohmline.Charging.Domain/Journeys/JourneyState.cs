@@ -60,11 +60,17 @@ public sealed record AwaitingEnergyFlow(
 /// <summary>The session has started under this tariff; the journey waits for it to end.</summary>
 public sealed record Charging(JourneyTerms Terms, string HoldId, TariffSnapshot Tariff);
 
-/// <summary>The session is over; the payment port is asked to capture what it cost.</summary>
-public sealed record Settling(JourneyTerms Terms, string HoldId, Money Amount);
+/// <summary>
+/// The session is over; the payment port is asked to capture what it cost, and asked again,
+/// after a pause, each time it fails.
+/// </summary>
+public sealed record Settling(
+    JourneyTerms Terms, string HoldId, Money Amount, int FailedCaptures = 0);
 
-/// <summary>The money is taken. Nothing more happens.</summary>
-public sealed record Completed(JourneyTerms Terms, Money Captured);
+/// <summary>
+/// Nothing more happens: the money is taken, or, when it could not be, it is owed.
+/// </summary>
+public sealed record Completed(JourneyTerms Terms, Money Captured, Money? Owed = null);
 
 /// <summary>
 /// Given up, in the step it was in, for a reason with a stable code. What the journey had

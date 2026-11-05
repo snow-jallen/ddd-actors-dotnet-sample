@@ -200,6 +200,12 @@ internal static class ChargingSamples
         Stamped(new JourneyCompleted(Journey, new Money(29.51m, Currency.Usd))),
         Stamped(new JourneyAbandoned(
             Journey, AbandonReasons.ChargerRejected, "Connector 1 is occupied.")),
+        Stamped(new CaptureAttemptFailed(
+            Journey, Attempt: 2, "provider-unavailable", "The payment provider did not answer.")),
+        Stamped(new DebtRecorded(
+            Journey,
+            new Money(29.51m, Currency.Usd),
+            "Capture failed 4 times; last: The payment provider did not answer.")),
         new GetJourney(Journey),
         new JourneyView(
             Journey,

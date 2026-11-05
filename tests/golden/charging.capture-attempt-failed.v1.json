@@ -1,0 +1,7 @@
+{
+  "attempt": 2,
+  "code": "provider-unavailable",
+  "message": "The payment provider did not answer.",
+  "journeyId": "019a4f6e-1c40-7a51-8e2f-3b1d00000a01",
+  "occurredAt": "2026-11-04T07:40:00-07:00"
+}

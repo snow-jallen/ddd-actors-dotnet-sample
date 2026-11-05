@@ -24,6 +24,8 @@ public static class JourneyViewMapping
                 AwaitingEnergyFlow => In(JourneyView.AwaitingEnergyFlow),
                 ChargingStep => In(JourneyView.Charging),
                 Settling => In(JourneyView.Settling),
+                Completed { Owed: { } owed } =>
+                    In(JourneyView.Completed) with { Detail = $"{owed} is owed." },
                 Completed => In(JourneyView.Completed),
                 Abandoned abandoned => In(JourneyView.Abandoned) with
                 {

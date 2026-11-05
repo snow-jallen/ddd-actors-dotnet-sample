@@ -5,4 +5,7 @@ public enum JourneyTimer
 {
     /// <summary>How long the charger has to start delivering energy once it is told to.</summary>
     EnergyFlow,
+
+    /// <summary>How long to wait before trying a failed capture again.</summary>
+    CaptureRetry,
 }

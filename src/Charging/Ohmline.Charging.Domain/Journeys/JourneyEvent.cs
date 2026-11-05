@@ -54,6 +54,20 @@ public sealed record EnergyFlowStarted(JourneyId JourneyId, TariffSnapshot Tarif
 public sealed record SettlementDue(JourneyId JourneyId, Energy Delivered, Money Amount)
     : JourneyEvent(JourneyId);
 
+/// <summary>
+/// A capture failed, this many times so far; the journey tries again after a pause.
+/// </summary>
+public sealed record CaptureAttemptFailed(
+    JourneyId JourneyId, int Attempt, string Code, string Message)
+    : JourneyEvent(JourneyId);
+
+/// <summary>
+/// The capture failed for good: the amount is owed, and someone collects it (section 16.3).
+/// The compensation for a payment that cannot be taken is a fact, recorded like any other.
+/// </summary>
+public sealed record DebtRecorded(JourneyId JourneyId, Money Amount, string Reason)
+    : JourneyEvent(JourneyId);
+
 /// <summary>The money is taken from the hold. The journey is over.</summary>
 public sealed record JourneyCompleted(JourneyId JourneyId, Money Captured)
     : JourneyEvent(JourneyId);

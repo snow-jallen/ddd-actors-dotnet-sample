@@ -26,6 +26,9 @@ public static class ChargingJourney
     /// <summary>How long the charger has to start delivering energy once it is told to.</summary>
     public static readonly TimeSpan EnergyFlowTimeout = TimeSpan.FromMinutes(2);
 
+    /// <summary>How many times a capture is tried before the amount is recorded as owed.</summary>
+    public const int MaxCaptureAttempts = 4;
+
     public static JourneyState Initial => JourneyState.Initial;
 
     /// <summary>
@@ -40,7 +43,7 @@ public static class ChargingJourney
             [.. Decide(state, input).Select(@event => @event with { OccurredAt = context.Now })];
         if (events.IsEmpty)
         {
-            return new JourneyStep(state, [], []);
+            return new JourneyStep(state, [], Again(state, input));
         }
 
         var next = events.Aggregate(state, Evolve);
@@ -65,8 +68,12 @@ public static class ChargingJourney
                 new Charging(waiting.Terms, waiting.HoldId, flowing.Tariff),
             (Charging charging, SettlementDue due) =>
                 new Settling(charging.Terms, charging.HoldId, due.Amount),
+            (Settling settling, CaptureAttemptFailed failed) =>
+                settling with { FailedCaptures = failed.Attempt },
             (Settling settling, JourneyCompleted completed) =>
                 new Completed(settling.Terms, completed.Captured),
+            (Settling settling, DebtRecorded debt) => new Completed(
+                settling.Terms, Money.Zero(debt.Amount.Currency), Owed: debt.Amount),
             (AwaitingTokenLock or AwaitingHold or AwaitingAllocation or AwaitingEnergyFlow,
                 JourneyAbandoned abandoned) =>
                 new Abandoned(state, abandoned.Reason, abandoned.Detail),
@@ -125,6 +132,13 @@ public static class ChargingJourney
             (AwaitingEnergyFlow waiting, SessionStarted started)
                 when started.SessionId == waiting.Terms.SessionId =>
                 [new EnergyFlowStarted(waiting.Terms.JourneyId, started.Tariff)],
+            (AwaitingEnergyFlow waiting, JourneyTimerElapsed { Timer: JourneyTimer.EnergyFlow }) =>
+            [
+                Abandon(
+                    waiting.Terms,
+                    AbandonReasons.EnergyFlowTimedOut,
+                    $"No energy flowed within {EnergyFlowTimeout.TotalMinutes:0} minutes."),
+            ],
 
             (Charging charging, SessionEnded ended)
                 when ended.SessionId == charging.Terms.SessionId =>
@@ -137,6 +151,22 @@ public static class ChargingJourney
 
             (Settling settling, PaymentCaptured captured) =>
                 [new JourneyCompleted(settling.Terms.JourneyId, captured.Amount)],
+            (Settling settling, CaptureFailed failed)
+                when settling.FailedCaptures + 1 < MaxCaptureAttempts =>
+            [
+                new CaptureAttemptFailed(
+                    settling.Terms.JourneyId,
+                    settling.FailedCaptures + 1,
+                    failed.Code,
+                    failed.Message),
+            ],
+            (Settling settling, CaptureFailed failed) =>
+            [
+                new DebtRecorded(
+                    settling.Terms.JourneyId,
+                    settling.Amount,
+                    $"Capture failed {MaxCaptureAttempts} times; last: {failed.Message}"),
+            ],
 
             (null, _) => throw DefaultState(),
             (_, null) => throw new ArgumentException("The input is default: it holds no case."),
@@ -145,6 +175,25 @@ public static class ChargingJourney
             // session, a void's confirmation, a timer this step does not use.
             _ => [],
         };
+
+    /// <summary>
+    /// What an input that changes nothing still asks for: a retry timer that elapses asks for
+    /// its request again. Nothing is recorded; the request carries what it carried before.
+    /// </summary>
+    private static ImmutableArray<JourneyEffect> Again(JourneyState state, JourneyInput input) =>
+        (state, input) switch
+        {
+            (Settling settling, JourneyTimerElapsed { Timer: JourneyTimer.CaptureRetry }) =>
+                [new JourneyEffect.CapturePayment(settling.HoldId, settling.Amount)],
+            _ => [],
+        };
+
+    /// <summary>
+    /// How long to wait after the capture failed this many times: 30 seconds, then twice as
+    /// long each time.
+    /// </summary>
+    public static TimeSpan CaptureBackoff(int failedCaptures) =>
+        TimeSpan.FromSeconds(30 * Math.Pow(2, failedCaptures - 1));
 
     /// <summary>
     /// What to do on entering a state: ask for what the step waits for, or give back what an
@@ -173,8 +222,13 @@ public static class ChargingJourney
                 StartTimer(JourneyTimer.EnergyFlow, waiting.Since + EnergyFlowTimeout, now),
             ],
             Charging => [new JourneyEffect.CancelTimer(JourneyTimer.EnergyFlow)],
-            Settling settling =>
+            Settling { FailedCaptures: 0 } settling =>
                 [new JourneyEffect.CapturePayment(settling.HoldId, settling.Amount)],
+            Settling settling =>
+            [
+                new JourneyEffect.StartTimer(
+                    JourneyTimer.CaptureRetry, CaptureBackoff(settling.FailedCaptures)),
+            ],
             Abandoned abandoned => GiveBack(abandoned.From),
             null => throw DefaultState(),
         };

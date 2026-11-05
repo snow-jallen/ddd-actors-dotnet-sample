@@ -10,4 +10,5 @@ public static class AbandonReasons
     public const string HoldDeclined = "hold-declined";
     public const string AllocationRefused = "allocation-refused";
     public const string ChargerRejected = "charger-rejected";
+    public const string EnergyFlowTimedOut = "energy-flow-timed-out";
 }
