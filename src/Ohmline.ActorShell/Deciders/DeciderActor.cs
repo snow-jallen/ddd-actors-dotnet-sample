@@ -273,7 +273,7 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
             "{0} could not persist {1} with sequence number {2}: the journal rejected it. " +
             "Nothing changed, and the sender is told {3}",
             PersistenceId,
-            @event.GetType().Name,
+            MessageNames.Of(TraceEnvelope.Unwrap(@event)),
             sequenceNr,
             ShellRejectionCodes.PersistenceRejected);
         AnswerWrite(Rejected(
@@ -294,7 +294,7 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
             cause,
             "Failed to persist {0} with sequence number {1} for {2}. The actor stops; the " +
             "commands waiting behind the write become dead letters",
-            @event.GetType().Name,
+            MessageNames.Of(TraceEnvelope.Unwrap(@event)),
             sequenceNr,
             PersistenceId);
     }

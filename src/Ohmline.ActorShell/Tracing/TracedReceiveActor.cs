@@ -14,17 +14,23 @@ public abstract class TracedReceiveActor : ReceiveActor
 
     protected TracedReceiveActor() => _actorType = GetType().Name;
 
-    protected override bool AroundReceive(Receive receive, object message)
-    {
-        if (message is not TraceEnvelope envelope)
-        {
-            return base.AroundReceive(receive, message);
-        }
+    protected override bool AroundReceive(Receive receive, object message) =>
+        message is TraceEnvelope envelope
+            ? Processed(envelope, inner => base.AroundReceive(receive, inner))
+            // A timer's message is still in Akka.NET's timer wrapper here, and is taken out of
+            // it only on the way to the handler: a traced one is opened there (section 17.7).
+            : base.AroundReceive(
+                next => next is TraceEnvelope timer
+                    ? Processed(timer, inner => receive(inner))
+                    : receive(next),
+                message);
 
+    private bool Processed(TraceEnvelope envelope, Func<object, bool> handler)
+    {
         using var span = ConsumerSpans.Start(_actorType, envelope, Self);
         try
         {
-            return base.AroundReceive(receive, envelope.Message);
+            return handler(envelope.Message);
         }
         catch (Exception exception)
         {

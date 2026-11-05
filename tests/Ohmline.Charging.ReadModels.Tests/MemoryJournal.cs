@@ -6,14 +6,17 @@ using Akka.Persistence.Query.InMemory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Actors;
+using Ohmline.Charging.Actors.Persistence;
 
 namespace Ohmline.Charging.ReadModels.Tests;
 
 /// <summary>
 /// Charging's events in Akka.NET's in-memory journal, tagged as the node tags them, and the
 /// in-memory read journal over it (section 14.7): no file, no database and no cluster, and live
-/// queries that look for new events every 50 ms. The tests write through Charging's own actors.
+/// queries that look for new events every 50 ms. The tests write through Charging's own actors,
+/// and a traced event, stored in its trace envelope, is tagged as the node tags it.
 /// </summary>
 /// <remarks>
 /// The in-memory read journal numbers each tag's events 0, 1, 2...: an offset of its own, where
@@ -41,7 +44,9 @@ internal sealed class MemoryJournal : IAsyncDisposable
         var builder = Host.CreateApplicationBuilder();
         builder.Logging.ClearProviders();
         builder.Services.AddAkka("ohmline", akka => akka
-            .WithInMemoryJournal(journal => journal.AddChargingTagger())
+            .WithInMemoryJournal(journal => journal
+                .AddChargingTagger()
+                .AddTraceEnvelopeTagger<ChargingEnvelopeTagger>())
             .WithInMemorySnapshotStore()
             .AddHocon(
                 "akka.persistence.query.journal.inmem.refresh-interval = 50ms",
@@ -61,4 +66,7 @@ internal sealed class MemoryJournal : IAsyncDisposable
         await _host.StopAsync();
         _host.Dispose();
     }
+
+    /// <summary>Traced events tagged as Charging's tagger tags them (section 17.7).</summary>
+    public sealed class ChargingEnvelopeTagger() : TraceEnvelopeTagger(new ChargingTagger());
 }

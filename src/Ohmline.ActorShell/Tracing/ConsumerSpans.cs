@@ -7,7 +7,8 @@ namespace Ohmline.ActorShell.Tracing;
 /// <summary>
 /// The span an actor records while it processes a traced message (section 17.5), named and
 /// tagged as OpenTelemetry's messaging conventions ask: a CONSUMER span called
-/// <c>process {ActorType}</c>, the child of the sender's span.
+/// <c>process {ActorType}</c>, the child of the sender's span, or, for a message that does not
+/// answer anyone, the root of a trace of its own with a link to the sender's (section 17.7).
 /// </summary>
 internal static class ConsumerSpans
 {
@@ -19,10 +20,28 @@ internal static class ConsumerSpans
     /// actor type names the destination: low cardinality, unlike the path, which is a span
     /// attribute only and never a metric tag.
     /// </summary>
-    public static Activity? Start(string actorType, TraceEnvelope envelope, IActorRef self)
+    /// <param name="actorType">The destination, such as <c>ChargingJourneyActor</c>.</param>
+    /// <param name="envelope">The message and the sender's span.</param>
+    /// <param name="self">The actor, for its path.</param>
+    /// <param name="continuesTrace">True to be the child of the sender's span; false to start
+    /// a trace of its own, linked to the sender's.</param>
+    /// <param name="conversationId">What ties the traces of one conversation together, such
+    /// as a charging journey's id; null if nothing does.</param>
+    public static Activity? Start(
+        string actorType,
+        TraceEnvelope envelope,
+        IActorRef self,
+        bool continuesTrace = true,
+        string? conversationId = null)
     {
-        var span = ActorShellDiagnostics.ActivitySource.StartActivity(
-            $"process {actorType}", ActivityKind.Consumer, envelope.ParentContext);
+        var span = continuesTrace
+            ? ActorShellDiagnostics.ActivitySource.StartActivity(
+                $"process {actorType}", ActivityKind.Consumer, envelope.ParentContext)
+            : ActorShellDiagnostics.ActivitySource.StartActivity(
+                $"process {actorType}",
+                ActivityKind.Consumer,
+                parentContext: default,
+                links: [new ActivityLink(envelope.ParentContext)]);
         if (span is { IsAllDataRequested: true })
         {
             span.SetTag("messaging.system.name", MessagingSystem);
@@ -31,6 +50,7 @@ internal static class ConsumerSpans
             span.SetTag("messaging.destination.name", actorType);
             span.SetTag("akka.message.type", MessageNames.Of(envelope.Message));
             span.SetTag("akka.actor.path", self.Path.ToString());
+            span.SetTag("messaging.message.conversation_id", conversationId);
         }
 
         return span;

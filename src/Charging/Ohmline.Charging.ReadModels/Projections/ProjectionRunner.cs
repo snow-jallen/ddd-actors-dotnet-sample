@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using Akka;
 using Akka.Event;
@@ -21,7 +22,9 @@ namespace Ohmline.Charging.ReadModels.Projections;
 /// a failed attempt, or when its offset is reset to rebuild it, so it must not mind: delivery is
 /// at least once. An event the projection keeps failing on is dealt with by its
 /// <see cref="ProjectionFailurePolicy"/> (section 13.7). What the projection says has changed is
-/// handed to <paramref name="publish"/> after the commit, never before (section 14.4).
+/// handed to <paramref name="publish"/> after the commit, never before (section 14.4). A traced
+/// event is handled in a span of its own, linked to the command that stored it (section 17.7);
+/// the projection gets the event out of its envelope.
 /// </remarks>
 public sealed class ProjectionRunner(
     IEventsByTagQuery readJournal,
@@ -81,9 +84,11 @@ public sealed class ProjectionRunner(
             .ConcatMany(offset => readJournal.EventsByTag(_stream.Tag, Offset.Sequence(offset)))
             .SelectAsync(1, HandleAsync);
 
-    private async Task<long> HandleAsync(EventEnvelope envelope)
+    private async Task<long> HandleAsync(EventEnvelope stored)
     {
-        var offset = OffsetOf(envelope);
+        var offset = OffsetOf(stored);
+        using var span = ProjectionSpans.Start(_stream, stored);
+        var envelope = ProjectionSpans.Opened(stored);
         try
         {
             await WriteAsync(
@@ -95,6 +100,8 @@ public sealed class ProjectionRunner(
         }
         catch (Exception exception) when (!IsTransient(exception))
         {
+            span?.AddException(exception);
+            span?.SetStatus(ActivityStatusCode.Error, exception.Message);
             _failing = _failing.Offset == offset ? (offset, _failing.Attempts + 1) : (offset, 1);
             if (_failing.Attempts <= projection.FailurePolicy.MaxRetries)
             {

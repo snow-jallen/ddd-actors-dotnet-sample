@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Akka.Actor;
 using Akka.Hosting;
 using Akka.Persistence.Query;
@@ -47,8 +48,11 @@ public sealed class JourneySessionRelay(ActorSystem? system = null) : IProjectio
     public async Task<ImmutableArray<LiveUpdate>> HandleAsync(
         EventEnvelope envelope, NpgsqlTransaction transaction, CancellationToken cancellationToken)
     {
-        if (envelope.Event is SessionStarted or SessionEnded)
+        if (envelope.Event is SessionEvent @event and (SessionStarted or SessionEnded))
         {
+            // The session is named after its journey: one conversation (section 17.7).
+            Activity.Current?.SetTag(
+                "messaging.message.conversation_id", @event.SessionId.ToString());
             var running = system ?? throw new InvalidOperationException(
                 $"{nameof(JourneySessionRelay)} tells journeys only when it runs in a node.");
             var journeys = await ActorRegistry.For(running)

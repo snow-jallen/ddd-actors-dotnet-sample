@@ -132,6 +132,18 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
 
     public ITimerScheduler Timers { get; set; } = null!;
 
+    /// <summary>
+    /// The journey's id on every span it processes a message in: the one thread through the
+    /// traces of a charge, from the request that started it to the capture (section 17.7).
+    /// </summary>
+    protected override string ConversationId => _journeyId.ToString();
+
+    /// <summary>
+    /// A timer that fires answers no one: it starts a trace of its own, linked to the step
+    /// that started it, rather than make that request's trace minutes long.
+    /// </summary>
+    protected override bool ContinuesTrace(object message) => message is not JourneyTimerElapsed;
+
     /// <summary>Durable vocabulary: <c>charging-journey-{guid}</c>, for ever.</summary>
     public static string PersistenceIdOf(JourneyId journeyId) => $"{TypeName}-{journeyId}";
 
@@ -277,9 +289,14 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
         return Unit.Value;
     }
 
+    /// <summary>
+    /// The timer's message carries the span that started it, and is processed minutes later in
+    /// a trace of its own, linked to that span (<see cref="ContinuesTrace"/>).
+    /// </summary>
     private Unit StartTimer(JourneyEffect.StartTimer timer)
     {
-        Timers.StartSingleTimer(timer.Timer, new JourneyTimerElapsed(timer.Timer), timer.Delay);
+        Timers.StartSingleTimer(
+            timer.Timer, TraceEnvelope.Wrap(new JourneyTimerElapsed(timer.Timer)), timer.Delay);
         return Unit.Value;
     }
 

@@ -1,9 +1,11 @@
+using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 using Akka.Actor;
 using Akka.Cluster.Tools.PublishSubscribe;
 using Akka.Hosting;
 using Microsoft.Extensions.Options;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.SharedKernel;
@@ -67,7 +69,7 @@ public static class ChargerSockets
             $"charger-{id}-{Guid.NewGuid():N}");
 
         var sending = link.SendAllAsync(http.RequestAborted);
-        await ReceiveAllAsync(socket, connection, link.Closing, http.RequestAborted);
+        await ReceiveAllAsync(socket, id, connection, link.Closing, http.RequestAborted);
         connection.Tell(Disconnected.Instance);
         link.Close();
         await Quietly(sending);
@@ -81,13 +83,19 @@ public static class ChargerSockets
         return TypedResults.Empty;
     }
 
-    /// <summary>Each text message, rebuilt from its fragments, told to the actor.</summary>
+    /// <summary>
+    /// Each text message, rebuilt from its fragments, told to the actor in a trace of its own:
+    /// the connection's request span lasts as long as the socket, hours, so each frame starts a
+    /// new trace with a link to it (section 17.7), and the actor carries the frame's trace on.
+    /// </summary>
     private static async Task ReceiveAllAsync(
         WebSocket socket,
+        ChargePointId chargePointId,
         IActorRef connection,
         CancellationToken closing,
         CancellationToken aborted)
     {
+        var connected = Activity.Current?.Context;
         using var stopping = CancellationTokenSource.CreateLinkedTokenSource(closing, aborted);
         var buffer = new byte[16 * 1024];
         var message = new MemoryStream();
@@ -104,7 +112,12 @@ public static class ChargerSockets
                 message.Write(buffer, 0, received.Count);
                 if (received.EndOfMessage)
                 {
-                    connection.Tell(new FrameReceived(Encoding.UTF8.GetString(message.ToArray())));
+                    using (FrameSpans.Start(chargePointId, connected))
+                    {
+                        connection.TellTraced(
+                            new FrameReceived(Encoding.UTF8.GetString(message.ToArray())));
+                    }
+
                     message.SetLength(0);
                 }
             }

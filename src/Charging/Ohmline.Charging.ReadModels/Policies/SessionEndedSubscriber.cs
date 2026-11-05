@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Akka.Actor;
 using Akka.Hosting;
 using Akka.Persistence.Query;
@@ -57,6 +58,9 @@ public sealed class SessionEndedSubscriber(ActorSystem? system = null) : IProjec
     {
         if (envelope.Event is SessionEvent @event)
         {
+            // The session is named after its journey: one conversation (section 17.7).
+            Activity.Current?.SetTag(
+                "messaging.message.conversation_id", @event.SessionId.ToString());
             foreach (var command in CommandsFor(@event))
             {
                 await SendAsync(command, cancellationToken);

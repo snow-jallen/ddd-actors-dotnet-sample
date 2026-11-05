@@ -70,6 +70,9 @@ public sealed class SpanRecorder : IDisposable
         }
     }
 
+    /// <summary>Every span that has stopped so far, whatever its trace.</summary>
+    public IReadOnlyList<Activity> All => [.. _stopped];
+
     /// <summary>Every span that ended in an error, whatever its trace.</summary>
     public IReadOnlyList<Activity> Failed =>
         [.. _stopped.Where(span => span.Status == ActivityStatusCode.Error)];
