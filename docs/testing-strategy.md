@@ -112,3 +112,5 @@ do not. Nothing calls `Thread.Sleep`: domain tests take the time as a value, and
   needs tests of its own, it is a concept and deserves a public name.
 - **The clock.** No test reads the time. Instants are written down, or come from a
   `FakeTimeProvider` that the test advances.
+
+`tests/README.md` lists where the test helpers are and the smells that break these rules.

@@ -142,6 +142,12 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch08-s05` | 8.5 Policies: 'whenever X then Y' as pure reactions | `ISessionPolicy`, `ReleaseOnSessionEnded`, `SpendCapPolicy`, `IdleFeePolicy`, `ChargingIntent` |
 | `ch08-s06` | 8.6 Refactoring toward deeper insight: who suspended the charge? | `SuspendedByEv` and `SuspendedByCharger` in place of `Suspended` |
 | `ch08-s07` | 8.7 Time in the domain: site-local time, time-of-use and DST | `SiteLocalTime`; pricing across Denver's daylight-saving changes |
+| `ch09-s01` | 9.1 The test pyramid for a functional core and an actor shell | `docs/testing-strategy.md`: the layers, naming and what not to test |
+| `ch09-s02` | 9.2 A Given-When-Then harness for deciders | `tests/Ohmline.Testing` with `DeciderSpec`; the decider tests rewritten on it |
+| `ch09-s03` | 9.3 Specification by example: scenario tables in the ubiquitous language | Reservation and session-stop tables, `pricing-examples.csv`; a reservation fix |
+| `ch09-s04` | 9.4 Model-based property tests for invariants | `DeciderProperties`, `AllocationsFit`, property tests for the three deciders |
+| `ch09-s05` | 9.5 Testing time | `ReservationExpiryTests`, `IdleFeeGraceTests`, `TouBoundaryTests` on a fake clock |
+| `ch09-s06` | 9.6 Testing translators and policies; DDD test smells | Table tests for the AssetTrack translator and the policies, `tests/README.md` |
 
 ## Licence and disclaimers
 

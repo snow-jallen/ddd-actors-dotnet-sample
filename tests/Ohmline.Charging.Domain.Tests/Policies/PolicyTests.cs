@@ -56,7 +56,7 @@ public sealed class PolicyTests
     }
 
     [Fact]
-    public void Whenever_charging_is_suspended_then_the_driver_learns_when_the_idle_fee_starts()
+    public void Whenever_the_car_stops_charging_then_the_driver_learns_when_the_idle_fee_starts()
     {
         new IdleFeePolicy(Idle).React(PrimersCharge[2]).ShouldBe(
             [new ChargingIntent.WarnOfIdleFee(Session, Full.AddMinutes(15), Usd(0.40m))]);
