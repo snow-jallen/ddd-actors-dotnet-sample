@@ -1,0 +1,4 @@
+<Project>
+  <!-- Intentionally empty. Build checks that run after every project file (such as the domain
+       purity check from ch05-s03) are imported here. -->
+</Project>

@@ -1,0 +1,34 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <AkkaVersion>1.5.73</AkkaVersion>
+  </PropertyGroup>
+
+  <!--
+    Every package version used anywhere in the sample is pinned here, and a PackageReference
+    never carries a Version attribute. A PackageVersion arrives in the same commit as the first
+    project that references it.
+  -->
+
+  <!-- Every Akka.* package uses Version="$(AkkaVersion)", so an upgrade is a one-line change. -->
+  <ItemGroup Label="Akka.NET">
+  </ItemGroup>
+
+  <ItemGroup Label="Hosting and Aspire">
+  </ItemGroup>
+
+  <ItemGroup Label="Data">
+  </ItemGroup>
+
+  <ItemGroup Label="Telemetry and operations">
+  </ItemGroup>
+
+  <ItemGroup Label="Mobile">
+  </ItemGroup>
+
+  <ItemGroup Label="Build and release">
+  </ItemGroup>
+
+  <ItemGroup Label="Testing">
+  </ItemGroup>
+</Project>

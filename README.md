@@ -37,6 +37,34 @@ The usual pattern is `git diff <previous tag> <tag>`, where the previous tag is 
 before the one you are reading. Because tags exist only for sections with code, the previous tag
 is not always the previous section.
 
+## Building and testing
+
+You need the .NET SDK named in `global.json` (11.0.100-rc.3 at the time of writing, or a later
+11.0 SDK). Later chapters add more requirements:
+
+- Podman or Docker for the integration tests, from Chapter 12. With rootless Podman, export
+  `DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock` first.
+- The Aspire CLI 13.6 to run the local cluster, from Chapter 12.
+- The `maui-android` workload, an Android SDK and a JDK, only to build the driver app's .NET MAUI
+  head in `mobile/` (Chapter 19).
+
+From the repo root:
+
+```bash
+dotnet build Ohmline.slnx -warnaserror
+dotnet test --solution Ohmline.slnx
+tools/verify-tags.sh                    # build and test every tag in a temporary worktree
+```
+
+`global.json` pins the SDK and selects the Microsoft.Testing.Platform runner, which is why
+`dotnet test` takes `--solution`. Until section 2.1 adds the first project, `Ohmline.slnx` is
+empty and the two `dotnet` commands fail with "Unable to find a project to restore!";
+`tools/verify-tags.sh` reports those tags as skipped.
+
+The Chapter 1 tags (`ch01-s02` to `ch01-s07`) hold documents and setup only, so they are exempt
+from the build-and-test check. From `ch02-s01` on, every tag must build with `-warnaserror`, pass
+all of its tests and leave no files behind, and `tools/verify-tags.sh` fails any tag that does not.
+
 ## Side branches
 
 Later chapters add branches next to `main`. None of them is ever merged.
@@ -52,6 +80,10 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | Tag | Section | What it adds |
 |---|---|---|
 | `ch01-s02` | 1.2 Meet Ohmline: one charge, told end to end | This README, the licence, git settings, `docs/ohmline-primer.md` |
+| `ch01-s03` | 1.3 Models, language and the people who know the business | `docs/glossary.md`, the ADR template, ADR 0000 |
+| `ch01-s04` | 1.4 Consistency without distributed transactions | ADR 0001: one writer per aggregate |
+| `ch01-s06` | 1.6 Functional core, actor shell | ADR 0002, a first-draft `docs/vision.md` |
+| `ch01-s07` | 1.7 Setting up the workbench | `global.json`, `Directory.*.props`, `NuGet.config`, `.editorconfig`, an empty `Ohmline.slnx`, `tools/verify-tags.sh` |
 
 ## Licence and disclaimers
 
