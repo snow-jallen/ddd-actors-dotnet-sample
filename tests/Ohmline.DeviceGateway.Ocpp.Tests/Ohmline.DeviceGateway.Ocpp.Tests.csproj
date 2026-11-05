@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The charger protocol without a charger: frames recorded from two (fictional) vendors'
+    chargers, parsed and translated as the gateway does it. Pure functions; no socket, no actor.
+  -->
+
+  <ItemGroup>
+    <ProjectReference
+      Include="../../src/DeviceGateway/Ohmline.DeviceGateway.Ocpp/Ohmline.DeviceGateway.Ocpp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Frames/**/*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

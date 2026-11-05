@@ -1,0 +1,1 @@
+[2,"19223203","MeterValues",{"connectorId":1,"transactionId":220089095,"meterValue":[{"timestamp":"2026-11-04T15:00:00Z","sampledValue":[{"value":"1210500","context":"Sample.Periodic","measurand":"Energy.Active.Import.Register","unit":"Wh"},{"value":"21800","context":"Sample.Periodic","measurand":"Power.Active.Import","unit":"W"}]}]}]
