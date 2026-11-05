@@ -165,6 +165,17 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch11-s06` | 11.6 Failure semantics: errors versus failures | `OnPersistFailure`/`OnPersistRejected`, `persistence-rejected`, a backoff supervisor, ADR 0008 |
 | `ch11-s07` | 11.7 Durable State: the non-event-sourced alternative | `ChargePointListing`, `StateSourcedDeciderActor`, `docs/persistence-choices.md` |
 | `ch11-s08` | 11.8 Testing the shell with Akka.Persistence.TestKit | `PersistenceShellSpec`; the actor tests rewritten on it; `SnapshotFailureTests` |
+| `ch12-s01` | 12.1 From one node to a cluster | Remoting and clustering in the node (`WithOhmlineCluster`), the `charging` role, keep-majority set explicitly |
+| `ch12-s02` | 12.2 The shard region is the repository | `EntityMessageExtractor` (100 shards), `EntityShardOptions`, a region per aggregate, ADR 0009 |
+| `ch12-s03` | 12.3 Factories: domain versus actor | Entities made by the container (`resolver.Props<T>`), the clock injected |
+| `ch12-s04` | 12.4 Passivation and remember-entities | The `Stop` hand-off message, idle passivation, an ended session passivates itself |
+| `ch12-s05` | 12.5 Application services at the HTTP edge | `Ohmline.Charging.Api` and `Ohmline.SiteEnergy.Api` endpoints, validated options, development scaffolding |
+| `ch12-s06` | 12.6 Idempotency keys and read-your-writes | `RecentCommands` in `DeciderActor` and every snapshot, the `Idempotency-Key` header |
+| `ch12-s07` | 12.7 Uniqueness across aggregates: the IdToken aggregate | Driver Accounts: `IdToken`, `DriverAccountsSerializer` (9103), the `id-token` region, `/tokens` |
+| `ch12-s08` | 12.8 The Knowledge Level in the cluster: the tariff book singleton | `TariffBook`, `TariffsSerializer` (9104), the `tariff-book` singleton and its proxy, `/tariffs` |
+| `ch12-s09` | 12.9 Testing sharding locally with Akka.Hosting.TestKit | `Ohmline.Node.Tests`: the node's wiring on a cluster of one |
+| `ch12-s10` | 12.10 Postgres and a multi-node cluster on your laptop with Aspire | `Ohmline.AppHost` (PostgreSQL 17, three nodes), `Ohmline.ServiceDefaults`, ADR 0010 |
+| `ch12-s11` | 12.11 Integration tests against real Postgres | `Ohmline.IntegrationTests`: `WebApplicationFactory`, Testcontainers, state that survives a restart |
 
 ## Licence and disclaimers
 

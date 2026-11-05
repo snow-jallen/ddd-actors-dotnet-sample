@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The node as it runs, against a real PostgreSQL 17 in a container: WebApplicationFactory
+    starts Program in memory, and Testcontainers starts the database once for the whole
+    assembly. Every test here carries [Trait("Category", "Integration")] and needs Podman or
+    Docker (with rootless Podman, export DOCKER_HOST first).
+  -->
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.XunitV3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Ohmline.Node/Ohmline.Node.csproj" />
+  </ItemGroup>
+
+</Project>

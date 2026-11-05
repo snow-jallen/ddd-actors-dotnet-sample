@@ -53,3 +53,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.Run();
+
+/// <summary>Visible to <c>WebApplicationFactory&lt;Program&gt;</c> in the integration tests.</summary>
+public partial class Program;
