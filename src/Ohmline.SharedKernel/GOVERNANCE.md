@@ -70,6 +70,7 @@ and this version becomes the package version.
 | 2.1.0 | `Currency`, `Money`, `CurrencyMismatch` and `RoundingPolicy` in `Monetary` | 6.3 |
 | 2.2.0 | Identifiers: `SiteId`, `ChargePointId`, `ConnectorId`, `SessionId`, `JourneyId`, `TokenUid`; `GuidV7.Check` | 6.4 |
 | 2.3.0 | `DecisionContext` in `Deciders`: the time a decider is given | 7.4 |
+| 2.4.0 | `IDecider<TState, TCommand, TEvent, TError>` and `Decider.Fold` | 7.6 |
 
 ## How a change gets in
 

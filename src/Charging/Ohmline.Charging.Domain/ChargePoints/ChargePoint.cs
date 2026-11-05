@@ -8,10 +8,18 @@ namespace Ohmline.Charging.Domain.ChargePoints;
 
 /// <summary>
 /// The charge point aggregate as a decider: pure functions from what it remembers and what it is
-/// asked to what happened. No clock, no I/O and no actor: the time arrives in the context.
+/// asked to what happened. No clock, no I/O and no actor: the time arrives in the context. A
+/// class only so that it can be a type argument; it is never instantiated.
 /// </summary>
-public static class ChargePoint
+public sealed class ChargePoint
+    : IDecider<ChargePointState, ChargePointCommand, ChargePointEvent, ChargePointError>
 {
+    private ChargePoint()
+    {
+    }
+
+    public static ChargePointState Initial => ChargePointState.Initial;
+
     /// <summary>How long a reservation holds a connector for its driver.</summary>
     public static TimeSpan ReservationHold { get; } = TimeSpan.FromMinutes(15);
 
@@ -124,7 +132,8 @@ public static class ChargePoint
     /// the initial state. The same history always gives the same state.
     /// </summary>
     public static ChargePointState Fold(IEnumerable<ChargePointEvent> events) =>
-        events.Aggregate(ChargePointState.Initial, Evolve);
+        Decider.Fold<ChargePoint, ChargePointState, ChargePointCommand, ChargePointEvent,
+            ChargePointError>(events);
 
     private static Registered Register(ChargePointRegistered registered) =>
         new(registered.ChargePointId, registered.SiteId, registered.ConnectorMaxPowers
