@@ -5,12 +5,14 @@ using Akka.Hosting;
 using Akka.Remote.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Ohmline.ActorShell.Tracing;
 
 namespace Ohmline.ActorShell.Clustering;
 
 /// <summary>
-/// How a node joins Ohmline's cluster: remoting, role, seed nodes, downing, and the
-/// DistributedPubSub mediator that live updates and charger commands travel on. Every host
+/// How a node joins Ohmline's cluster: remoting, role, seed nodes, downing, the
+/// DistributedPubSub mediator that live updates and charger commands travel on, and the
+/// serializer of the trace envelopes that any message may travel in. Every host
 /// joins the same way: the charging nodes and, from section 16.7, the Device Gateway's.
 /// </summary>
 public static class ClusterExtensions
@@ -55,6 +57,8 @@ public static class ClusterExtensions
                 // (section 14.4), and a charger command reaches the gateway node that holds the
                 // charger's connection (section 16.7).
                 .WithDistributedPubSub(role: "")
+                // A traced message may be sent to any node, from any node (section 17.4).
+                .WithTraceEnvelopes()
                 .AddHocon(
                     "akka.cluster.split-brain-resolver.stable-after = 20s",
                     HoconAddMode.Prepend);

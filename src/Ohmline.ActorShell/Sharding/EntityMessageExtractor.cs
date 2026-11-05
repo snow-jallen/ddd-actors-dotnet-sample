@@ -1,4 +1,5 @@
 using Akka.Cluster.Sharding;
+using Ohmline.ActorShell.Tracing;
 
 namespace Ohmline.ActorShell.Sharding;
 
@@ -12,6 +13,8 @@ namespace Ohmline.ActorShell.Sharding;
 /// Sharding's own messages, such as <c>ShardRegion.StartEntity</c>, are handled by Akka.NET
 /// before the extractor sees them; handling them here is a mistake the AK2001 analyzer reports.
 /// A message the function does not know gets a null id, and the region drops it with a warning.
+/// A <see cref="TraceEnvelope"/> is routed by the message inside it, and delivered whole, so the
+/// entity can carry on its trace (section 17.4); the contexts' functions never see one.
 /// </remarks>
 public sealed class EntityMessageExtractor(Func<object, string?> entityIdOf)
     : HashCodeMessageExtractor(NumberOfShards)
@@ -24,5 +27,6 @@ public sealed class EntityMessageExtractor(Func<object, string?> entityIdOf)
     /// </summary>
     public const int NumberOfShards = 100;
 
-    public override string? EntityId(object message) => entityIdOf(message);
+    public override string? EntityId(object message) =>
+        entityIdOf(TraceEnvelope.Unwrap(message));
 }

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.DriverAccounts.Api.Requests;
 using Ohmline.DriverAccounts.Api.Responses;
 using Ohmline.DriverAccounts.Contracts.Tokens;
@@ -111,7 +112,7 @@ public static class DriverAccountsEndpoints
         var timeout = options.Value.AskTimeout;
         try
         {
-            var view = await tokens.ActorRef.Ask<IdTokenView>(
+            var view = await tokens.ActorRef.AskTraced<IdTokenView>(
                 new GetIdToken(tokenUid), timeout, cancellationToken);
             return view.Driver is { } driver
                 ? TypedResults.Ok(TokenResponse.From(view, driver))
@@ -133,7 +134,8 @@ public static class DriverAccountsEndpoints
     {
         try
         {
-            var reply = await tokens.Ask<TokenCommandReply>(command, timeout, cancellationToken);
+            var reply = await tokens.AskTraced<TokenCommandReply>(
+                command, timeout, cancellationToken);
             return reply switch
             {
                 TokenCommandAccepted accepted =>

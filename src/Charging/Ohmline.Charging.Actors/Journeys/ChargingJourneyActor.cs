@@ -4,6 +4,7 @@ using Akka.Event;
 using Akka.Hosting;
 using Akka.Persistence;
 using Ohmline.ActorShell.Sharding;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Actors.Journeys.Ports;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.Journeys;
@@ -130,6 +131,10 @@ public sealed class ChargingJourneyActor : ReceivePersistentActor, IWithTimers
     public override string PersistenceId { get; }
 
     public ITimerScheduler Timers { get; set; } = null!;
+
+    /// <summary>A traced message (section 17.4) is handled as the message inside it.</summary>
+    protected override bool AroundReceive(Receive receive, object message) =>
+        base.AroundReceive(receive, TraceEnvelope.Unwrap(message));
 
     /// <summary>Durable vocabulary: <c>charging-journey-{guid}</c>, for ever.</summary>
     public static string PersistenceIdOf(JourneyId journeyId) => $"{TypeName}-{journeyId}";
@@ -266,7 +271,7 @@ public sealed class ChargingJourneyActor : ReceivePersistentActor, IWithTimers
 
     private Unit Send<TRegion>(IRequiredActor<TRegion> region, object command)
     {
-        region.ActorRef.Tell(command, Self);
+        region.ActorRef.TellTraced(command, Self);
         return Unit.Value;
     }
 

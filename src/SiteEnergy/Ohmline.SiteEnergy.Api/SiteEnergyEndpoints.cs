@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Units;
 using Ohmline.SiteEnergy.Api.Requests;
@@ -71,7 +72,7 @@ public static class SiteEnergyEndpoints
         var timeout = options.Value.AskTimeout;
         try
         {
-            var reply = await budgets.ActorRef.Ask<BudgetCommandReply>(
+            var reply = await budgets.ActorRef.AskTraced<BudgetCommandReply>(
                 configure, timeout, cancellationToken);
             return reply switch
             {
@@ -103,7 +104,7 @@ public static class SiteEnergyEndpoints
         var timeout = options.Value.AskTimeout;
         try
         {
-            var view = await budgets.ActorRef.Ask<SitePowerBudgetView>(
+            var view = await budgets.ActorRef.AskTraced<SitePowerBudgetView>(
                 new GetSitePowerBudget(siteId), timeout, cancellationToken);
             return view.Version > 0
                 ? TypedResults.Ok(BudgetResponse.From(view))

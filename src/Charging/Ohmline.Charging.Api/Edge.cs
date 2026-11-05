@@ -1,6 +1,7 @@
 using Akka.Actor;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Api.Responses;
 using Ohmline.Charging.Contracts;
 
@@ -38,7 +39,7 @@ internal static class Edge
     {
         try
         {
-            var reply = await region.Ask<CommandReply>(command, timeout, cancellationToken);
+            var reply = await region.AskTraced<CommandReply>(command, timeout, cancellationToken);
             return reply switch
             {
                 CommandAccepted accepted => TypedResults.Accepted(
@@ -59,7 +60,7 @@ internal static class Edge
     {
         try
         {
-            return await region.Ask<TReply>(question, timeout, cancellationToken);
+            return await region.AskTraced<TReply>(question, timeout, cancellationToken);
         }
         catch (AskTimeoutException)
         {

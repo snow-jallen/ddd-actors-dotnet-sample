@@ -1,6 +1,7 @@
 using Akka.Actor;
 using Akka.Hosting;
 using Microsoft.Extensions.Options;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.Tariffs.Contracts;
 using Ohmline.Tariffs.Contracts.Book;
 
@@ -16,7 +17,7 @@ public sealed class TariffBookCatalog(
     public async Task<TariffSnapshot?> CurrentAsync(
         TariffId tariffId, CancellationToken cancellationToken)
     {
-        var current = await book.ActorRef.Ask<CurrentTariff>(
+        var current = await book.ActorRef.AskTraced<CurrentTariff>(
             new GetTariffSnapshot(tariffId), options.Value.AskTimeout, cancellationToken);
         return current.Snapshot;
     }

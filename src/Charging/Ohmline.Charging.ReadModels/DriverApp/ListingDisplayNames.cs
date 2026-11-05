@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Akka.Hosting;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Contracts.Listings;
 using Ohmline.SharedKernel.Identity;
 
@@ -24,7 +25,7 @@ public sealed class ListingDisplayNames(ActorSystem system) : IChargePointNames
             await ActorRegistry.For(system).GetAsync<ChargePointListingRegion>(cancellationToken);
         try
         {
-            var view = await listings.Ask<ChargePointListingView>(
+            var view = await listings.AskTraced<ChargePointListingView>(
                 new GetChargePointListing(chargePointId), AskTimeout, cancellationToken);
             return view.DisplayName;
         }

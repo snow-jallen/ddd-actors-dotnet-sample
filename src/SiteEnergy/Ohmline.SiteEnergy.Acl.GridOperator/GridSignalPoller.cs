@@ -3,6 +3,7 @@ using Akka.Actor;
 using Akka.Event;
 using Akka.Hosting;
 using Microsoft.Extensions.Options;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SiteEnergy.Acl.GridOperator.Northgate;
 using Ohmline.SiteEnergy.Contracts;
@@ -109,7 +110,7 @@ public sealed class GridSignalPoller : ReceiveActor, IWithTimers
             _log.Info("{0}: {1}", site, instruction.Value);
             var command = GridSignalTranslator.Command(instruction);
             _budgets.ActorRef
-                .Ask<BudgetCommandReply>(command, _options.AskTimeout)
+                .AskTraced<BudgetCommandReply>(command, _options.AskTimeout)
                 .PipeTo(
                     Self,
                     success: reply => new Told(instruction, reply),

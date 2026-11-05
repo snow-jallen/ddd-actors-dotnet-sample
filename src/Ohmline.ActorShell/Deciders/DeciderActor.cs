@@ -6,6 +6,7 @@ using Akka.Event;
 using Akka.Persistence;
 using Ohmline.ActorShell.Serialization;
 using Ohmline.ActorShell.Sharding;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.SharedKernel;
 using Ohmline.SharedKernel.Deciders;
 using Ohmline.SharedKernel.Identity;
@@ -87,6 +88,10 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     }
 
     public override string PersistenceId { get; }
+
+    /// <summary>A traced command (section 17.4) is handled as the command inside it.</summary>
+    protected override bool AroundReceive(Receive receive, object message) =>
+        base.AroundReceive(receive, TraceEnvelope.Unwrap(message));
 
     /// <summary>The fold of every event so far, changed only here, through Evolve.</summary>
     protected TState State { get; private set; } = TDecider.Initial;

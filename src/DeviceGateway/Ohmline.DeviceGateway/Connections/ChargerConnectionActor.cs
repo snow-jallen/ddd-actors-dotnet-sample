@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.Cluster.Tools.PublishSubscribe;
 using Akka.Event;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.Charging.Contracts.Chargers;
@@ -72,6 +73,10 @@ public sealed class ChargerConnectionActor : ReceiveActor, IWithTimers, IWithSta
             new ChargerConnectionActor(chargePointId, link, regions, options, clock));
 
     protected override void PreStart() => ExpectFrameWithinSilenceTimeout();
+
+    /// <summary>A traced message (section 17.4) is handled as the message inside it.</summary>
+    protected override bool AroundReceive(Receive receive, object message) =>
+        base.AroundReceive(receive, TraceEnvelope.Unwrap(message));
 
     /// <summary>Whatever was still waiting for the charger will not get an answer now.</summary>
     protected override void PostStop()
@@ -231,9 +236,9 @@ public sealed class ChargerConnectionActor : ReceiveActor, IWithTimers, IWithSta
             var reply = command.Value switch
             {
                 ChargePointCommand forChargePoint =>
-                    await regions.ChargePoints.Ask<CommandReply>(forChargePoint, timeout),
+                    await regions.ChargePoints.AskTraced<CommandReply>(forChargePoint, timeout),
                 SessionCommand forSession =>
-                    await regions.Sessions.Ask<CommandReply>(forSession, timeout),
+                    await regions.Sessions.AskTraced<CommandReply>(forSession, timeout),
                 _ => throw new InvalidOperationException("The command is default: no case."),
             };
             if (reply is CommandRejected refusal)
@@ -267,9 +272,9 @@ public sealed class ChargerConnectionActor : ReceiveActor, IWithTimers, IWithSta
         static async Task<StartingTerms?> TermsAsync(
             ChargerRegions regions, ChargePointId chargePointId, GatewayOptions options)
         {
-            var status = await regions.ChargePoints.Ask<ChargePointStatus>(
+            var status = await regions.ChargePoints.AskTraced<ChargePointStatus>(
                 new GetChargePointStatus(chargePointId), options.AskTimeout);
-            var current = await regions.TariffBook.Ask<CurrentTariff>(
+            var current = await regions.TariffBook.AskTraced<CurrentTariff>(
                 new GetTariffSnapshot(new(options.TariffId)), options.AskTimeout);
             return (status.SiteId, current.Snapshot) is ({ } site, { } tariff)
                 ? new StartingTerms(site, tariff, new Money(options.SpendCap, tariff.Currency))

@@ -3,6 +3,7 @@ using Akka.Actor;
 using Akka.Hosting;
 using Akka.Persistence.Query;
 using Npgsql;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.Journeys;
 using Ohmline.Charging.Contracts.Live;
@@ -52,7 +53,7 @@ public sealed class JourneySessionRelay(ActorSystem? system = null) : IProjectio
                 $"{nameof(JourneySessionRelay)} tells journeys only when it runs in a node.");
             var journeys = await ActorRegistry.For(running)
                 .GetAsync<ChargingJourneyRegion>(cancellationToken);
-            await journeys.Ask<CommandReply>(envelope.Event, AskTimeout, cancellationToken);
+            await journeys.AskTraced<CommandReply>(envelope.Event, AskTimeout, cancellationToken);
         }
 
         return [];

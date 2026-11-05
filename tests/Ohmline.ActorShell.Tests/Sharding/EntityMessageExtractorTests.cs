@@ -1,4 +1,5 @@
 using Ohmline.ActorShell.Sharding;
+using Ohmline.ActorShell.Tracing;
 
 namespace Ohmline.ActorShell.Tests.Sharding;
 
@@ -26,6 +27,22 @@ public sealed class EntityMessageExtractorTests
         var knock = new Knock("OHM-SLC-0042");
 
         Doors.EntityMessage(knock).ShouldBeSameAs(knock);
+    }
+
+    [Fact]
+    public void Given_a_traced_message_then_it_is_routed_by_the_message_inside()
+    {
+        var traced = new TraceEnvelope(new Knock("OHM-SLC-0042"), "00-x-y-01", null);
+
+        Doors.EntityId(traced).ShouldBe("OHM-SLC-0042");
+    }
+
+    [Fact]
+    public void Given_a_traced_message_then_the_entity_receives_the_whole_envelope()
+    {
+        var traced = new TraceEnvelope(new Knock("OHM-SLC-0042"), "00-x-y-01", null);
+
+        Doors.EntityMessage(traced).ShouldBeSameAs(traced);
     }
 
     [Fact]

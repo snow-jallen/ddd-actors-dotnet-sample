@@ -3,6 +3,7 @@ using Akka.Actor;
 using Akka.Hosting;
 using Akka.Persistence.Query;
 using Npgsql;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.Live;
 using Ohmline.Charging.Domain.Policies;
@@ -112,7 +113,7 @@ public sealed class SessionEndedSubscriber(ActorSystem? system = null) : IProjec
         var running = system ?? throw new InvalidOperationException(
             $"{nameof(SessionEndedSubscriber)} sends commands only when it runs in a node.");
         var region = await ActorRegistry.For(running).GetAsync<TRegion>(cancellationToken);
-        await region.Ask<TReply>(command, AskTimeout, cancellationToken);
+        await region.AskTraced<TReply>(command, AskTimeout, cancellationToken);
     }
 }
 

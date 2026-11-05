@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Akka.Cluster.Tools.PublishSubscribe;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Contracts.Chargers;
 using Ohmline.Charging.Domain.Journeys;
 using Ohmline.SharedKernel.Identity;
@@ -56,13 +57,15 @@ public sealed class GatewayChargerCommandPort(ActorSystem system) : IChargerComm
 
     /// <summary>
     /// The mediator hands the published command to the subscriber with the asker as its sender,
-    /// so the gateway's answer goes straight back to this ask.
+    /// so the gateway's answer goes straight back to this ask. The command travels in a trace
+    /// envelope, taken from the journey's span before the first await (section 17.4).
     /// </summary>
     private async Task<ChargerCommandResult> AskAsync(
         ChargerCommand command, CancellationToken cancellationToken)
     {
         var mediator = DistributedPubSub.Get(system).Mediator;
-        var publish = new Publish(ChargerTopics.Of(command.ConnectorId.ChargePointId), command);
+        var publish = new Publish(
+            ChargerTopics.Of(command.ConnectorId.ChargePointId), TraceEnvelope.Wrap(command));
         for (var attempt = 1; ; attempt++)
         {
             try

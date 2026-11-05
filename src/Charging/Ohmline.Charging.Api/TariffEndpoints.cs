@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Api.Responses;
 using Ohmline.Charging.Api.Tariffs;
 using Ohmline.SharedKernel.Monetary;
@@ -55,16 +56,16 @@ public static class TariffEndpoints
         var timeout = options.Value.AskTimeout;
         try
         {
-            return await book.ActorRef.Ask<TariffBookReply>(publish, timeout, cancellationToken)
-                switch
-                {
-                    TariffBookAccepted accepted => TypedResults.Accepted(
-                        $"/tariffs/{tariffId}", new CommandAcceptedResponse(accepted.Version)),
-                    TariffBookRejected rejected =>
-                        Problems.Rejected(rejected.Code, rejected.Message),
-                    CurrentTariff => throw new InvalidOperationException(
-                        "The tariff book answered a command with a tariff."),
-                };
+            var reply = await book.ActorRef.AskTraced<TariffBookReply>(
+                publish, timeout, cancellationToken);
+            return reply switch
+            {
+                TariffBookAccepted accepted => TypedResults.Accepted(
+                    $"/tariffs/{tariffId}", new CommandAcceptedResponse(accepted.Version)),
+                TariffBookRejected rejected => Problems.Rejected(rejected.Code, rejected.Message),
+                CurrentTariff => throw new InvalidOperationException(
+                    "The tariff book answered a command with a tariff."),
+            };
         }
         catch (AskTimeoutException)
         {
