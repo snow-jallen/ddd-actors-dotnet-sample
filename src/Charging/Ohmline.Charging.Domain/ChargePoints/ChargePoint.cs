@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.SharedKernel;
 using Ohmline.SharedKernel.Deciders;
+using Ohmline.SharedKernel.Identity;
 
 namespace Ohmline.Charging.Domain.ChargePoints;
 
@@ -96,6 +97,55 @@ public static class ChargePoint
 
             (null, _) => throw DefaultState(),
         };
+
+    /// <summary>
+    /// Applies one event to the state. Total: every event meets some state and gives a state,
+    /// and nothing is checked again. The event is a fact that Decide already accepted, and
+    /// replaying the journal must never fail.
+    /// </summary>
+    public static ChargePointState Evolve(ChargePointState state, ChargePointEvent @event) =>
+        (state, @event) switch
+        {
+            (Unregistered, ChargePointRegistered registered) => Register(registered),
+            (Registered chargePoint, ConnectorEvent happened) =>
+                chargePoint.Connectors.TryGetValue(happened.ConnectorNumber, out var connector)
+                    ? chargePoint with
+                    {
+                        Connectors = chargePoint.Connectors.SetItem(
+                            happened.ConnectorNumber, connector with { State = Next(happened) }),
+                    }
+                    : chargePoint,
+            (Registered, ChargePointRegistered) or (Unregistered, ConnectorEvent) => state,
+            (null, _) => throw DefaultState(),
+        };
+
+    /// <summary>
+    /// Recovery: the state is the fold of the history over <see cref="Evolve"/>, starting from
+    /// the initial state. The same history always gives the same state.
+    /// </summary>
+    public static ChargePointState Fold(IEnumerable<ChargePointEvent> events) =>
+        events.Aggregate(ChargePointState.Initial, Evolve);
+
+    private static Registered Register(ChargePointRegistered registered) =>
+        new(registered.ChargePointId, registered.SiteId, registered.ConnectorMaxPowers
+            .Index()
+            .ToImmutableDictionary(
+                entry => entry.Index + 1,
+                entry => new Connector(
+                    new ConnectorId(registered.ChargePointId, entry.Index + 1),
+                    entry.Item,
+                    new Available())));
+
+    /// <summary>A connector's next state follows from the event alone.</summary>
+    private static ConnectorState Next(ConnectorEvent happened) => happened switch
+    {
+        ConnectorReserved reserved => new Reserved(reserved.TokenUid, reserved.ExpiresAt),
+        ConnectorOccupied occupied => new Occupied(occupied.SessionId),
+        ConnectorFaulted faulted => new Faulted(faulted.ErrorCode),
+        ConnectorMadeUnavailable => new Unavailable(),
+        ReservationCancelled or ReservationExpired or ConnectorReleased
+            or ConnectorFaultCleared or ConnectorMadeAvailable => new Available(),
+    };
 
     /// <summary>The expiry is decided here, from the context's time, and recorded.</summary>
     private static ConnectorReserved Reservation(
