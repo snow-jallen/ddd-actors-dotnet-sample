@@ -183,6 +183,13 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch13-s06` | 13.6 Running exactly one projector | The sharded daemon process `projections` (`ProjectionDaemon`, `AddChargingReadModels()`) |
 | `ch13-s07` | 13.7 When a projection fails: restarts, poison events and lag | `ProjectionFailurePolicy`, `read_models.projection_failures`, `GET /projections/status`, a runbook |
 | `ch13-s08` | 13.8 Read models people use: a site live board and a query API | `SiteLiveBoardProjection`, `ISiteAllocationEvent`, `GET /sites/{id}/live-board`, `GET /tokens/{uid}/sessions` |
+| `ch14-s01` | 14.1 Read-your-writes with the version a command returns | `GET /sessions/{id}?minVersion=`, `ReadYourWrites`, `Ohmline:ReadModels:ReadYourWritesTimeout`; session commands' `Location` asks for their version |
+| `ch14-s02` | 14.2 Consistency choices per screen | `docs/consistency-per-screen.md` |
+| `ch14-s03` | 14.3 Tuning and measuring projection lag | `Ohmline:Projections:RefreshInterval` and `QueryDelay` (100 ms), `last_event_at` and lag in `GET /projections/status` |
+| `ch14-s04` | 14.4 Live push with Server-Sent Events | `LiveUpdate`/`SessionSummaryChanged` published after the commit on DistributedPubSub, `GET /sessions/{id}/events` |
+| `ch14-s05` | 14.5 Live push to app clients with SignalR | `ChargingHub` at `/hubs/charging`, `LiveUpdatesBridge` |
+| `ch14-s06` | 14.6 Many read models from one stream, including one for the driver app | `DriverAppProjection` (`driver-app-v1`), the driver app cards and feed, `GET /app/v1/tokens/{uid}/cards` and `/feed`, `driverCardChanged` |
+| `ch14-s07` | 14.7 Testing projections | `ProjectionRulesTests` and `InMemoryRunnerTests` on Akka.Persistence.Query.InMemory, `ReplayTests` |
 
 ## Licence and disclaimers
 

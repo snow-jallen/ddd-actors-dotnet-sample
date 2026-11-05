@@ -42,6 +42,16 @@ internal static class ProjectionRun
         await using var running = runner.Start(node.System.Materializer());
 
         var stream = new ProjectionStream(projection.ProjectionId, tag);
+        await StoredAsync(database, stream, offset, cancellationToken);
+    }
+
+    /// <summary>Waits until the stream has stored the offset, or a later one.</summary>
+    public static async Task StoredAsync(
+        NpgsqlDataSource database,
+        ProjectionStream stream,
+        long offset,
+        CancellationToken cancellationToken)
+    {
         var stored = new NpgsqlOffsetStore(database);
         var deadline = DateTimeOffset.UtcNow + Patience;
         while (await stored.LoadAsync(stream, cancellationToken) < offset)
