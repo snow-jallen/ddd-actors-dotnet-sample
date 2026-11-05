@@ -27,6 +27,7 @@ These words cross context boundaries unchanged. Their types live in `Ohmline.Sha
 | Power | An instantaneous rate, in kW. Never confuse it with energy | `Power` |
 | Energy | An amount delivered over time, in kWh | `Energy` |
 | Current | Electrical current, in A | `Current` |
+| Voltage | Electrical potential, in V; with current, it gives one phase's power | `Voltage` |
 | Money | An amount in one currency; amounts in two currencies are never added | `Money`, `Currency` |
 
 ## Charging
