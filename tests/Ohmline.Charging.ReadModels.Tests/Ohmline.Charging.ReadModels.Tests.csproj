@@ -26,6 +26,9 @@
     <!-- Only to write events the way the node does: through the shard regions. -->
     <ProjectReference
       Include="../../src/Charging/Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
+    <!-- Site Energy's events, to feed the site live board by hand. -->
+    <ProjectReference
+      Include="../../src/SiteEnergy/Ohmline.SiteEnergy.Domain/Ohmline.SiteEnergy.Domain.csproj" />
     <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
   </ItemGroup>
 

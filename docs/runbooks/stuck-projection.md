@@ -9,8 +9,8 @@ is stuck, why, and how to get it moving again without losing an event (section 1
 - Screens fed by one read model stop changing while commands still succeed.
 - `GET /projections/status` shows a stream whose `eventsBehind` grows instead of returning to
   0, and whose `updatedAt` stays put.
-- The node logs, for that stream, one of these ERROR lines (one line each in the log; the
-  status of a test run produces exactly these):
+- The node logs, for that stream, one of these ERROR lines (one line each in the log;
+  wrapped here; `ProjectionFailureTests` produces lines of exactly this shape):
 
   ```text
   Projection session-history-v1/charging-session failed on charging-session-... #4 at offset

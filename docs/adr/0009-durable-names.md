@@ -45,7 +45,7 @@ We will treat these as permanent, never to be changed or reused once released:
 | Coordinator state | `StateStoreMode.DData`, set explicitly in `EntityShardOptions` |
 | Event tags (section 13.2) | `charging`, `charging-session`, `site-energy` (`ChargingTags`, `SiteEnergyTags`); a tag is stored with the event and never rewritten |
 | Sharded daemon process (section 13.6) | `projections`, one instance per projection stream; instance `i` runs `ChargingReadModelsExtensions.Streams[i]`, so the list is append only |
-| Projection ids (section 13.5) | `session-history-v1`; a new read-model shape is a new id, never a reused one |
+| Projection ids (sections 13.5, 13.8) | `session-history-v1`, `site-live-board-v1`; a new read-model shape is a new id, never a reused one |
 
 We will keep each name in one place: the type name and the persistence id format in the
 entity's actor (`ChargePointActor.TypeName`, `PersistenceIdOf`), the shard count in

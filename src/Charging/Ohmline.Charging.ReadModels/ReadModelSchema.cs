@@ -34,6 +34,9 @@ public static class ReadModelSchema
             last_sequence_nr bigint      NOT NULL
         );
 
+        CREATE INDEX IF NOT EXISTS session_history_by_token
+            ON read_models.session_history (token_uid, started_at DESC);
+
         CREATE TABLE IF NOT EXISTS read_models.projection_failures (
             projection_id  text        NOT NULL,
             persistence_id text        NOT NULL,
@@ -42,6 +45,19 @@ public static class ReadModelSchema
             failed_at      timestamptz NOT NULL DEFAULT now(),
             PRIMARY KEY (projection_id, persistence_id, sequence_nr)
         );
+
+        CREATE TABLE IF NOT EXISTS read_models.site_live_board (
+            connector_id           text    PRIMARY KEY,
+            site_id                text    NOT NULL,
+            status                 text    NOT NULL DEFAULT 'unknown',
+            session_id             uuid    NULL,
+            status_sequence_nr     bigint  NOT NULL DEFAULT 0,
+            allocated_kw           numeric NULL,
+            allocation_sequence_nr bigint  NOT NULL DEFAULT 0
+        );
+
+        CREATE INDEX IF NOT EXISTS site_live_board_by_site
+            ON read_models.site_live_board (site_id);
         """;
 
     /// <summary>

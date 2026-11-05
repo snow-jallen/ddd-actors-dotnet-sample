@@ -165,7 +165,7 @@ relationship has no artifact, either the artifact is missing or the relationship
 |---|---|---|---|
 | All contexts | Shared Kernel | `src/Ohmline.SharedKernel` (BCL only), its `GOVERNANCE.md`, `.github/CODEOWNERS`, `SharedKernelPurityTests` | 3.5, 5.5 |
 | Device Gateway and Charging | Partnership | `Ohmline.DeviceGateway.Ocpp` translates straight into `Ohmline.Charging.Contracts`; `Ohmline.DeviceGateway` reaches Charging through shard-region proxies (`charge-point`, `charging-session`, `charging-journey`) in the same cluster | 16.6, 16.7 |
-| Site Energy to Charging | Customer/Supplier | `Ohmline.SiteEnergy.Contracts`, sent to the `site-power-budget` shard region; allocations read back by the `site-energy` event tag | 7.8, 15.2, 16.8 |
+| Site Energy to Charging | Customer/Supplier | `Ohmline.SiteEnergy.Contracts`, sent to the `site-power-budget` shard region; allocations read back by the `site-energy` event tag, through the published `ISiteAllocationEvent` view (Charging's site live board) | 7.8, 13.8, 15.2, 16.8 |
 | Tariffs to Charging | Customer/Supplier | `Ohmline.Tariffs.Contracts`, asked of the `tariff-book` singleton through its proxy | 8.2, 12.8 |
 | Driver Accounts to Charging | Customer/Supplier | `Ohmline.DriverAccounts.Contracts`, sent to the `id-token` shard region | 12.7 |
 | Charging to Billing | Customer/Supplier; Open Host Service, Published Language | `Ohmline.Charging.Contracts/Integration`, the outbox relay, the HTTP feed `GET /feeds/charging`, Billing's feed consumer, contract tests with golden files | 16.1, 16.2, 16.3, 16.10 |

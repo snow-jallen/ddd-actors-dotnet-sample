@@ -11,12 +11,15 @@ internal static class Sessions
         components = new[] { new { kind = "energy-rate", price = 0.42m } },
     };
 
-    public static object Start(Guid sessionId, string connectorId = "OHM-SLC-0042/1") => new
+    public static object Start(
+        Guid sessionId,
+        string connectorId = "OHM-SLC-0042/1",
+        string tokenUid = "04A2B3C4D5E6F7") => new
     {
         sessionId,
         siteId = "slc-depot",
         connectorId,
-        tokenUid = "04A2B3C4D5E6F7",
+        tokenUid,
         tariffId = "slc-standard",
         spendCap = 40m,
         meterStartWh = 1_200_000L,

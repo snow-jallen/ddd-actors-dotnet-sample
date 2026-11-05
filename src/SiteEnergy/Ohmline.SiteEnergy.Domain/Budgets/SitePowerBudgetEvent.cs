@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Units;
+using Ohmline.SiteEnergy.Contracts.Budgets;
 using Ohmline.SiteEnergy.Domain.Sites;
 
 namespace Ohmline.SiteEnergy.Domain.Budgets;
@@ -11,6 +12,11 @@ namespace Ohmline.SiteEnergy.Domain.Budgets;
 /// the chargers were already told. Every event records the command that caused it and when it
 /// happened; <see cref="SitePowerBudget"/> stamps both on every event of a decision.
 /// </summary>
+/// <remarks>
+/// The allocation events also show other contexts what they allocate, as
+/// <see cref="ISiteAllocationEvent"/> (section 13.8). They implement it explicitly, so the
+/// serializer, which writes public properties, stores exactly what it stored before.
+/// </remarks>
 public closed record SitePowerBudgetEvent(SiteId SiteId)
 {
     /// <summary>The command that caused this event: its causation.</summary>
@@ -27,12 +33,24 @@ public sealed record SiteConfigured(SiteId SiteId, SiteConfiguration Configurati
 /// <summary>A session's request was admitted, with all or part of what it asked for.</summary>
 public sealed record AllocationGranted(
     SiteId SiteId, ConnectorId ConnectorId, SessionId SessionId, Power Requested, Power Granted)
-    : SitePowerBudgetEvent(SiteId);
+    : SitePowerBudgetEvent(SiteId), ISiteAllocationEvent
+{
+    ImmutableArray<ConnectorAllocation> ISiteAllocationEvent.Allocations =>
+        [new ConnectorAllocation(ConnectorId, Granted)];
+
+    bool ISiteAllocationEvent.CoversWholeSite => false;
+}
 
 /// <summary>A session's request is open, but its minimum does not fit now.</summary>
 public sealed record AllocationQueued(
     SiteId SiteId, ConnectorId ConnectorId, SessionId SessionId, Power Requested)
-    : SitePowerBudgetEvent(SiteId);
+    : SitePowerBudgetEvent(SiteId), ISiteAllocationEvent
+{
+    ImmutableArray<ConnectorAllocation> ISiteAllocationEvent.Allocations =>
+        [new ConnectorAllocation(ConnectorId, Power.Zero)];
+
+    bool ISiteAllocationEvent.CoversWholeSite => false;
+}
 
 /// <summary>
 /// Every allocation at the site after a change, in request order; a request that is not in the
@@ -41,8 +59,14 @@ public sealed record AllocationQueued(
 /// </summary>
 public sealed record AllocationsRebalanced(
     SiteId SiteId, ImmutableArray<PowerAllocation> Allocations)
-    : SitePowerBudgetEvent(SiteId)
+    : SitePowerBudgetEvent(SiteId), ISiteAllocationEvent
 {
+    ImmutableArray<ConnectorAllocation> ISiteAllocationEvent.Allocations =>
+        [.. Allocations.Select(allocation =>
+            new ConnectorAllocation(allocation.ConnectorId, allocation.Power))];
+
+    bool ISiteAllocationEvent.CoversWholeSite => true;
+
     public bool Equals(AllocationsRebalanced? other) =>
         other is not null && base.Equals(other) && Allocations.SequenceEqual(other.Allocations);
 
@@ -50,7 +74,13 @@ public sealed record AllocationsRebalanced(
 }
 
 public sealed record AllocationReleased(SiteId SiteId, ConnectorId ConnectorId, SessionId SessionId)
-    : SitePowerBudgetEvent(SiteId);
+    : SitePowerBudgetEvent(SiteId), ISiteAllocationEvent
+{
+    ImmutableArray<ConnectorAllocation> ISiteAllocationEvent.Allocations =>
+        [new ConnectorAllocation(ConnectorId, Allocated: null)];
+
+    bool ISiteAllocationEvent.CoversWholeSite => false;
+}
 
 /// <summary>The site must draw this much less than its configured capacity.</summary>
 public sealed record CurtailmentApplied(SiteId SiteId, Power Reduction)

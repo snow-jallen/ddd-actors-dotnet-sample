@@ -176,6 +176,13 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch12-s09` | 12.9 Testing sharding locally with Akka.Hosting.TestKit | `Ohmline.Node.Tests`: the node's wiring on a cluster of one |
 | `ch12-s10` | 12.10 Postgres and a multi-node cluster on your laptop with Aspire | `Ohmline.AppHost` (PostgreSQL 17, three nodes), `Ohmline.ServiceDefaults`, ADR 0010 |
 | `ch12-s11` | 12.11 Integration tests against real Postgres | `Ohmline.IntegrationTests`: `WebApplicationFactory`, Testcontainers, state that survives a restart |
+| `ch13-s02` | 13.2 Tagging events | `ChargingTagger`, `SiteEnergyTagger`: one tag per event; the tags rows in the journal tour |
+| `ch13-s03` | 13.3 Persistence Query: the read side of the journal | `ReadJournalAccess`; `Ohmline.Charging.ReadModels.Tests` with `ReadJournalTourTests` |
+| `ch13-s04` | 13.4 A resumable projection runner: offsets and at-least-once | `ProjectionRunner`, `NpgsqlOffsetStore`, `ReadModelSchema`; branch `wrong/ch13-s04-offset-before-handler` |
+| `ch13-s05` | 13.5 Idempotent read models: upserts and the offset in one transaction | `SessionHistoryProjection`, the pure `SessionHistoryRow.Apply`, the offset in the row's transaction |
+| `ch13-s06` | 13.6 Running exactly one projector | The sharded daemon process `projections` (`ProjectionDaemon`, `AddChargingReadModels()`) |
+| `ch13-s07` | 13.7 When a projection fails: restarts, poison events and lag | `ProjectionFailurePolicy`, `read_models.projection_failures`, `GET /projections/status`, a runbook |
+| `ch13-s08` | 13.8 Read models people use: a site live board and a query API | `SiteLiveBoardProjection`, `ISiteAllocationEvent`, `GET /sites/{id}/live-board`, `GET /tokens/{uid}/sessions` |
 
 ## Licence and disclaimers
 

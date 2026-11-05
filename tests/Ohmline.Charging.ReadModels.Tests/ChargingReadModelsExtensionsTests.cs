@@ -10,5 +10,10 @@ public sealed class ChargingReadModelsExtensionsTests
     public void The_daemon_runs_one_instance_per_projection_stream_in_a_fixed_order() =>
         ChargingReadModelsExtensions.Streams
             .Select(stream => $"{stream.Projection.ProjectionId}/{stream.Tag}")
-            .ShouldBe(["session-history-v1/charging-session"]);
+            .ShouldBe(
+            [
+                "session-history-v1/charging-session",
+                "site-live-board-v1/charging",
+                "site-live-board-v1/site-energy",
+            ]);
 }

@@ -5,6 +5,7 @@ using Ohmline.ActorShell.Clustering;
 using Ohmline.ActorShell.Sharding;
 using Ohmline.Charging.ReadModels.Projections;
 using Ohmline.Charging.ReadModels.SessionHistory;
+using Ohmline.Charging.ReadModels.SiteLiveBoard;
 
 namespace Ohmline.Charging.ReadModels;
 
@@ -18,7 +19,11 @@ public static class ChargingReadModelsExtensions
     /// </summary>
     public static IReadOnlyList<(IProjectionHandler Projection, string Tag)> Streams { get; } =
         [
-            .. new IProjectionHandler[] { new SessionHistoryProjection() }
+            .. new IProjectionHandler[]
+                {
+                    new SessionHistoryProjection(),
+                    new SiteLiveBoardProjection(),
+                }
                 .SelectMany(projection => projection.Tags.Select(tag => (projection, tag))),
         ];
 
