@@ -9,7 +9,8 @@ public sealed record Hold(
     decimal Amount,
     string Currency,
     string Status,
-    decimal? Captured)
+    decimal? Captured,
+    string? ProviderReference = null)
 {
     public HoldResponse ToResponse() => new(HoldId, Status, Amount, Currency, Captured);
 }

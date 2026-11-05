@@ -8,7 +8,7 @@ public sealed class HoldStore(NpgsqlDataSource database, TimeProvider clock)
     public async Task<Hold?> FindAsync(string holdId, CancellationToken cancellationToken)
     {
         await using var select = database.CreateCommand("""
-            SELECT hold_id, driver_ref, amount, currency, status, captured
+            SELECT hold_id, driver_ref, amount, currency, status, captured, provider_reference
             FROM billing.holds
             WHERE hold_id = @hold_id
             """);
@@ -21,7 +21,8 @@ public sealed class HoldStore(NpgsqlDataSource database, TimeProvider clock)
                 reader.GetDecimal(2),
                 reader.GetString(3),
                 reader.GetString(4),
-                reader.IsDBNull(5) ? null : reader.GetDecimal(5))
+                reader.IsDBNull(5) ? null : reader.GetDecimal(5),
+                reader.IsDBNull(6) ? null : reader.GetString(6))
             : null;
     }
 
@@ -34,8 +35,10 @@ public sealed class HoldStore(NpgsqlDataSource database, TimeProvider clock)
     {
         await using var insert = database.CreateCommand("""
             INSERT INTO billing.holds
-                (hold_id, driver_ref, amount, currency, status, captured, created_at, updated_at)
-            VALUES (@hold_id, @driver_ref, @amount, @currency, @status, NULL, @now, @now)
+                (hold_id, driver_ref, amount, currency, status, captured, provider_reference,
+                 created_at, updated_at)
+            VALUES (@hold_id, @driver_ref, @amount, @currency, @status, NULL, @reference,
+                    @now, @now)
             ON CONFLICT (hold_id) DO NOTHING
             """);
         insert.Parameters.AddWithValue("hold_id", hold.HoldId);
@@ -43,6 +46,8 @@ public sealed class HoldStore(NpgsqlDataSource database, TimeProvider clock)
         insert.Parameters.AddWithValue("amount", hold.Amount);
         insert.Parameters.AddWithValue("currency", hold.Currency);
         insert.Parameters.AddWithValue("status", hold.Status);
+        insert.Parameters.AddWithValue(
+            "reference", (object?)hold.ProviderReference ?? DBNull.Value);
         insert.Parameters.AddWithValue("now", clock.GetUtcNow());
         var added = await insert.ExecuteNonQueryAsync(cancellationToken) == 1;
         return added

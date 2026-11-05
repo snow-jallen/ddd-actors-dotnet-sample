@@ -25,6 +25,9 @@ public static class BillingSchema
             updated_at timestamptz NOT NULL
         );
 
+        -- Section 16.4: TallyPay's reference for the authorization behind the hold.
+        ALTER TABLE billing.holds ADD COLUMN IF NOT EXISTS provider_reference text NULL;
+
         CREATE TABLE IF NOT EXISTS billing.invoices (
             session_id   uuid        PRIMARY KEY,
             token_uid    text        NOT NULL,

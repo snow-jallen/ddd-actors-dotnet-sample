@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The TallyPay stand-in over HTTP, in memory: its codes, its memory of keys, its flakiness. -->
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../tools/Ohmline.FakePsp/Ohmline.FakePsp.csproj" />
+  </ItemGroup>
+
+</Project>

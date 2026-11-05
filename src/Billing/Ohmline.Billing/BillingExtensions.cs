@@ -6,6 +6,7 @@ using Ohmline.Billing.Holds;
 using Ohmline.Billing.Invoicing;
 using Ohmline.Billing.Outbox;
 using Ohmline.Billing.Receipts;
+using Ohmline.Billing.TallyPay;
 
 namespace Ohmline.Billing;
 
@@ -15,8 +16,8 @@ public static class BillingExtensions
     extension(IServiceCollection services)
     {
         /// <summary>
-        /// The database in <c>ConnectionStrings:billing</c>, the hold store, the feed consumer
-        /// and the outbox dispatcher, with the feed's settings checked at start.
+        /// The database in <c>ConnectionStrings:billing</c>, the hold store, TallyPay's client,
+        /// the feed consumer and the outbox dispatcher, with their settings checked at start.
         /// </summary>
         public IServiceCollection AddBilling(IConfiguration configuration)
         {
@@ -27,6 +28,7 @@ public static class BillingExtensions
             services.AddSingleton<HoldStore>();
             services.AddSingleton<InvoiceIssuer>();
             services.AddSingleton<IReceiptSender, LoggingReceiptSender>();
+            services.AddTallyPay();
             services.AddOptions<ChargingFeedOptions>()
                 .BindConfiguration(ChargingFeedOptions.Section)
                 .ValidateDataAnnotations()

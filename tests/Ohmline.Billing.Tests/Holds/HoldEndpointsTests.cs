@@ -108,6 +108,59 @@ public sealed class HoldEndpointsTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task Given_a_card_that_is_declined_then_the_hold_is_refused_and_not_kept()
+    {
+        await using var billing = await StartAsync();
+        var http = billing.CreateClient();
+        var holdId = Known.NewHoldId();
+
+        var refused = await http.PostAsJsonAsync(
+            "/holds", new PlaceHoldRequest(holdId, "drv-declined", 50m, "USD"), Ct);
+
+        refused.StatusCode.ShouldBe(HttpStatusCode.PaymentRequired);
+        (await refused.Content.ReadFromJsonAsync<HoldProblem>(Ct))!.Code
+            .ShouldBe(HoldProblemCodes.Declined);
+        (await http.PostAsync($"/holds/{holdId}/void", content: null, Ct)).StatusCode
+            .ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Given_TallyPay_down_then_the_hold_is_unavailable_and_can_be_asked_again()
+    {
+        await using var billing = await StartAsync(new TallyPayServer().Failing(times: 4));
+        var http = billing.CreateClient();
+        var holdId = Known.NewHoldId();
+
+        var unavailable = await http.PostAsJsonAsync("/holds", Request(holdId), Ct);
+        var again = await http.PostAsJsonAsync("/holds", Request(holdId), Ct);
+
+        unavailable.StatusCode.ShouldBe(HttpStatusCode.ServiceUnavailable);
+        (await unavailable.Content.ReadFromJsonAsync<HoldProblem>(Ct))!.Code
+            .ShouldBe(HoldProblemCodes.ProviderUnavailable);
+        again.StatusCode.ShouldBe(HttpStatusCode.Created);
+        billing.TallyPay.Requests.Select(request => request.Key).Distinct()
+            .ShouldBe([holdId]);
+    }
+
+    [Fact]
+    public async Task Given_a_placed_hold_then_its_capture_and_void_name_its_authorization()
+    {
+        await using var billing = await StartAsync();
+        var http = billing.CreateClient();
+        var (captured, voided) = (Known.NewHoldId(), Known.NewHoldId());
+        await http.PostAsJsonAsync("/holds", Request(captured), Ct);
+        await http.PostAsJsonAsync("/holds", Request(voided), Ct);
+
+        await http.PostAsJsonAsync(
+            $"/holds/{captured}/capture", new CapturePaymentRequest(12.60m, "USD"), Ct);
+        await http.PostAsync($"/holds/{voided}/void", content: null, Ct);
+
+        billing.TallyPay.Paths.ShouldBe(["/v1/preauth", "/v1/preauth", "/v1/capture", "/v1/void"]);
+        billing.TallyPay.Requests.Select(request => request.Key).ShouldBe(
+            [captured, voided, $"{captured}-capture", $"{voided}-void"]);
+    }
+
+    [Fact]
     public async Task Given_a_request_with_no_currency_and_no_amount_then_it_is_not_valid()
     {
         await using var billing = await StartAsync();
@@ -119,8 +172,8 @@ public sealed class HoldEndpointsTests(PostgresFixture postgres)
         refused.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
     }
 
-    private async Task<BillingService> StartAsync() =>
-        new(await postgres.CreateDatabaseAsync(Ct), new FeedServer());
+    private async Task<BillingService> StartAsync(TallyPayServer? tallyPay = null) =>
+        new(await postgres.CreateDatabaseAsync(Ct), new FeedServer(), tallyPay);
 
     private static PlaceHoldRequest Request(string holdId, decimal amount = 50m) =>
         new(holdId, "drv-7f3a91c2", amount, "USD");

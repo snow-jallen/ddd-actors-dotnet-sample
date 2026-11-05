@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    A stand-in for TallyPay, the fictional payment provider (section 16.4): its API as it is,
+    upper-case field names, amounts in minor units, yyyyMMdd dates and two-digit status codes,
+    and a flaky mode (FLAKY_RATE). It knows nothing of Ohmline and references none of it.
+  -->
+
+</Project>

@@ -8,6 +8,8 @@
   <ItemGroup>
     <!-- Billing's state is rows in its own database, written with plain SQL (section 16.3). -->
     <PackageReference Include="Npgsql" />
+    <!-- TallyPay's client gets a resilience handler of its own (section 16.4). -->
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
   </ItemGroup>
 
   <ItemGroup>
