@@ -72,36 +72,4 @@ public sealed class PersistenceFailureTests(ITestOutputHelper output)
         chargePoint.Tell(Reserve(1, DriversCard), TestActor);
         await ExpectMsgAsync(new CommandAccepted(3), cancellationToken: Ct);
     }
-
-    [Fact]
-    public async Task Given_a_failed_write_then_the_supervisor_starts_the_charge_point_again()
-    {
-        var directory = Sys.ActorOf(ChargePointDirectory.Props(_clock));
-        directory.Tell(Register(), TestActor);
-        await ExpectMsgAsync(new CommandAccepted(1), cancellationToken: Ct);
-
-        await WithJournalWrite(write => write.Fail(), async () =>
-            await EventFilter.Error(start: "Failed to persist ConnectorReserved").ExpectOneAsync(
-                () =>
-                {
-                    directory.Tell(Reserve(1, DriversCard), TestActor);
-                    return Task.CompletedTask;
-                },
-                Ct));
-
-        // Until the backoff is over, questions are dead letters; then a new incarnation answers
-        // from what was stored, which does not include the failed reservation.
-        await AwaitAssertAsync(
-            async () =>
-            {
-                directory.Tell(Status(), TestActor);
-                var status = await ExpectMsgAsync<ChargePointStatus>(
-                    TimeSpan.FromMilliseconds(200), cancellationToken: Ct);
-                status.Version.ShouldBe(1);
-                status.Connectors[0].State.ShouldBe(ConnectorStatus.Available);
-            },
-            duration: Dilated(TimeSpan.FromSeconds(5)),
-            interval: TimeSpan.FromMilliseconds(100),
-            cancellationToken: Ct);
-    }
 }

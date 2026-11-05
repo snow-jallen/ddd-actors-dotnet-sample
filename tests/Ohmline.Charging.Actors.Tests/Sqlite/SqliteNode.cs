@@ -1,20 +1,24 @@
 using Akka.Actor;
+using Akka.Cluster;
+using Akka.Cluster.Hosting;
 using Akka.Hosting;
 using Akka.Persistence.Sql.Config;
 using Akka.Persistence.Sql.Hosting;
+using Akka.Remote.Hosting;
 using LinqToDB;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Ohmline.Charging.Actors.ChargePoints;
+using Ohmline.ActorShell.Clustering;
+using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.Testing;
 
 namespace Ohmline.Charging.Actors.Tests.Sqlite;
 
 /// <summary>
-/// Charging as <c>Ohmline.Node</c> runs it in Development: the real serializer, the charge point
-/// directory and Akka.Persistence.Sql on a SQLite file, in a generic host the test starts and
-/// stops. Two nodes started one after the other on the same file are a node restart.
+/// Charging as <c>Ohmline.Node</c> runs it in Development: a cluster of one, the real serializer,
+/// the shard regions and Akka.Persistence.Sql on a SQLite file, in a generic host the test starts
+/// and stops. Two nodes started one after the other on the same file are a node restart.
 /// </summary>
 internal sealed class SqliteNode : IAsyncDisposable
 {
@@ -38,6 +42,13 @@ internal sealed class SqliteNode : IAsyncDisposable
         builder.Logging.ClearProviders();
         builder.Services.AddSingleton(clock);
         builder.Services.AddAkka("ohmline", akka => akka
+            .WithRemoting("localhost", 0) // Any free port: tests run in parallel.
+            .WithClustering(new ClusterOptions { Roles = [ClusterRoles.Charging] })
+            .AddStartup((system, _) =>
+            {
+                var cluster = Cluster.Get(system);
+                cluster.Join(cluster.SelfAddress);
+            })
             .WithSqlPersistence(
                 connectionString: database.ConnectionString,
                 providerName: ProviderName.SQLiteMS,
@@ -50,21 +61,24 @@ internal sealed class SqliteNode : IAsyncDisposable
         return new SqliteNode(host);
     }
 
-    /// <summary>Sends to the charge point directory without waiting for a reply.</summary>
+    /// <summary>Sends to the charge point region without waiting for a reply.</summary>
     public async Task TellAsync(
         object message, IActorRef replyTo, CancellationToken cancellationToken)
     {
-        var directory = await ActorRegistry.For(System)
-            .GetAsync<ChargePointDirectory>(cancellationToken);
-        directory.Tell(message, replyTo);
+        var region = await ActorRegistry.For(System).GetAsync<ChargePointRegion>(cancellationToken);
+        region.Tell(message, replyTo);
     }
 
-    /// <summary>Sends to the charge point directory and waits for the one reply.</summary>
-    public async Task<TReply> AskAsync<TReply>(object message, CancellationToken cancellationToken)
+    /// <summary>Sends to the charge point region and waits for the one reply.</summary>
+    public Task<TReply> AskAsync<TReply>(object message, CancellationToken cancellationToken) =>
+        AskAsync<ChargePointRegion, TReply>(message, cancellationToken);
+
+    /// <summary>Sends to the region registered under the key and waits for the one reply.</summary>
+    public async Task<TReply> AskAsync<TRegion, TReply>(
+        object message, CancellationToken cancellationToken)
     {
-        var directory = await ActorRegistry.For(System)
-            .GetAsync<ChargePointDirectory>(cancellationToken);
-        return await directory.Ask<TReply>(message, AskTimeout, cancellationToken);
+        var region = await ActorRegistry.For(System).GetAsync<TRegion>(cancellationToken);
+        return await region.Ask<TReply>(message, AskTimeout, cancellationToken);
     }
 
     public async ValueTask DisposeAsync()

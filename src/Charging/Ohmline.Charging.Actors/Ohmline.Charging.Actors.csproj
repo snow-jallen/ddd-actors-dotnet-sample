@@ -8,6 +8,8 @@
   <ItemGroup>
     <!-- Brings Akka.Persistence for the persistent actors and Akka.Hosting for the builder. -->
     <PackageReference Include="Akka.Persistence.Hosting" />
+    <!-- Shard regions: one per aggregate. -->
+    <PackageReference Include="Akka.Cluster.Hosting" />
   </ItemGroup>
 
   <ItemGroup>

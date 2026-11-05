@@ -10,6 +10,8 @@
     <!-- For Akka.Persistence (DeciderActor). Akka.Persistence is not pinned on its own in
          Directory.Packages.props; it comes, at the same version, with the hosting package. -->
     <PackageReference Include="Akka.Persistence.Hosting" />
+    <!-- For sharding: the message extractor and the shard options every region starts from. -->
+    <PackageReference Include="Akka.Cluster.Hosting" />
   </ItemGroup>
 
   <ItemGroup>

@@ -13,6 +13,11 @@ It has two audiences, and two sets of rules.
 | `ChargePoints/`, `Sessions/`, `Listings/`, ... | Senders inside the cluster: the Device Gateway, the HTTP edge, the charging journey | Internal manifest `charging.{kebab-type-name}.v{N}` | 7.2, 10.3 |
 | `Integration/` | Every other service: Billing first, Roaming and others later. This is Charging's **Published Language** | `ohmline.charging.{kebab-type-name}.v{N}` | 16.1 |
 
+Senders inside the cluster address an aggregate by the id its command carries, through a shard
+region (section 12.2). Each folder therefore also holds the key under which a node's actor
+registry keeps that region (`ChargePointRegion`, `ChargingSessionRegion`,
+`ChargePointListingRegion`), so that a sender needs these contracts and no actor.
+
 The Published Language is served by an **Open Host Service**, the charging feed
 (`GET /feeds/charging`, section 16.2): one protocol for every consumer, instead of an
 integration built for each.
