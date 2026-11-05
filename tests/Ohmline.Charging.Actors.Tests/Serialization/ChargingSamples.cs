@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Ohmline.ActorShell.Deciders;
 using Ohmline.Charging.Actors.ChargePoints;
 using Ohmline.Charging.Actors.Listings;
+using Ohmline.Charging.Actors.Persistence.Legacy;
 using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
@@ -248,6 +249,10 @@ internal static class ChargingSamples
         new SetChargingProfile(Connector, new Power(11m), Version: 7),
         new ChargerCommandAccepted(Connector),
         new ChargerCommandRejected(Connector, "The charger did not answer within 30 s."),
+
+        Stamped(new ReservationTakenOver(
+            ChargePoint, 1, new TokenUid("04FFEEDDCC"), Token, At.AddMinutes(15))),
+        Stamped(new ChargePointHeartbeatRecorded(ChargePoint)),
     ];
 
     private static ChargePointEvent Stamped(ChargePointEvent @event) =>
@@ -260,4 +265,7 @@ internal static class ChargingSamples
         @event with { CommandId = Command, OccurredAt = At };
 
     private static JourneyEvent Stamped(JourneyEvent @event) => @event with { OccurredAt = At };
+
+    private static LegacyChargingEvent Stamped(LegacyChargingEvent @event) =>
+        @event with { CommandId = Command, OccurredAt = At };
 }

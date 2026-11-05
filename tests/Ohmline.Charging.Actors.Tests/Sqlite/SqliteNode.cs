@@ -56,7 +56,9 @@ internal sealed class SqliteNode : IAsyncDisposable
                 providerName: ProviderName.SQLiteMS,
                 autoInitialize: true,
                 tagStorageMode: TagMode.TagTable,
-                journalBuilder: journal => journal.AddChargingTagger())
+                journalBuilder: journal => journal
+                    .AddChargingTagger()
+                    .AddChargingLegacyEvents())
             .AddChargingContext());
 
         var host = builder.Build();

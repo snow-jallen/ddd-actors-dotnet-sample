@@ -131,5 +131,14 @@ public static class ChargingAkkaExtensions
         public AkkaPersistenceJournalBuilder AddChargingTagger() =>
             journal.AddWriteEventAdapter<ChargingTagger>(
                 ChargingTagger.Name, ChargingTagger.BoundTypes);
+
+        /// <summary>
+        /// Charging's read adapter, for the journal that holds Charging's events: events stored
+        /// in shapes the model no longer has are turned into today's as they are replayed
+        /// (section 20.4). The host calls it where it configures that journal.
+        /// </summary>
+        public AkkaPersistenceJournalBuilder AddChargingLegacyEvents() =>
+            journal.AddReadEventAdapter<LegacyEventsReadAdapter>(
+                LegacyEventsReadAdapter.Name, LegacyEventsReadAdapter.BoundTypes);
     }
 }

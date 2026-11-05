@@ -4,6 +4,7 @@ using Akka.Actor;
 using Ohmline.ActorShell.Serialization;
 using Ohmline.Charging.Actors.ChargePoints;
 using Ohmline.Charging.Actors.Listings;
+using Ohmline.Charging.Actors.Persistence.Legacy;
 using Ohmline.Charging.Actors.Serialization.Upcasting;
 using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts;
@@ -61,6 +62,7 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         typeof(JourneyTimerElapsed),
         typeof(ChargerCommand),
         typeof(ChargerCommandReply),
+        typeof(LegacyChargingEvent),
     ];
 
     public static FrozenDictionary<Type, string> Manifests { get; } = new Dictionary<Type, string>
@@ -147,6 +149,11 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         [typeof(SetChargingProfile)] = "charging.set-charging-profile.v1",
         [typeof(ChargerCommandAccepted)] = "charging.charger-command-accepted.v1",
         [typeof(ChargerCommandRejected)] = "charging.charger-command-rejected.v1",
+
+        // Never written by Charging; read, then turned into today's events by
+        // LegacyEventsReadAdapter (section 20.4).
+        [typeof(ReservationTakenOver)] = "charging.reservation-taken-over.v1",
+        [typeof(ChargePointHeartbeatRecorded)] = "charging.charge-point-heartbeat-recorded.v1",
     }.ToFrozenDictionary();
 
     /// <summary>

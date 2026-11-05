@@ -94,6 +94,24 @@ one is a data migration, never a refactoring.
 
 The full list of durable names, with telemetry and pub-sub topics, is ADR 0009.
 
+## Two places to upcast
+
+A stored shape that changed is read for ever, and there are two places to turn it into today's
+type (sections 20.3 and 20.4):
+
+| | In the serializer (`Upcaster`) | In a read event adapter (`IReadEventAdapter`) |
+|---|---|---|
+| Sees | the bytes and the manifest | an object some serializer already read |
+| Old CLR type needed | no: the old shape is private to the serializer | yes, or the serializer that wrote it must still read it |
+| One row becomes | exactly one object | any number of events, or none (`EventSequence.Empty`) |
+| Rows written by a serializer we do not own | cannot help | the way to adapt them |
+| Applies to | every read: replay, remote messages, the read journal | the journal's replay and, through the journal, its queries |
+| Ohmline's example | `charging.meter-value-recorded.v1` (Wh to kWh) | the depot pilot's `charging.reservation-taken-over.v1` (one event becomes two) and `charging.charge-point-heartbeat-recorded.v1` (dropped) |
+
+Ohmline upcasts in the serializer by default, since it owns its serializers, and uses a read
+adapter only where one row must become several events or none. The branch
+`alt/ch20-s04-adapter-only` does the meter reading's upcast in a read adapter instead.
+
 ## What is free to change
 
 - The names, namespaces and assemblies of C# types, as long as each serializer's registry keeps

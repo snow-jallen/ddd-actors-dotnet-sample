@@ -20,6 +20,7 @@ public static class JournalExtensions
         /// single development node (section 10.7). The same tables on both, with tags in a table
         /// of their own, written by each context's tagger (section 13.2), and for a traced event,
         /// stored in its envelope, by the node's <see cref="TracedEventTagger"/> (section 17.7).
+        /// Charging's events stored in older shapes are read through its adapter (section 20.4).
         /// </summary>
         /// <remarks>
         /// Readiness asks the database itself (section 18.5). Akka.Persistence's own journal
@@ -44,6 +45,7 @@ public static class JournalExtensions
                 tagStorageMode: TagMode.TagTable,
                 journalBuilder: journal => journal
                     .AddChargingTagger()
+                    .AddChargingLegacyEvents()
                     .AddSiteEnergyTagger()
                     .AddTraceEnvelopeTagger<TracedEventTagger>()
                     .WithConnectivityCheck(tags: [HealthTags.Ready, "akka", "persistence"]),
