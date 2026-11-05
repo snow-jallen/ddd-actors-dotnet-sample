@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Ohmline.Charging.Client.Contracts;
 using Ohmline.Charging.Client.Contracts.Notifications;
 using Ohmline.Mobile.Core.Charging;
+using Ohmline.Mobile.Core.Diagnostics;
 using Ohmline.Mobile.Core.Platform;
 
 namespace Ohmline.Mobile.Core.ReadModels;
@@ -137,6 +138,7 @@ public sealed class LiveUpdatesClient : ILiveUpdates, IAsyncDisposable
 
     private async Task ApplyAsync(DriverCardChanged changed)
     {
+        using var span = MobileDiagnostics.StartApply(CardChangedMethod, changed.TraceParent);
         if (await _cache.ApplyAsync(changed.Card, changed.Position, CancellationToken.None))
         {
             _ui.Post(() => CardsChanged?.Invoke());

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using Microsoft.Data.Sqlite;
 
@@ -18,10 +19,13 @@ public sealed class SqliteOutbox(string connectionString)
 {
     private const string Columns = """
         command_id, kind, aggregate_key, payload, created_utc, attempts, status, version, code,
-        reason
+        reason, trace_parent
         """;
 
     private readonly Lazy<Task> _created = new(() => CreateAsync(connectionString));
+
+    /// <summary>The commands this process enqueued: their taps' spans are this process's.</summary>
+    private readonly ConcurrentDictionary<Guid, bool> _enqueuedHere = new();
 
     /// <summary>
     /// Writes the command as queued, unless a command with its id is there already: a double
@@ -34,16 +38,31 @@ public sealed class SqliteOutbox(string connectionString)
         await using var insert = connection.CreateCommand();
         insert.CommandText = """
             INSERT OR IGNORE INTO outbox
-                (command_id, kind, aggregate_key, payload, created_utc, attempts, status)
-            VALUES ($id, $kind, $key, $payload, $created, 0, 'queued')
+                (command_id, kind, aggregate_key, payload, created_utc, attempts, status,
+                 trace_parent)
+            VALUES ($id, $kind, $key, $payload, $created, 0, 'queued', $traceParent)
             """;
         insert.Parameters.AddWithValue("$id", command.CommandId.ToString());
         insert.Parameters.AddWithValue("$kind", command.Kind);
         insert.Parameters.AddWithValue("$key", command.AggregateKey);
         insert.Parameters.AddWithValue("$payload", command.Payload);
         insert.Parameters.AddWithValue("$created", Stamp(now));
-        return await insert.ExecuteNonQueryAsync(cancellationToken) == 1;
+        insert.Parameters.AddWithValue(
+            "$traceParent", (object?)command.TraceParent ?? DBNull.Value);
+        var written = await insert.ExecuteNonQueryAsync(cancellationToken) == 1;
+        if (written)
+        {
+            _enqueuedHere[command.CommandId] = true;
+        }
+
+        return written;
     }
+
+    /// <summary>
+    /// Whether this process enqueued the command, so its tap's span was this process's: a
+    /// send is the tap's child then, and a span linked to it after a restart (section 19.8).
+    /// </summary>
+    public bool EnqueuedByThisProcess(Guid commandId) => _enqueuedHere.ContainsKey(commandId);
 
     /// <summary>The queued commands, in the order they were given.</summary>
     public Task<IReadOnlyList<OutboxRow>> ReadQueuedAsync(CancellationToken cancellationToken) =>
@@ -175,7 +194,8 @@ public sealed class SqliteOutbox(string connectionString)
                 Status: reader.GetString(6),
                 Version: reader.IsDBNull(7) ? null : reader.GetInt64(7),
                 Code: reader.IsDBNull(8) ? null : reader.GetString(8),
-                Reason: reader.IsDBNull(9) ? null : reader.GetString(9)));
+                Reason: reader.IsDBNull(9) ? null : reader.GetString(9),
+                TraceParent: reader.IsDBNull(10) ? null : reader.GetString(10)));
         }
 
         return rows;

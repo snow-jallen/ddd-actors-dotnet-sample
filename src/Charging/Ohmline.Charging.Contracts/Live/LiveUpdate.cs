@@ -22,7 +22,8 @@ public sealed record SessionSummaryChanged(
 /// <summary>
 /// A session's card in the driver app changed (section 14.6): the whole card, as the app shows
 /// it, and the <paramref name="Position"/> of its entry in the token's change feed, so an app
-/// that applies it can carry on reading the feed after it.
+/// that applies it can carry on reading the feed after it. <paramref name="TraceParent"/> is
+/// the projection's span (section 19.8), for the app to link to.
 /// </summary>
 public sealed record DriverCardChanged(
     TokenUid TokenUid,
@@ -34,4 +35,5 @@ public sealed record DriverCardChanged(
     string? ChargePointDisplayName,
     decimal EnergyKwh,
     DateTimeOffset StartedAt,
-    DateTimeOffset? EndedAt) : LiveUpdate;
+    DateTimeOffset? EndedAt,
+    string? TraceParent = null) : LiveUpdate;

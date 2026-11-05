@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.Persistence.Query;
@@ -101,5 +102,6 @@ public sealed class DriverAppProjection(IChargePointNames? names = null) : IProj
             card.ChargePointDisplayName,
             card.EnergyKwh,
             card.StartedAt,
-            card.EndedAt);
+            card.EndedAt,
+            Activity.Current?.Id); // The projection's span (section 17.7), for the app to link to.
 }

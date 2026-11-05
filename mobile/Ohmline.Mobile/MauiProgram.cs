@@ -1,6 +1,11 @@
 using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Ohmline.Mobile.Core.Api;
 using Ohmline.Mobile.Core.Charging;
+using Ohmline.Mobile.Core.Diagnostics;
 using Ohmline.Mobile.Core.Listings;
 using Ohmline.Mobile.Core.Outbox;
 using Ohmline.Mobile.Core.Platform;
@@ -61,10 +66,43 @@ public static class MauiProgram
         builder.Services.AddSingleton<SessionCardViewModel>();
         builder.Services.AddTransient<SessionPage>();
 
+        AddTracing(builder, settings);
+
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
 
-        return builder.Build();
+        var app = builder.Build();
+        // MAUI never starts hosted services, so the SDK's own hosted service never builds the
+        // tracer provider. Resolving it does, and from then on it listens (MauiTracingTests).
+        _ = app.Services.GetRequiredService<TracerProvider>();
+        return app;
     }
+
+    /// <summary>
+    /// The phone's traces (section 19.8): the app's own spans, SignalR's client invocations and
+    /// every HTTP request, whose <c>traceparent</c> carries the trace to the server. Exported
+    /// only when an endpoint is set: a phone has no collector of its own. Many phones, so in a
+    /// release build only a tenth of the traces the app starts are kept.
+    /// </summary>
+    private static void AddTracing(MauiAppBuilder builder, AppSettings settings) =>
+        builder.Services.AddOpenTelemetry()
+            .ConfigureResource(resource => resource.AddService("mobile"))
+            .WithTracing(tracing =>
+            {
+                tracing
+                    .AddSource(MobileDiagnostics.Name, "Microsoft.AspNetCore.SignalR.Client")
+                    .AddHttpClientInstrumentation();
+#if !DEBUG
+                tracing.SetSampler(new ParentBasedSampler(new TraceIdRatioBasedSampler(0.1)));
+#endif
+                if (settings.OtlpEndpoint is { } endpoint)
+                {
+                    tracing.AddOtlpExporter(otlp =>
+                    {
+                        otlp.Endpoint = endpoint;
+                        otlp.Protocol = OtlpExportProtocol.HttpProtobuf;
+                    });
+                }
+            });
 }

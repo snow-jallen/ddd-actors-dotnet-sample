@@ -16,7 +16,8 @@ public sealed record OutboxRow(
     string Status,
     long? Version,
     string? Code,
-    string? Reason)
+    string? Reason,
+    string? TraceParent = null)
 {
     /// <summary>The row's status in the app's language, for a screen to show.</summary>
     public CommandStatus ToStatus() => Status switch

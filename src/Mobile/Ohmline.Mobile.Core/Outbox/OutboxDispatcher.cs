@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Threading.Channels;
 using Ohmline.Mobile.Core.Charging;
+using Ohmline.Mobile.Core.Diagnostics;
 using Ohmline.Mobile.Core.Platform;
 
 namespace Ohmline.Mobile.Core.Outbox;
@@ -159,6 +161,12 @@ public sealed class OutboxDispatcher(
             var attempt = row.Attempts + 1;
             await outbox.MarkAttemptAsync(row.CommandId, stopping);
             Publish(row.CommandId, new Sending(attempt));
+            using var span = MobileDiagnostics.StartSend(
+                row.Kind,
+                row.CommandId,
+                attempt,
+                row.TraceParent,
+                outbox.EnqueuedByThisProcess(row.CommandId));
             switch (await sender.SendAsync(row, stopping))
             {
                 case SendAccepted accepted:
@@ -172,7 +180,8 @@ public sealed class OutboxDispatcher(
                         row.CommandId,
                         new Rejected(rejected.Code, RejectionText.For(rejected.Code)));
                     break;
-                case SendTransientFailure:
+                case SendTransientFailure failure:
+                    span?.SetStatus(ActivityStatusCode.Error, failure.Why);
                     Publish(row.CommandId, new Queued(attempt));
                     _timer!.Period = Backoff(++_failures, Random.Shared.NextDouble());
                     return; // Keep the order: nothing after it goes first.

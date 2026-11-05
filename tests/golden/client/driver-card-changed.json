@@ -10,5 +10,6 @@
     "startedAt": "2026-11-04T14:40:00+00:00",
     "endedAt": null,
     "version": 2
-  }
+  },
+  "traceParent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
 }

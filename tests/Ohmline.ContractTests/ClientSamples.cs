@@ -56,6 +56,7 @@ internal static class ClientSamples
                 "Enter from 400 South; the bays are on the left.",
                 "Mo-Su 05:00-23:00"),
             ["session-summary-changed"] = new SessionSummaryChanged(Journey, 2, "charging", 7.35m),
-            ["driver-card-changed"] = new DriverCardChanged(2, Card),
+            ["driver-card-changed"] = new DriverCardChanged(
+                2, Card, "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"),
         }.ToImmutableDictionary();
 }

@@ -37,11 +37,12 @@ public sealed class MobileTests
     }
 
     [Fact]
-    public void The_app_core_references_no_actor_MAUI_or_server_assembly()
+    public void The_app_core_references_no_actor_MAUI_telemetry_SDK_or_server_assembly()
     {
         References()
             .Where(name => name.StartsWith("Akka", StringComparison.Ordinal)
                            || name.StartsWith("Microsoft.Maui", StringComparison.Ordinal)
+                           || name.StartsWith("OpenTelemetry", StringComparison.Ordinal)
                            || IsAspNetCoreServer(name))
             .ShouldBeEmpty();
     }

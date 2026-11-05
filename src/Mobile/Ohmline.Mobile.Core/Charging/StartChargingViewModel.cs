@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Ohmline.Charging.Client.Contracts.Requests;
+using Ohmline.Mobile.Core.Diagnostics;
 using Ohmline.Mobile.Core.Outbox;
 using Ohmline.Mobile.Core.Platform;
 
@@ -61,7 +62,8 @@ public sealed partial class StartChargingViewModel : ObservableObject
 
     /// <summary>
     /// Durable first, then try to send: the command is in the outbox before any network call,
-    /// so a dead network or a killed app cannot lose it.
+    /// so a dead network or a killed app cannot lose it. The tap starts the command's trace
+    /// (section 19.8), and the outbox keeps its traceparent with the command.
     /// </summary>
     [RelayCommand]
     private async Task StartChargingAsync(CancellationToken cancellationToken)
@@ -72,8 +74,12 @@ public sealed partial class StartChargingViewModel : ObservableObject
         }
 
         _command = request;
+        using var tap = MobileDiagnostics.StartTap(OutboxKinds.StartCharging)
+            ?.SetTag(MobileDiagnostics.CommandIdTag, request.CommandId.ToString());
         if (await _outbox.EnqueueAsync(
-                OutboxCommand.StartCharging(request), _clock.GetUtcNow(), cancellationToken))
+                OutboxCommand.StartCharging(request, tap?.Id),
+                _clock.GetUtcNow(),
+                cancellationToken))
         {
             Status = new Queued(0);
         }

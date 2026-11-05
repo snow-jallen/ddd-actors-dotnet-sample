@@ -53,6 +53,7 @@ From the repo root:
 ```bash
 dotnet build Ohmline.slnx -warnaserror
 dotnet test --solution Ohmline.slnx
+dotnet build mobile/Ohmline.Mobile.slnx -warnaserror   # from ch19-s04; see mobile/README.md
 tools/verify-tags.sh                    # build and test every tag in a temporary worktree
 ```
 
@@ -225,6 +226,14 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch18-s07` | 18.7 Production-shaped telemetry locally | `deploy/observability`: Collector 0.142.0, grafana/otel-lgtm 0.39.0, the *Ohmline: Charging* dashboard; `docs/observability.md` |
 | `ch18-s08` | 18.8 Petabridge.Cmd, bound safely | Petabridge.Cmd 1.5.2 on `127.0.0.1` in the node and the gateway; `OperatorCommandsTests`; `docs/runbooks/operator-commands.md` |
 | `ch18-s09` | 18.9 SLOs from the domain | `ohmline.charging.journey.time_to_energy_flow` from the journey's events; `deploy/observability/alerts/ohmline-slo.yaml`; SLO panels |
+| `ch19-s01` | 19.1 Where the domain lives: the driver app as its own bounded context | The Driver App on the context map; `docs/canvases/bc-driver-app.md`; ADR 0014; the app's words in the glossary |
+| `ch19-s02` | 19.2 A Published Language for client apps | `Ohmline.Charging.Client.Contracts` (references nothing): requests with a `CommandId`, `CommandAcceptedDto`, `RejectionCodes`, read-model and notification DTOs, `ChargingClientJsonContext`; the `/app/v1` commands and listing; golden files in `tests/golden/client` |
+| `ch19-s03` | 19.3 Commands you can send twice | The journey answers its own start again and refuses another command's (`journey-exists`); the body's `CommandId` and a matching `Idempotency-Key`; `docs/idempotency-contract.md` |
+| `ch19-s04` | 19.4 A plain core library and a thin MAUI head | `src/Mobile/Ohmline.Mobile.Core` and its tests in `Ohmline.slnx`; the .NET MAUI head and `mobile/Ohmline.Mobile.slnx`; `verify-tags.sh` builds it for Android |
+| `ch19-s05` | 19.5 The ubiquitous language on the phone: value objects and unions | `ConnectorCode`, `SpendCap`, `ParseResult<T>`, the `ScreenState` and `CommandStatus` unions, `RejectionText`; the start-charging page |
+| `ch19-s06` | 19.6 Offline first: a durable outbox drained by a mailbox | `SqliteOutbox`, `OutboxDispatcher` (a single-reader `Channel`), `SendOutcome`, `HttpCommandSender`; the window lifecycle in the head |
+| `ch19-s07` | 19.7 Read models on the device: a cache, live updates and optimistic UI | `SqliteReadModelCache`, `FeedCatchUp`, `LiveUpdatesClient`, `SessionCardViewModel` with its pending overlay; the session page |
+| `ch19-s08` | 19.8 One trace from tap to journal | `MobileDiagnostics` (`Ohmline.Mobile`); the tap's traceparent in the outbox; the projection's in `DriverCardChanged`; OpenTelemetry in the head; `TapToJournalTraceTests` |
 
 ## Licence and disclaimers
 

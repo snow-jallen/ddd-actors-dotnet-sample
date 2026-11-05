@@ -60,6 +60,10 @@
     <!-- No versions: Directory.Packages.props pins them, MAUI's to the installed workload's. -->
     <PackageReference Include="Microsoft.Maui.Controls" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
+    <!-- The OpenTelemetry SDK, in the head only: the core speaks the BCL's ActivitySource. -->
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
   </ItemGroup>
 
   <ItemGroup>

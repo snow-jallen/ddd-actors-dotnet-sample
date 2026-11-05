@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Ohmline.Charging.Client.Contracts;
+using Ohmline.Charging.Client.Contracts.Notifications;
 using Ohmline.Charging.Client.Contracts.Replies;
 using Ohmline.Testing;
 
@@ -69,6 +70,17 @@ public sealed class ClientContractsTests
         JsonSerializer.Deserialize(
                 fromANewerServer, ChargingClientJsonContext.Default.CommandAcceptedDto)
             .ShouldBe(new CommandAcceptedDto(ClientSamples.Command, 1));
+    }
+
+    [Fact]
+    public void An_app_reads_a_push_from_a_server_that_sends_no_trace_parent()
+    {
+        var push = JsonSerializer.Serialize(
+            new { position = 2, card = ClientSamples.Card },
+            JsonSerializerOptions.Web);
+
+        JsonSerializer.Deserialize(push, ChargingClientJsonContext.Default.DriverCardChanged)
+            .ShouldBe(new DriverCardChanged(2, ClientSamples.Card));
     }
 
     [Fact]

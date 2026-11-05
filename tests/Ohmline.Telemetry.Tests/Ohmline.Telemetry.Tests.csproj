@@ -24,6 +24,8 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
     <ProjectReference Include="../../src/Ohmline.Node/Ohmline.Node.csproj" />
+    <!-- The driver app's logic, whose spans begin the trace in TapToJournalTraceTests (19.8). -->
+    <ProjectReference Include="../../src/Mobile/Ohmline.Mobile.Core/Ohmline.Mobile.Core.csproj" />
     <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
   </ItemGroup>
 

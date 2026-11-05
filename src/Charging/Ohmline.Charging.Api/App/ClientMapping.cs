@@ -37,7 +37,8 @@ internal static class ClientMapping
                 changed.EnergyKwh,
                 changed.StartedAt,
                 changed.EndedAt,
-                changed.Version));
+                changed.Version),
+            changed.TraceParent);
     }
 
     extension(ChargePointListingView view)

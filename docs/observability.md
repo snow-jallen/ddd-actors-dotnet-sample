@@ -45,6 +45,43 @@ The launch profile sets the address (`http://localhost:5180`); `ASPNETCORE_URLS`
 override it unless you pass `--no-launch-profile`. Under Aspire, leave all of this alone: the
 AppHost sets the variables for every project and the Aspire dashboard is the receiver.
 
+## Point the driver app at it
+
+The driver app (section 19.8) has no environment variables from the development machine, so
+its OTLP endpoint is a setting in the app package: `Ohmline:OtlpEndpoint` in
+`mobile/Ohmline.Mobile/appsettings.json`, null by default, which exports nothing. The app sends
+traces only, over OTLP with HTTP and protobuf, so the endpoint is a full `/v1/traces` URL. The
+Android emulator reaches the development machine as `10.0.2.2`; with the stack above running:
+
+```json
+{
+  "Ohmline": {
+    "ApiBaseAddress": "http://10.0.2.2:5180",
+    "TokenUid": "04A2B3C4D5E6F7",
+    "OtlpEndpoint": "http://10.0.2.2:4318/v1/traces"
+  }
+}
+```
+
+Debug builds allow plain HTTP to `10.0.2.2` only, whatever the port. Rebuild and run the app
+(`mobile/README.md`), point the node at the same Collector as above, and tap *Start charging*.
+Tempo should then show one trace from `tap start-charging` (service `mobile`) through
+`send start-charging` and `POST /app/v1/journeys` to the journey's `persist JourneyStarted`
+(service `node`). `TapToJournalTraceTests` checks that shape with the app's code and the node
+in one process; the sample has not been run this way on an emulator yet.
+
+Under Aspire the dashboard is the receiver, but its OTLP endpoints are on ports Aspire picks at
+start, and they ask for an API key that Aspire gives only to the resources it starts. The
+`Aspire.Hosting.Maui` preview package (13.6.4-preview.1) adds the app to the AppHost as a
+resource, with a dev tunnel for its OTLP traffic (`WithOtlpDevTunnel`); the sample does not use
+it yet, because it is a preview and needs the dev tunnel CLI and an emulator to verify. Until
+then, run the stack above beside the AppHost for the app's traces.
+
+A phone in production is not a development machine: its endpoint is a public, authenticated
+collector, never a dashboard; a release build keeps one trace in ten (a parent-based ratio
+sampler in `MauiProgram`), because there are many phones; and no span carries what the driver
+typed, only the command's id and kind (`MobileDiagnostics`).
+
 ## The Collector's job
 
 `deploy/observability/collector-config.yaml` receives OTLP and sends:

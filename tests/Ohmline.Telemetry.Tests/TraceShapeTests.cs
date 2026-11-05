@@ -109,7 +109,7 @@ public sealed class TraceShapeTests(PostgresFixture postgres)
     }
 
     /// <summary>The trace's spans, once one named <paramref name="last"/> has ended.</summary>
-    private static async Task<IReadOnlyList<Activity>> SpansAsync(
+    internal static async Task<IReadOnlyList<Activity>> SpansAsync(
         TracedNode node, ActivityTraceId trace, string last)
     {
         var deadline = DateTimeOffset.UtcNow + Patience;
@@ -176,7 +176,7 @@ public sealed class TraceShapeTests(PostgresFixture postgres)
     }
 
     /// <summary>A charger, a site and a token of the test's own: the database is shared.</summary>
-    private static async Task<(string Connector, string Token)> SetUpAsync(HttpClient http)
+    internal static async Task<(string Connector, string Token)> SetUpAsync(HttpClient http)
     {
         var chargePoint = NextChargePoint();
         var site = $"trc-{chargePoint[^4..]}";

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Ohmline.Charging.Client.Contracts.ReadModels;
 using Ohmline.Charging.Client.Contracts.Requests;
 using Ohmline.Mobile.Core.Charging;
+using Ohmline.Mobile.Core.Diagnostics;
 using Ohmline.Mobile.Core.Outbox;
 
 namespace Ohmline.Mobile.Core.ReadModels;
@@ -75,8 +76,10 @@ public sealed partial class SessionCardViewModel : ObservableObject
 
         var now = _clock.GetUtcNow();
         var stop = new StopChargingRequest(Guid.CreateVersion7(now));
+        using var tap = MobileDiagnostics.StartTap(OutboxKinds.StopCharging)
+            ?.SetTag(MobileDiagnostics.CommandIdTag, stop.CommandId.ToString());
         await _outbox.EnqueueAsync(
-            OutboxCommand.StopCharging(charging.SessionId, stop), now, cancellationToken);
+            OutboxCommand.StopCharging(charging.SessionId, stop, tap?.Id), now, cancellationToken);
         _dispatcher.Nudge();
         await RefreshAsync(cancellationToken);
     }

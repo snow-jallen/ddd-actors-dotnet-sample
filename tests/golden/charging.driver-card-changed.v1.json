@@ -8,5 +8,6 @@
   "chargePointDisplayName": "Salt Lake bus depot, public bays",
   "energyKwh": 6.35,
   "startedAt": "2026-11-04T07:40:00-07:00",
-  "endedAt": null
+  "endedAt": null,
+  "traceParent": null
 }
