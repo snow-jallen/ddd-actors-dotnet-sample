@@ -61,11 +61,18 @@ public abstract class ManifestJsonSerializer : SerializerWithStringManifest
                 ?? throw new SerializationException($"The '{manifest}' payload is null.")
             : throw new UnknownManifestException(GetType().Name, Identifier, manifest);
 
+    /// <summary>
+    /// The tolerant reader's rules (section 20.2). A member the type does not know is skipped,
+    /// so an older node reads a newer shape. A member the JSON lacks is refused, unless its
+    /// constructor parameter has a default: so a field added later must be optional, with a
+    /// default, and then a shape written before it existed still reads.
+    /// </summary>
     private static JsonSerializerOptions CreateOptions(Action<JsonSerializerOptions>? configure)
     {
         var options = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip,
             RespectNullableAnnotations = true,
             RespectRequiredConstructorParameters = true,
             TypeInfoResolver = new DefaultJsonTypeInfoResolver(),

@@ -108,14 +108,29 @@ internal static class ChargingSamples
         Stamped(new ConnectorMadeAvailable(ChargePoint, 2)),
 
         new StartSession(
-            Command, Session, Depot, Connector, Token, Tariff, SpendCap, MeterStartWh: 18_204_000),
+            Command,
+            Session,
+            Depot,
+            Connector,
+            Token,
+            Tariff,
+            SpendCap,
+            MeterStartWh: 18_204_000,
+            PhaseCount: 3),
         new RecordMeterValue(Command, Session, 18_210_350, At.AddMinutes(10)),
         new SuspendCharging(Command, Session, new ByEv()),
         new ResumeCharging(Command, Session),
         new StopSession(Command, Session),
 
         Stamped(new SessionStarted(
-            Session, Depot, Connector, Token, Tariff, SpendCap, MeterStartWh: 18_204_000)),
+            Session,
+            Depot,
+            Connector,
+            Token,
+            Tariff,
+            SpendCap,
+            MeterStartWh: 18_204_000,
+            PhaseCount: 3)),
         Stamped(new MeterValueRecorded(Session, 18_210_350, At.AddMinutes(10))),
         Stamped(new MeterAnomalyDetected(
             Session, 18_209_000, At.AddMinutes(11), 18_210_350, At.AddMinutes(10))),
@@ -165,7 +180,10 @@ internal static class ChargingSamples
             new SessionPhaseSnapshot.SuspendedByEv(
                 MeterReading.FromWattHours(18_204_000, At),
                 MeterReading.FromWattHours(18_210_350, At.AddMinutes(10)),
-                Since: At.AddMinutes(12))),
+                Since: At.AddMinutes(12)))
+        {
+            PhaseCount = 3,
+        },
 
         new ReviseChargePointListing(
             Command, ChargePoint, DisplayName, AccessInstructions, OpeningHours),

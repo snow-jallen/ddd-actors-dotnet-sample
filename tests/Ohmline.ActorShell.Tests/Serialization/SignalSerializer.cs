@@ -14,6 +14,8 @@ public sealed class SignalSerializer(
         {
             [typeof(Ping)] = "test.ping.v1",
             [typeof(Pong)] = "test.pong.v1",
+            [typeof(Chime)] = "test.chime.v1",
+            [typeof(Gong)] = "test.gong.v1",
         };
 
     public override int Identifier => 9199;

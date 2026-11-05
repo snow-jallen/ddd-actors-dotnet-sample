@@ -30,6 +30,12 @@ public sealed record ChargingSessionSnapshot(
         init => field = value.IsDefault ? [] : value;
     } = [];
 
+    /// <summary>
+    /// The phases the car charges on (section 20.2). Optional: a snapshot stored before it
+    /// existed has none, and the state takes the assumed count.
+    /// </summary>
+    public int? PhaseCount { get; init; }
+
     public bool Equals(ChargingSessionSnapshot? other) =>
         other is not null
         && SessionId == other.SessionId
@@ -39,6 +45,7 @@ public sealed record ChargingSessionSnapshot(
         && Tariff == other.Tariff
         && SpendCap == other.SpendCap
         && Phase == other.Phase
+        && PhaseCount == other.PhaseCount
         && RecentCommands.SequenceEqual(other.RecentCommands);
 
     public override int GetHashCode() => HashCode.Combine(SessionId, Phase);

@@ -14,7 +14,8 @@ public closed record SessionCommand(CommandId CommandId, SessionId SessionId);
 
 /// <summary>
 /// Start charging on a connector for a token, under the tariff snapshot taken for it; the spend
-/// cap is in the tariff's currency.
+/// cap is in the tariff's currency. <paramref name="PhaseCount"/>, the phases the car charges
+/// on, came later (section 20.2): optional, so a sender that does not know it yet still works.
 /// </summary>
 public sealed record StartSession(
     CommandId CommandId,
@@ -24,7 +25,8 @@ public sealed record StartSession(
     TokenUid TokenUid,
     TariffSnapshot Tariff,
     Money SpendCap,
-    long MeterStartWh)
+    long MeterStartWh,
+    int? PhaseCount = null)
     : SessionCommand(CommandId, SessionId);
 
 /// <summary>The charge point's energy register, read at a moment it reports.</summary>

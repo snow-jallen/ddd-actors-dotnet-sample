@@ -18,6 +18,15 @@ public sealed record SessionTerms(
     Money SpendCap)
 {
     /// <summary>
+    /// The phases a session started before section 20.2 is taken to charge on: three, the most
+    /// any connector at Ohmline's sites supplies.
+    /// </summary>
+    public const int AssumedPhaseCount = 3;
+
+    /// <summary>How many phases the car charges on: one or three.</summary>
+    public int PhaseCount { get; init; } = AssumedPhaseCount;
+
+    /// <summary>
     /// The most the energy delivered so far can cost: every kWh at the tariff's highest energy
     /// rate, plus the session fee. The spend cap is checked against this, so a session stops
     /// before its hold is used up; the price itself comes from the price calculator (8.3).

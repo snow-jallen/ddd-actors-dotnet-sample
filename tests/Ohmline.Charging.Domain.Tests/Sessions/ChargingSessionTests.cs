@@ -293,7 +293,37 @@ public sealed class ChargingSessionTests
             .ThenNothingChanges();
     }
 
+    [Fact]
+    public void Given_no_session_when_started_with_a_phase_count_then_it_is_locked_too()
+    {
+        Given()
+            .When(Start() with { PhaseCount = 1 })
+            .Then(Started with { PhaseCount = 1 });
+    }
+
     // Evolve and Fold
+
+    [Fact]
+    public void Given_a_start_recorded_with_its_phase_count_when_evolved_then_the_terms_keep_it()
+    {
+        var state = ChargingSession.Fold([Started with { PhaseCount = 1 }]);
+
+        state.Value.ShouldBeOfType<Active>().Terms.PhaseCount.ShouldBe(1);
+    }
+
+    /// <summary>
+    /// Every session started before section 20.2 was stored without a phase count, and its
+    /// events are replayed for ever: Evolve gives it the assumed one.
+    /// </summary>
+    [Fact]
+    public void Given_a_start_recorded_before_phase_counts_when_evolved_then_three_is_assumed()
+    {
+        var state = ChargingSession.Fold([Started]);
+
+        Started.PhaseCount.ShouldBeNull();
+        state.Value.ShouldBeOfType<Active>().Terms.PhaseCount
+            .ShouldBe(SessionTerms.AssumedPhaseCount);
+    }
 
     [Fact]
     public void Given_one_event_of_every_type_then_the_tests_cover_the_whole_hierarchy()

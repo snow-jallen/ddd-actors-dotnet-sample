@@ -125,7 +125,8 @@ public sealed class ChargingSession
                 start.TokenUid,
                 start.Tariff,
                 start.SpendCap,
-                start.MeterStartWh)),
+                start.MeterStartWh,
+                start.PhaseCount)),
         };
 
     private static Result<ImmutableArray<SessionEvent>, SessionError> Record(
@@ -176,9 +177,16 @@ public sealed class ChargingSession
     private static MeterReading Reading(MeterValueRecorded recorded) =>
         MeterReading.FromWattHours(recorded.RegisterWh, recorded.MeasuredAt);
 
+    /// <summary>
+    /// The terms the session started with. A session stored before the phase count was
+    /// recorded has none, and gets the assumed one: Evolve fills the gap, Decide never sees it.
+    /// </summary>
     private static SessionTerms Terms(SessionStarted started) =>
         new(started.SessionId, started.SiteId, started.ConnectorId, started.TokenUid,
-            started.Tariff, started.SpendCap);
+            started.Tariff, started.SpendCap)
+        {
+            PhaseCount = started.PhaseCount ?? SessionTerms.AssumedPhaseCount,
+        };
 
     private static Result<ImmutableArray<SessionEvent>, SessionError> NoChange { get; } =
         Accept();

@@ -39,7 +39,10 @@ public static class ChargingSessionSnapshotMapping
                 snapshot.ConnectorId,
                 snapshot.TokenUid,
                 snapshot.Tariff,
-                snapshot.SpendCap);
+                snapshot.SpendCap)
+            {
+                PhaseCount = snapshot.PhaseCount ?? SessionTerms.AssumedPhaseCount,
+            };
             return snapshot.Phase switch
             {
                 SessionPhaseSnapshot.Active active =>
@@ -62,5 +65,8 @@ public static class ChargingSessionSnapshotMapping
             terms.TokenUid,
             terms.Tariff,
             terms.SpendCap,
-            phase);
+            phase)
+        {
+            PhaseCount = terms.PhaseCount,
+        };
 }

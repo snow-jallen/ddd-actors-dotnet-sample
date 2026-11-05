@@ -24,6 +24,10 @@ public closed record SessionEvent(SessionId SessionId)
 /// The session started, and its terms were locked: the whole tariff snapshot, not a reference
 /// to the tariff, because a later version must never change this session; and the spend cap.
 /// </summary>
+/// <param name="PhaseCount">
+/// The phases the car charges on, added in section 20.2. Optional, with a default, because
+/// every session started before then was stored without it, and those events are read for ever.
+/// </param>
 public sealed record SessionStarted(
     SessionId SessionId,
     SiteId SiteId,
@@ -31,7 +35,8 @@ public sealed record SessionStarted(
     TokenUid TokenUid,
     TariffSnapshot Tariff,
     Money SpendCap,
-    long MeterStartWh)
+    long MeterStartWh,
+    int? PhaseCount = null)
     : SessionEvent(SessionId);
 
 /// <summary>

@@ -72,4 +72,22 @@ public sealed class ManifestJsonSerializerTests(ITestOutputHelper output) : Test
         Should.Throw<JsonException>(() =>
             Serializer.FromBinary("""{"text":null}"""u8.ToArray(), "test.ping.v1"));
     }
+
+    [Fact]
+    public void Given_json_from_before_an_optional_field_existed_when_read_then_it_has_its_default()
+    {
+        var older = """{"text":"charging"}"""u8.ToArray();
+
+        Serializer.FromBinary(older, "test.chime.v1").ShouldBe(new Chime("charging"));
+        Serializer.FromBinary("""{"text":"charging","volume":3}"""u8.ToArray(), "test.chime.v1")
+            .ShouldBe(new Chime("charging", 3));
+    }
+
+    [Fact]
+    public void Given_a_nullable_field_without_a_default_when_missing_then_older_json_is_refused()
+    {
+        Should.Throw<JsonException>(() =>
+                Serializer.FromBinary("""{"text":"charging"}"""u8.ToArray(), "test.gong.v1"))
+            .Message.ShouldContain("volume");
+    }
 }

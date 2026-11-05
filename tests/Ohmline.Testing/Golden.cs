@@ -50,7 +50,9 @@ public static class Golden
             File.ReadAllText(path).ReplaceLineEndings("\n"),
             $"{name} no longer serializes as its golden file says. A shape that has been " +
             "written must stay readable: add a new manifest version instead of changing this " +
-            $"one. Accept the change with {AcceptVariable}=1 only if nothing was ever written.");
+            "one, unless the change only adds an optional field (section 20.2). Then copy the " +
+            "old file to tests/golden/corpus/ first, and accept the change with " +
+            $"{AcceptVariable}=1; otherwise accept it only if nothing was ever written.");
     }
 
     /// <summary>The golden JSON for <paramref name="name"/>, to show it still reads.</summary>

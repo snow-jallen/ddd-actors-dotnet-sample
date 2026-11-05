@@ -1,0 +1,82 @@
+{
+  "sessionId": "019a4f6e-1c40-7a51-8e2f-3b1d00000001",
+  "siteId": "slc-depot",
+  "connectorId": "OHM-SLC-0042/1",
+  "tokenUid": "04A2B3C4D5E6F7",
+  "tariff": {
+    "tariffId": "slc-standard",
+    "version": 3,
+    "currency": "USD",
+    "components": [
+      {
+        "$kind": "energy-rate",
+        "pricePerKwh": {
+          "amount": 0.62,
+          "currency": "USD"
+        },
+        "band": {
+          "name": "peak",
+          "from": "16:00:00",
+          "until": "21:00:00"
+        }
+      },
+      {
+        "$kind": "energy-rate",
+        "pricePerKwh": {
+          "amount": 0.45,
+          "currency": "USD"
+        },
+        "band": null
+      },
+      {
+        "$kind": "time-rate",
+        "pricePerMinute": {
+          "amount": 0.02,
+          "currency": "USD"
+        },
+        "band": null
+      },
+      {
+        "$kind": "session-fee",
+        "amount": {
+          "amount": 1.00,
+          "currency": "USD"
+        }
+      },
+      {
+        "$kind": "idle-fee",
+        "pricePerMinute": {
+          "amount": 0.40,
+          "currency": "USD"
+        },
+        "gracePeriod": "00:10:00"
+      }
+    ],
+    "priceCap": {
+      "amount": 60,
+      "currency": "USD"
+    },
+    "rounding": {
+      "decimals": 2,
+      "mode": "AwayFromZero"
+    },
+    "timeZoneId": "America/Denver"
+  },
+  "spendCap": {
+    "amount": 40,
+    "currency": "USD"
+  },
+  "phase": {
+    "$kind": "suspended-by-ev",
+    "start": {
+      "register": 18204,
+      "at": "2026-11-04T07:40:00-07:00"
+    },
+    "latest": {
+      "register": 18210.35,
+      "at": "2026-11-04T07:50:00-07:00"
+    },
+    "since": "2026-11-04T07:52:00-07:00"
+  },
+  "recentCommands": []
+}
