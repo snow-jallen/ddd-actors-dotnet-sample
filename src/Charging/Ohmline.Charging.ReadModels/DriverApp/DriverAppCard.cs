@@ -65,9 +65,9 @@ public sealed record DriverAppCard(
                 EndedAt: null,
                 sequenceNr),
             (null, _) => null,
-            (_, MeterValueRecorded recorded) => card with
+            (_, MeterValueRecorded { Phase: null } recorded) => card with
             {
-                EnergyKwh = DeliveredSince(card.MeterStartWh, recorded.RegisterWh).KilowattHours,
+                EnergyKwh = DeliveredSince(card.MeterStartWh, recorded.Register).KilowattHours,
             },
             (_, ChargingSuspendedByEv) => card with { Status = DriverAppCardStatus.PausedByCar },
             (_, ChargingSuspendedByCharger) =>
@@ -79,7 +79,8 @@ public sealed record DriverAppCard(
                 EnergyKwh = ended.EnergyDelivered.KilowattHours,
                 EndedAt = Stored(ended.OccurredAt),
             },
-            (_, SessionStarted or MeterAnomalyDetected or SpendCapReached) => card,
+            (_, SessionStarted or MeterValueRecorded or MeterAnomalyDetected or SpendCapReached) =>
+                card,
         };
 
         return next is null
@@ -91,8 +92,8 @@ public sealed record DriverAppCard(
             };
     }
 
-    private static Energy DeliveredSince(long startWh, long registerWh) =>
-        Energy.FromWattHours(registerWh) - Energy.FromWattHours(startWh);
+    private static Energy DeliveredSince(long startWh, Energy register) =>
+        register - Energy.FromWattHours(startWh);
 
     private static DateTimeOffset Stored(DateTimeOffset at)
     {

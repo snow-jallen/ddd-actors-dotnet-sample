@@ -91,7 +91,8 @@ public sealed class PolicyTableTests
         {
             "session started" => new SessionStarted(
                 Session, Depot, Connector, DriversCard, StandardTariff(0.42m), Usd(40m), 0),
-            "meter value recorded" => new MeterValueRecorded(Session, 27_600, Full),
+            "meter value recorded" =>
+                new MeterValueRecorded(Session, Energy.FromWattHours(27_600), Full),
             "meter anomaly" => new MeterAnomalyDetected(Session, 50, Full, 27_600, Full),
             "suspended by EV" => new ChargingSuspendedByEv(Session),
             "suspended by charger" => new ChargingSuspendedByCharger(Session),

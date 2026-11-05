@@ -51,8 +51,8 @@ public sealed class SessionStopScenarioTests
             Session, Depot, Connector, DriversCard, StandardTariff(0.42m),
             new Money(40m, Currency.Usd), MeterStartWh);
         var read = Morning.AddMinutes(48);
-        var reading = new MeterValueRecorded(
-            Session, MeterStartWh + (long)(kilowattHours * 1000m), read);
+        var registerWh = MeterStartWh + (long)(kilowattHours * 1000m);
+        var reading = new MeterValueRecorded(Session, Energy.FromWattHours(registerWh), read);
 
         return session switch
         {
@@ -60,7 +60,7 @@ public sealed class SessionStopScenarioTests
             "active" => [started, reading],
             "active after a meter anomaly" =>
                 [started, reading, new MeterAnomalyDetected(Session, 50, read.AddMinutes(1),
-                    reading.RegisterWh, read)],
+                    registerWh, read)],
             "suspended by EV" => [started, reading, new ChargingSuspendedByEv(Session)],
             "suspended by charger" => [started, reading, new ChargingSuspendedByCharger(Session)],
             "ended" =>

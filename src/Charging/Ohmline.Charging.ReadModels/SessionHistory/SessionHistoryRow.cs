@@ -42,9 +42,9 @@ public sealed record SessionHistoryRow(
                 EndedAt: null,
                 sequenceNr),
             (null, _) => null,
-            (_, MeterValueRecorded recorded) => row with
+            (_, MeterValueRecorded { Phase: null } recorded) => row with
             {
-                EnergyKwh = DeliveredSince(row.MeterStartWh, recorded.RegisterWh).KilowattHours,
+                EnergyKwh = DeliveredSince(row.MeterStartWh, recorded.Register).KilowattHours,
             },
             (_, ChargingSuspendedByEv) => row with { Status = SessionHistoryStatus.SuspendedByEv },
             (_, ChargingSuspendedByCharger) =>
@@ -56,12 +56,13 @@ public sealed record SessionHistoryRow(
                 EnergyKwh = ended.EnergyDelivered.KilowattHours,
                 EndedAt = ended.OccurredAt,
             },
-            (_, SessionStarted or MeterAnomalyDetected or SpendCapReached) => row,
+            (_, SessionStarted or MeterValueRecorded or MeterAnomalyDetected or SpendCapReached) =>
+                row,
         };
 
         return next is null ? null : next with { LastSequenceNr = sequenceNr };
     }
 
-    private static Energy DeliveredSince(long startWh, long registerWh) =>
-        Energy.FromWattHours(registerWh) - Energy.FromWattHours(startWh);
+    private static Energy DeliveredSince(long startWh, Energy register) =>
+        register - Energy.FromWattHours(startWh);
 }

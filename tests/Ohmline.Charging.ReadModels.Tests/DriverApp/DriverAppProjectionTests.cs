@@ -9,6 +9,7 @@ using Ohmline.Charging.ReadModels.DriverApp;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Monetary;
 using static Ohmline.Charging.ReadModels.Tests.Known;
+using Ohmline.SharedKernel.Units;
 
 namespace Ohmline.Charging.ReadModels.Tests.DriverApp;
 
@@ -32,7 +33,10 @@ public sealed class DriverAppProjectionTests(PostgresFixture postgres)
         MeterStartWh: 1_200_000) { OccurredAt = Morning });
 
     private static readonly EventEnvelope Recorded =
-        SessionEnvelope(2, new MeterValueRecorded(Session, 1_207_350, Morning.AddHours(1)));
+        SessionEnvelope(
+            2,
+            new MeterValueRecorded(
+                Session, Energy.FromWattHours(1_207_350), Morning.AddHours(1)));
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 

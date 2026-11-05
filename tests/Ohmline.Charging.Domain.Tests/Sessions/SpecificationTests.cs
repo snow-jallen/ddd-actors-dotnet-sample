@@ -107,7 +107,8 @@ public sealed class SpecificationTests
         [
             Started(StandardTariff(0.42m)),
             .. Enumerable.Range(1, readings).Select(minute => new MeterValueRecorded(
-                Known.Session, 1_200_000, Morning.AddMinutes(minute)).At(Morning)),
+                    Known.Session, Energy.FromWattHours(1_200_000), Morning.AddMinutes(minute))
+                .At(Morning)),
             new SessionEnded(Known.Session, Depot, Connector, DriversCard, new(delivered))
                 .At(Morning.AddMinutes(readings + 1)),
         ];

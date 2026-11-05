@@ -115,7 +115,8 @@ public sealed class ChargingSessionTests
     {
         Given(History(state))
             .When(new RecordMeterValue(Command, Session, 1_205_000, Later))
-            .Then(new MeterValueRecorded(Session, 1_205_000, Later).At(Morning));
+            .Then(new MeterValueRecorded(Session, Energy.FromWattHours(1_205_000), Later)
+                .At(Morning));
     }
 
     [Fact]
@@ -162,7 +163,7 @@ public sealed class ChargingSessionTests
         Given(Started, Recorded(1_210_000))
             .When(Value(1_220_000, minutes: 40))
             .Then(
-                new MeterValueRecorded(Session, 1_220_000, Morning.AddMinutes(40)).At(Morning),
+                Reading(1_220_000, minutes: 40).At(Morning),
                 new SpendCapReached(Session, new Money(10.00m, Currency.Usd), Cap).At(Morning));
     }
 
@@ -184,7 +185,7 @@ public sealed class ChargingSessionTests
         Given(Started with { Tariff = timeOfUse })
             .When(Value(1_215_000))
             .Then(
-                new MeterValueRecorded(Session, 1_215_000, Morning.AddMinutes(10)).At(Morning),
+                Reading(1_215_000, minutes: 10).At(Morning),
                 new SpendCapReached(Session, new Money(10.00m, Currency.Usd), Cap).At(Morning));
     }
 
@@ -193,7 +194,7 @@ public sealed class ChargingSessionTests
     {
         Given(Started, Recorded(1_220_000, minutes: 40))
             .When(Value(1_220_500, minutes: 41))
-            .Then(new MeterValueRecorded(Session, 1_220_500, Morning.AddMinutes(41)).At(Morning));
+            .Then(Reading(1_220_500, minutes: 41).At(Morning));
     }
 
     // SuspendCharging and ResumeCharging: who suspended the charge?
@@ -302,6 +303,21 @@ public sealed class ChargingSessionTests
     }
 
     // Evolve and Fold
+
+    /// <summary>
+    /// A register that counts one phase is not the session's register: the meter stays where
+    /// the last total put it (section 20.3).
+    /// </summary>
+    [Fact]
+    public void Given_one_phase_s_register_when_evolved_then_the_session_meter_stays()
+    {
+        var before = ChargingSession.Fold([Started, Recorded(1_210_000)]);
+
+        var after = ChargingSession.Evolve(
+            before, Reading(410_000, minutes: 11) with { Phase = "L1" });
+
+        after.ShouldBe(before);
+    }
 
     [Fact]
     public void Given_a_start_recorded_with_its_phase_count_when_evolved_then_the_terms_keep_it()
@@ -418,8 +434,11 @@ public sealed class ChargingSessionTests
     };
 
     private static SessionEvent Recorded(long registerWh, int minutes = 10) =>
-        new MeterValueRecorded(Session, registerWh, Morning.AddMinutes(minutes))
-            .At(Morning.AddMinutes(minutes));
+        Reading(registerWh, minutes).At(Morning.AddMinutes(minutes));
+
+    /// <summary>A reading of the charger's register in Wh, taken that many minutes in.</summary>
+    private static MeterValueRecorded Reading(long registerWh, int minutes) =>
+        new(Session, Energy.FromWattHours(registerWh), Morning.AddMinutes(minutes));
 
     private static RecordMeterValue Value(long registerWh, int minutes = 10) =>
         new(Command, Session, registerWh, Morning.AddMinutes(minutes));

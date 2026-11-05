@@ -4,6 +4,7 @@ using Akka.Actor;
 using Ohmline.ActorShell.Serialization;
 using Ohmline.Charging.Actors.ChargePoints;
 using Ohmline.Charging.Actors.Listings;
+using Ohmline.Charging.Actors.Serialization.Upcasting;
 using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
@@ -24,10 +25,11 @@ namespace Ohmline.Charging.Actors.Serialization;
 /// Everything Charging tells, asks, replies or persists, as JSON under a permanent manifest. The
 /// identifier and every manifest below are written into the journal beside each event, so they
 /// never change and are never reused (ADR 0007). A new type gets a new line; a new shape of an
-/// existing type gets a new manifest version, and the old line stays.
+/// existing type gets a new manifest version, and the old version moves to
+/// <see cref="Upcasters"/>, where it is read for ever.
 /// </summary>
 public sealed class ChargingSerializer(ExtendedActorSystem system)
-    : ManifestJsonSerializer(system, Manifests, AddKinds)
+    : ManifestJsonSerializer(system, Manifests, Upcasters, AddKinds)
 {
     /// <summary>The name Akka.NET knows the serializer by, in configuration and logs.</summary>
     public const string Name = "charging";
@@ -92,7 +94,7 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         [typeof(StopSession)] = "charging.stop-session.v1",
 
         [typeof(SessionStarted)] = "charging.session-started.v1",
-        [typeof(MeterValueRecorded)] = "charging.meter-value-recorded.v1",
+        [typeof(MeterValueRecorded)] = "charging.meter-value-recorded.v2",
         [typeof(MeterAnomalyDetected)] = "charging.meter-anomaly-detected.v1",
         [typeof(ChargingSuspendedByEv)] = "charging.charging-suspended-by-ev.v1",
         [typeof(ChargingSuspendedByCharger)] = "charging.charging-suspended-by-charger.v1",
@@ -146,6 +148,16 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         [typeof(ChargerCommandAccepted)] = "charging.charger-command-accepted.v1",
         [typeof(ChargerCommandRejected)] = "charging.charger-command-rejected.v1",
     }.ToFrozenDictionary();
+
+    /// <summary>
+    /// The manifests Charging wrote once and writes no more. The journal still holds them, so
+    /// each is read as the shape it was written in and upcast to the type written today.
+    /// </summary>
+    public static FrozenDictionary<string, Upcaster> Upcasters { get; } =
+        new Dictionary<string, Upcaster>
+        {
+            ["charging.meter-value-recorded.v1"] = MeterValueRecordedV1.Upcaster,
+        }.ToFrozenDictionary();
 
     /// <summary>Permanent: Ohmline's serializer ids are listed in ADR 0007.</summary>
     public override int Identifier => 9101;

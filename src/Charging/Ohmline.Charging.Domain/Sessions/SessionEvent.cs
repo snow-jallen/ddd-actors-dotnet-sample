@@ -40,11 +40,18 @@ public sealed record SessionStarted(
     : SessionEvent(SessionId);
 
 /// <summary>
-/// A meter reading that follows the rules, in Wh as the charge point sent it. It has two times:
-/// when the charge point measured it, and when Ohmline recorded it (<c>OccurredAt</c>).
+/// A meter reading that follows the rules. It has two times: when the charge point measured it,
+/// and when Ohmline recorded it (<c>OccurredAt</c>). Its second shape (section 20.3): the
+/// register is energy in kWh, no longer the charger's integer count of Wh, and the reading may
+/// name the measurand's phase. Readings stored in the first shape are upcast when read.
 /// </summary>
+/// <param name="Phase">
+/// The phase the register counts, <c>L1</c>, <c>L2</c> or <c>L3</c>, as a charger may report a
+/// register per phase; null for the total over every phase, the only register a session counts
+/// and the only one the Device Gateway sends today.
+/// </param>
 public sealed record MeterValueRecorded(
-    SessionId SessionId, long RegisterWh, DateTimeOffset MeasuredAt)
+    SessionId SessionId, Energy Register, DateTimeOffset MeasuredAt, string? Phase = null)
     : SessionEvent(SessionId);
 
 /// <summary>

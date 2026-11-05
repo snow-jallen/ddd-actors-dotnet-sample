@@ -88,9 +88,13 @@ public sealed class DriverAppCardTests
             .ShouldBe(Charging with { Version = 2 });
 
     [Fact]
-    public void Given_a_card_when_a_meter_value_is_recorded_then_energy_counts_from_the_start() =>
-        DriverAppCard.Apply(Charging, new MeterValueRecorded(Session, 1_207_350, Later), 2, null)
+    public void Given_a_card_when_a_meter_value_is_recorded_then_energy_counts_from_the_start()
+    {
+        var recorded = new MeterValueRecorded(Session, Energy.FromWattHours(1_207_350), Later);
+
+        DriverAppCard.Apply(Charging, recorded, 2, null)
             .ShouldBe(Charging with { EnergyKwh = 7.35m, Version = 2 });
+    }
 
     [Theory]
     [MemberData(nameof(StatusChanges))]

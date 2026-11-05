@@ -131,7 +131,8 @@ internal static class ChargingSamples
             SpendCap,
             MeterStartWh: 18_204_000,
             PhaseCount: 3)),
-        Stamped(new MeterValueRecorded(Session, 18_210_350, At.AddMinutes(10))),
+        Stamped(new MeterValueRecorded(
+            Session, Energy.FromWattHours(18_210_350), At.AddMinutes(10), Phase: null)),
         Stamped(new MeterAnomalyDetected(
             Session, 18_209_000, At.AddMinutes(11), 18_210_350, At.AddMinutes(10))),
         Stamped(new ChargingSuspendedByEv(Session)),

@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Akka.Actor;
 using Akka.TestKit.Xunit;
+using Ohmline.ActorShell.Serialization;
 using Ohmline.ActorShell.Tests.Messaging;
 
 namespace Ohmline.ActorShell.Tests.Serialization;
@@ -89,5 +90,38 @@ public sealed class ManifestJsonSerializerTests(ITestOutputHelper output) : Test
         Should.Throw<JsonException>(() =>
                 Serializer.FromBinary("""{"text":"charging"}"""u8.ToArray(), "test.gong.v1"))
             .Message.ShouldContain("volume");
+    }
+
+    [Fact]
+    public void Given_an_older_manifest_when_read_then_its_upcaster_gives_today_s_type()
+    {
+        Serializer.FromBinary("""{"count":"3"}"""u8.ToArray(), "test.pong.v0")
+            .ShouldBe(new Pong(3));
+    }
+
+    [Fact]
+    public void Given_a_manifest_both_written_and_upcast_when_built_then_it_is_refused()
+    {
+        var upcasters = new Dictionary<string, Upcaster>
+        {
+            ["test.pong.v1"] = Upcaster.Create<PongV0, Pong>(v0 => new Pong(int.Parse(v0.Count))),
+        };
+
+        Should.Throw<ArgumentException>(() => new SignalSerializer(
+                (ExtendedActorSystem)Sys, SignalSerializer.Manifests, upcasters))
+            .Message.ShouldStartWith("'test.pong.v1' is written and upcast at once");
+    }
+
+    [Fact]
+    public void Given_an_upcast_to_a_type_with_no_manifest_when_built_then_it_is_refused()
+    {
+        var upcasters = new Dictionary<string, Upcaster>
+        {
+            ["test.pong.v0"] = Upcaster.Create<PongV0, PongV0>(v0 => v0),
+        };
+
+        Should.Throw<ArgumentException>(() => new SignalSerializer(
+                (ExtendedActorSystem)Sys, SignalSerializer.Manifests, upcasters))
+            .Message.ShouldStartWith("'test.pong.v0' is upcast to");
     }
 }

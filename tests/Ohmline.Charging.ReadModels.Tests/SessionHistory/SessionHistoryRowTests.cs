@@ -51,9 +51,21 @@ public sealed class SessionHistoryRowTests
         SessionHistoryRow.Apply(null, Started, sequenceNr: 1).ShouldBe(Charging);
 
     [Fact]
-    public void Given_a_row_when_a_meter_value_is_recorded_then_energy_counts_from_the_start() =>
-        SessionHistoryRow.Apply(Charging, new MeterValueRecorded(Session, 1_207_350, Later), 2)
+    public void Given_a_row_when_a_meter_value_is_recorded_then_energy_counts_from_the_start()
+    {
+        var recorded = new MeterValueRecorded(Session, Energy.FromWattHours(1_207_350), Later);
+
+        SessionHistoryRow.Apply(Charging, recorded, 2)
             .ShouldBe(Charging with { EnergyKwh = 7.35m, LastSequenceNr = 2 });
+    }
+
+    [Fact]
+    public void Given_a_row_when_one_phase_s_register_is_recorded_then_the_energy_stays() =>
+        SessionHistoryRow.Apply(
+                Charging,
+                new MeterValueRecorded(Session, Energy.FromWattHours(402_100), Later, "L1"),
+                2)
+            .ShouldBe(Charging with { LastSequenceNr = 2 });
 
     [Theory]
     [MemberData(nameof(StatusChanges))]

@@ -73,11 +73,11 @@ public sealed class ChargingSession
                 Terms(started),
                 SessionMeter.StartingAt(
                     MeterReading.FromWattHours(started.MeterStartWh, started.OccurredAt))),
-            (Active active, MeterValueRecorded recorded) =>
+            (Active active, MeterValueRecorded { Phase: null } recorded) =>
                 active with { Meter = active.Meter.Advance(Reading(recorded)) },
-            (SuspendedByEv idle, MeterValueRecorded recorded) =>
+            (SuspendedByEv idle, MeterValueRecorded { Phase: null } recorded) =>
                 idle with { Meter = idle.Meter.Advance(Reading(recorded)) },
-            (SuspendedByCharger paused, MeterValueRecorded recorded) =>
+            (SuspendedByCharger paused, MeterValueRecorded { Phase: null } recorded) =>
                 paused with { Meter = paused.Meter.Advance(Reading(recorded)) },
 
             (Active active, ChargingSuspendedByEv suspended) =>
@@ -98,9 +98,9 @@ public sealed class ChargingSession
             (SuspendedByCharger paused, SessionEnded ended) =>
                 new Ended(paused.Terms, ended.EnergyDelivered, ended.OccurredAt),
 
-            // Anomalies and the spend cap are facts to remember in the journal, not in memory,
-            // and an event that meets a state Decide would not have produced it in changes
-            // nothing. Evolve never refuses.
+            // Anomalies, the spend cap and a single phase's register are facts to remember in
+            // the journal, not in memory, and an event that meets a state Decide would not have
+            // produced it in changes nothing. Evolve never refuses.
             (NoSession or Active or SuspendedByEv or SuspendedByCharger or Ended, SessionEvent) =>
                 state,
             (null, _) => throw DefaultState(),
@@ -171,11 +171,12 @@ public sealed class ChargingSession
         [.. events.Select(@event =>
             @event with { CommandId = command.CommandId, OccurredAt = context.Now })];
 
+    /// <summary>The charger counts Wh; the session records energy, over every phase.</summary>
     private static MeterValueRecorded Recorded(RecordMeterValue value) =>
-        new(value.SessionId, value.RegisterWh, value.MeasuredAt);
+        new(value.SessionId, Energy.FromWattHours(value.RegisterWh), value.MeasuredAt);
 
     private static MeterReading Reading(MeterValueRecorded recorded) =>
-        MeterReading.FromWattHours(recorded.RegisterWh, recorded.MeasuredAt);
+        new(recorded.Register, recorded.MeasuredAt);
 
     /// <summary>
     /// The terms the session started with. A session stored before the phase count was

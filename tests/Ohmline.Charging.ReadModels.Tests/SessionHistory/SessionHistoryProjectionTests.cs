@@ -12,6 +12,7 @@ using Ohmline.Charging.ReadModels.Tests.Projections;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Monetary;
 using static Ohmline.Charging.ReadModels.Tests.Known;
+using Ohmline.SharedKernel.Units;
 
 namespace Ohmline.Charging.ReadModels.Tests.SessionHistory;
 
@@ -40,7 +41,9 @@ public sealed class SessionHistoryProjectionTests(PostgresFixture postgres)
             Tariff,
             new Money(40m, Currency.Usd),
             MeterStartWh: 1_200_000) { OccurredAt = Morning });
-        var recorded = Envelope(2, new MeterValueRecorded(Session, 1_207_350, Morning.AddHours(1)));
+        var recorded = Envelope(
+            2,
+            new MeterValueRecorded(Session, Energy.FromWattHours(1_207_350), Morning.AddHours(1)));
 
         foreach (var envelope in new[] { started, recorded, recorded, started })
         {
@@ -67,7 +70,9 @@ public sealed class SessionHistoryProjectionTests(PostgresFixture postgres)
             Tariff,
             new Money(40m, Currency.Usd),
             MeterStartWh: 1_200_000) { OccurredAt = Morning });
-        var recorded = Envelope(2, new MeterValueRecorded(Session, 1_207_350, Morning.AddHours(1)));
+        var recorded = Envelope(
+            2,
+            new MeterValueRecorded(Session, Energy.FromWattHours(1_207_350), Morning.AddHours(1)));
 
         var announced = new List<LiveUpdate>();
         foreach (var envelope in new[] { started, recorded, recorded, started })

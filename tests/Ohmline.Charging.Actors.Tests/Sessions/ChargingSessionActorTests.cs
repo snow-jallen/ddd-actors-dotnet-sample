@@ -109,7 +109,7 @@ public sealed class ChargingSessionActorTests(ITestOutputHelper output)
         by: by);
 
     private static SessionEvent Metered(CommandId? by = null) =>
-        Stamped(new MeterValueRecorded(Session, 1_207_400, Later), by: by);
+        Stamped(new MeterValueRecorded(Session, Energy.FromWattHours(1_207_400), Later), by: by);
 
     private static SessionEvent Stamped(
         SessionEvent @event, DateTimeOffset? at = null, CommandId? by = null) =>

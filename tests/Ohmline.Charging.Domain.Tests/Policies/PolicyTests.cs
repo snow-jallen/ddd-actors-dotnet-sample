@@ -32,7 +32,7 @@ public sealed class PolicyTests
     [
         new SessionStarted(Session, Depot, Connector, DriversCard, Terms.Tariff, Usd(40m), 0)
             .At(Morning),
-        new MeterValueRecorded(Session, 27_600, Full).At(Full),
+        new MeterValueRecorded(Session, Energy.FromWattHours(27_600), Full).At(Full),
         new ChargingSuspendedByEv(Session).At(Full),
         new SessionEnded(Session, Depot, Connector, DriversCard, new Energy(27.6m)).At(Unplugged),
     ];
