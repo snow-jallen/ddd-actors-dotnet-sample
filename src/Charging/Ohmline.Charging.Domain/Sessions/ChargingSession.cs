@@ -94,16 +94,14 @@ public sealed class ChargingSession
         {
             { SpendCap.Amount: <= 0m } =>
                 Reject(new SessionError.SpendCapNotPositive(start.SpendCap)),
-            _ when start.SpendCap.Currency != start.PricePerKwh.Currency =>
-                Reject(new CurrencyMismatch(start.PricePerKwh.Currency, start.SpendCap.Currency)),
+            _ when start.SpendCap.Currency != start.Tariff.Currency =>
+                Reject(new CurrencyMismatch(start.Tariff.Currency, start.SpendCap.Currency)),
             _ => Accept(new SessionStarted(
                 start.SessionId,
                 start.SiteId,
                 start.ConnectorId,
                 start.TokenUid,
-                start.TariffId,
-                start.TariffVersion,
-                start.PricePerKwh,
+                start.Tariff,
                 start.SpendCap,
                 start.MeterStartWh)),
         };
@@ -158,7 +156,7 @@ public sealed class ChargingSession
 
     private static SessionTerms Terms(SessionStarted started) =>
         new(started.SessionId, started.SiteId, started.ConnectorId, started.TokenUid,
-            started.TariffId, started.TariffVersion, started.PricePerKwh, started.SpendCap);
+            started.Tariff, started.SpendCap);
 
     private static Result<ImmutableArray<SessionEvent>, SessionError> NoChange { get; } =
         Accept();

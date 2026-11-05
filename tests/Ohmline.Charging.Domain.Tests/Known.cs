@@ -1,4 +1,6 @@
 using Ohmline.SharedKernel.Identity;
+using Ohmline.SharedKernel.Monetary;
+using Ohmline.Tariffs.Contracts;
 
 namespace Ohmline.Charging.Domain.Tests;
 
@@ -27,4 +29,17 @@ internal static class Known
     /// is enough; the shell's duplicate check (section 12.6) has tests of its own.
     /// </summary>
     public static readonly CommandId Command = new(Guid.CreateVersion7(Morning));
+
+    /// <summary>
+    /// Version 3 of the depot's standard tariff as a session copies it: one energy rate at the
+    /// price given, rounded to cents, with its bands (none here) in the depot's time zone.
+    /// </summary>
+    public static TariffSnapshot StandardTariff(decimal pricePerKwh) => new(
+        new TariffId("slc-standard"),
+        3,
+        Currency.Usd,
+        [new EnergyRate(new Money(pricePerKwh, Currency.Usd))],
+        PriceCap: null,
+        RoundingPolicy.Cents,
+        "America/Denver");
 }

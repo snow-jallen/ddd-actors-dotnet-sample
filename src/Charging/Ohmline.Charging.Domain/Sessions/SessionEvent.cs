@@ -1,6 +1,7 @@
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Monetary;
 using Ohmline.SharedKernel.Units;
+using Ohmline.Tariffs.Contracts;
 
 namespace Ohmline.Charging.Domain.Sessions;
 
@@ -20,17 +21,15 @@ public closed record SessionEvent(SessionId SessionId)
 }
 
 /// <summary>
-/// The session started, and its terms were locked: the tariff (by id and version, with its
-/// energy price, until section 8.2 records a whole tariff snapshot) and the spend cap.
+/// The session started, and its terms were locked: the whole tariff snapshot, not a reference
+/// to the tariff, because a later version must never change this session; and the spend cap.
 /// </summary>
 public sealed record SessionStarted(
     SessionId SessionId,
     SiteId SiteId,
     ConnectorId ConnectorId,
     TokenUid TokenUid,
-    string TariffId,
-    int TariffVersion,
-    Money PricePerKwh,
+    TariffSnapshot Tariff,
     Money SpendCap,
     long MeterStartWh)
     : SessionEvent(SessionId);

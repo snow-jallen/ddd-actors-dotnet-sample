@@ -2,12 +2,15 @@
 
   <!--
     Charging's model: events, state and deciders. Pure: the shared kernel, Charging's own
-    contracts and the base class library only, and no package references.
+    contracts, the contracts of upstream contexts (Tariffs' tariff snapshot) and the base class
+    library only, and no package references.
   -->
 
   <ItemGroup>
     <ProjectReference Include="../../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
     <ProjectReference Include="../Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
+    <ProjectReference
+      Include="../../Tariffs/Ohmline.Tariffs.Contracts/Ohmline.Tariffs.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

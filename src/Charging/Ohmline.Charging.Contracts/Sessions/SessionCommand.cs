@@ -1,5 +1,6 @@
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Monetary;
+using Ohmline.Tariffs.Contracts;
 
 namespace Ohmline.Charging.Contracts.Sessions;
 
@@ -12,8 +13,8 @@ namespace Ohmline.Charging.Contracts.Sessions;
 public closed record SessionCommand(CommandId CommandId, SessionId SessionId);
 
 /// <summary>
-/// Start charging on a connector for a token, under a tariff locked now. Until section 8.2 the
-/// tariff is its id, its version and its energy price; the spend cap is in the same currency.
+/// Start charging on a connector for a token, under the tariff snapshot taken for it; the spend
+/// cap is in the tariff's currency.
 /// </summary>
 public sealed record StartSession(
     CommandId CommandId,
@@ -21,9 +22,7 @@ public sealed record StartSession(
     SiteId SiteId,
     ConnectorId ConnectorId,
     TokenUid TokenUid,
-    string TariffId,
-    int TariffVersion,
-    Money PricePerKwh,
+    TariffSnapshot Tariff,
     Money SpendCap,
     long MeterStartWh)
     : SessionCommand(CommandId, SessionId);

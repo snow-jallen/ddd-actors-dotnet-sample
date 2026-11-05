@@ -2,11 +2,15 @@
 
   <!--
     The commands that other parts of Ohmline send to Charging's aggregates: the Device Gateway,
-    the HTTP edge and the charging journey. Contracts reference the shared kernel and nothing else.
+    the HTTP edge and the charging journey. Contracts reference the shared kernel and the
+    published contracts of upstream contexts: a session starts with Tariffs' tariff snapshot
+    (Customer/Supplier, section 8.2). Nothing else.
   -->
 
   <ItemGroup>
     <ProjectReference Include="../../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
+    <ProjectReference
+      Include="../../Tariffs/Ohmline.Tariffs.Contracts/Ohmline.Tariffs.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

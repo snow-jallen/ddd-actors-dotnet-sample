@@ -6,6 +6,7 @@ using Ohmline.SharedKernel.Deciders;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Monetary;
 using Ohmline.SharedKernel.Units;
+using Ohmline.Tariffs.Contracts;
 using static Ohmline.Charging.Domain.Tests.Known;
 
 namespace Ohmline.Charging.Domain.Tests.Sessions;
@@ -17,12 +18,12 @@ namespace Ohmline.Charging.Domain.Tests.Sessions;
 public sealed class ChargingSessionTests
 {
     private static readonly ConnectorId Connector = new(Charger, 1);
-    private static readonly Money Price = new(0.50m, Currency.Usd);
+    private static readonly TariffSnapshot Tariff = StandardTariff(0.50m);
     private static readonly Money Cap = new(10.00m, Currency.Usd);
     private static readonly DateTimeOffset Later = Morning.AddMinutes(30);
 
     private static readonly SessionStarted Started = new(
-        Session, Depot, Connector, DriversCard, "slc-standard", 3, Price, Cap, 1_200_000)
+        Session, Depot, Connector, DriversCard, Tariff, Cap, 1_200_000)
     {
         CommandId = Command,
         OccurredAt = Morning,
@@ -147,6 +148,26 @@ public sealed class ChargingSessionTests
     }
 
     [Fact]
+    public void Given_a_time_of_use_tariff_then_the_cap_counts_each_kWh_at_the_highest_energy_rate()
+    {
+        // USD 1.00 to start, then 15 kWh at the peak rate of USD 0.60: the cap of USD 10.00.
+        var peak = new TimeOfUseBand("peak", new TimeOnly(16, 0), new TimeOnly(21, 0));
+        var timeOfUse = Tariff with
+        {
+            Components =
+            [
+                new EnergyRate(new Money(0.30m, Currency.Usd)),
+                new EnergyRate(new Money(0.60m, Currency.Usd), peak),
+                new SessionFee(new Money(1.00m, Currency.Usd)),
+            ],
+        };
+
+        Decide([Started with { Tariff = timeOfUse }], Value(1_215_000)).ShouldAccept(
+            new MeterValueRecorded(Session, 1_215_000, Morning.AddMinutes(10)).At(Morning),
+            new SpendCapReached(Session, new Money(10.00m, Currency.Usd), Cap).At(Morning));
+    }
+
+    [Fact]
     public void Given_a_spend_cap_reached_before_when_energy_flows_on_then_it_is_not_reached_again()
     {
         Decide([Started, Recorded(1_220_000, minutes: 40)], Value(1_220_500, minutes: 41))
@@ -227,7 +248,7 @@ public sealed class ChargingSessionTests
     public void Given_one_event_of_every_type_when_folded_then_the_session_has_ended()
     {
         var terms = new SessionTerms(
-            Session, Depot, Connector, DriversCard, "slc-standard", 3, Price, Cap);
+            Session, Depot, Connector, DriversCard, Tariff, Cap);
 
         ChargingSession.Fold(OneOfEach).ShouldBe(new Ended(terms, new Energy(21m), Later));
     }
@@ -246,7 +267,7 @@ public sealed class ChargingSessionTests
     {
         var primer = Started with
         {
-            PricePerKwh = new Money(0.42m, Currency.Usd),
+            Tariff = StandardTariff(0.42m),
             SpendCap = new Money(40.00m, Currency.Usd),
         };
         var ended = Morning.AddMinutes(73);
@@ -287,9 +308,8 @@ public sealed class ChargingSessionTests
         _ => throw new ArgumentOutOfRangeException(nameof(state)),
     };
 
-    private static StartSession Start(Money? spendCap = null) => new(
-        Command, Session, Depot, Connector, DriversCard, "slc-standard", 3, Price, spendCap ?? Cap,
-        1_200_000);
+    private static StartSession Start(Money? spendCap = null) =>
+        new(Command, Session, Depot, Connector, DriversCard, Tariff, spendCap ?? Cap, 1_200_000);
 
     private static SessionEvent Recorded(long registerWh, int minutes = 10) =>
         new MeterValueRecorded(Session, registerWh, Morning.AddMinutes(minutes))

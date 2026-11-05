@@ -2,7 +2,8 @@
 
 This project is Charging's public face: every message another part of Ohmline may send to
 Charging, or receive from it. Nothing else in Charging may be referenced from outside the
-context. It references the shared kernel and nothing else, which
+context. It references the shared kernel and the contracts of the contexts it depends on
+(Tariffs, whose tariff snapshot a session starts with, section 8.2), and nothing else, which
 `tests/Ohmline.ArchitectureTests` checks.
 
 It has two audiences, and two sets of rules.

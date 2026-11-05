@@ -75,8 +75,8 @@ public sealed class DomainEventTests
     }
 
     private static SessionStarted Started() =>
-        new(Session, Depot, Connector, DriversCard, "slc-standard", 3,
-            new Money(0.42m, Currency.Usd), new Money(40m, Currency.Usd), 1_200_000)
+        new(Session, Depot, Connector, DriversCard, StandardTariff(0.42m),
+            new Money(40m, Currency.Usd), 1_200_000)
         {
             CommandId = Command,
             OccurredAt = Morning,
