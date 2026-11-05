@@ -39,6 +39,8 @@
   </ItemGroup>
 
   <ItemGroup Label="Testing">
+    <!-- A real host with DI and the actor registry in a test; 1.5.68+ for parallel xUnit v3 runs. -->
+    <PackageVersion Include="Akka.Hosting.TestKit" Version="$(AkkaVersion)" />
     <PackageVersion Include="Akka.Persistence.TestKit.Xunit" Version="$(AkkaVersion)" />
     <PackageVersion Include="Akka.TestKit.Xunit" Version="$(AkkaVersion)" />
     <PackageVersion Include="CsCheck" Version="5.0.1" />
