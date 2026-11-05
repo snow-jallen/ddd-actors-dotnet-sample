@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    A stand-in for Northgate Grid, the fictional grid operator (section 16.8): demand-response
+    events in the style of OpenADR, served at GET /signals?since={sequence}. An operator (or a
+    test) announces an event with POST /signals. It knows nothing of Ohmline.
+  -->
+
+</Project>

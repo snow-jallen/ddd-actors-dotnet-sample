@@ -20,6 +20,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.AddServiceDefaults();
 builder.Services.AddOhmlineReadModels(builder.Configuration);
 builder.Services.AddJourneyPorts(); // Billing, and the Device Gateway's charge points.
+builder.Services.AddGridOperator(builder.Configuration); // Northgate's signals, if enabled.
 
 builder.Services.AddAkka("ohmline", akka => akka
     .ConfigureLoggers(loggers =>
@@ -37,6 +38,7 @@ builder.Services.AddAkka("ohmline", akka => akka
     .AddSiteEnergyContext()
     .AddDriverAccountsContext()
     .AddTariffsContext()
+    .WithGridOperator(builder.Configuration)
     .WithOhmlineReadModels(builder.Configuration)
     .AddChargingLiveUpdates());
 

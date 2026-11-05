@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The anticorruption layer between Northgate Grid and Site Energy (section 16.8): a pure
+    translator from Northgate's demand-response events to curtailments, and the one ACL with an
+    actor in it, the poller that asks Northgate on a timer and tells the site budgets. Northgate's
+    words (VEN ids, LOAD_DISPATCH, ISO 8601 durations) stop here.
+  -->
+
+  <ItemGroup>
+    <!-- The poller is a cluster singleton: one in the cluster asks Northgate. -->
+    <PackageReference Include="Akka.Cluster.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
+    <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+    <ProjectReference
+      Include="../Ohmline.SiteEnergy.Contracts/Ohmline.SiteEnergy.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

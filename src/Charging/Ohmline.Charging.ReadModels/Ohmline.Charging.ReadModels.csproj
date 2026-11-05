@@ -18,6 +18,8 @@
     <ProjectReference Include="../Ohmline.Charging.Domain/Ohmline.Charging.Domain.csproj" />
     <ProjectReference Include="../Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
     <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+    <!-- The journey's charger port, through which the dispatcher sends profiles (16.8). -->
+    <ProjectReference Include="../Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
     <!--
       Site Energy's published view of its allocation events, for the site live board, and its
       commands, which the session-ended subscriber sends (section 15.1).

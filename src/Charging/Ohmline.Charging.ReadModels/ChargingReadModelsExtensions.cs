@@ -3,6 +3,7 @@ using Akka.Hosting;
 using Npgsql;
 using Ohmline.ActorShell.Clustering;
 using Ohmline.ActorShell.Sharding;
+using Ohmline.Charging.ReadModels.Dispatch;
 using Ohmline.Charging.ReadModels.DriverApp;
 using Ohmline.Charging.ReadModels.Journeys;
 using Ohmline.Charging.ReadModels.Outbox;
@@ -31,6 +32,7 @@ public static class ChargingReadModelsExtensions
                     new SessionEndedSubscriber(),
                     new JourneySessionRelay(),
                     new IntegrationEventRelay(),
+                    new ChargingProfileDispatcher(),
                 }
                 .SelectMany(projection => projection.Tags.Select(tag => (projection, tag))),
         ];

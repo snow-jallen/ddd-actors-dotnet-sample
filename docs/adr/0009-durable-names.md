@@ -37,7 +37,7 @@ We will treat these as permanent, never to be changed or reused once released:
 | ActorSystem name | `ohmline`, on every node and in every test that joins a cluster |
 | Cluster roles | `charging` (the node that hosts aggregates), `gateway` (Chapter 16) |
 | Shard type names | `charge-point`, `charging-session`, `charge-point-listing`, `site-power-budget`; from section 12.7 `id-token`, from section 15.3 `charging-journey` |
-| Singleton names | `tariff-book` (section 12.8) |
+| Singleton names | `tariff-book` (section 12.8); `grid-signal-poller` (section 16.8) |
 | Persistence id | `{shard type name}-{entity id}`, such as `charge-point-OHM-SLC-0042`, `charging-session-019a4f6e-...`, `site-power-budget-slc-depot` |
 | Entity ids | the identifier's canonical written form: `ChargePointId` (`OHM-SLC-0042`), `SiteId` (`slc-depot`), `SessionId` (a lower-case Guid with hyphens) |
 | Number of shards | `100` for every region (`EntityMessageExtractor.NumberOfShards`), about ten times the most nodes Ohmline will run |
@@ -45,7 +45,7 @@ We will treat these as permanent, never to be changed or reused once released:
 | Coordinator state | `StateStoreMode.DData`, set explicitly in `EntityShardOptions` |
 | Event tags (section 13.2) | `charging`, `charging-session`, `site-energy` (`ChargingTags`, `SiteEnergyTags`); from section 15.3 `charging-journey`; a tag is stored with the event and never rewritten |
 | Sharded daemon process (section 13.6) | `projections`, one instance per projection stream; instance `i` runs `ChargingReadModelsExtensions.Streams[i]`, so the list is append only |
-| Projection ids (sections 13.5, 13.8, 14.6, 15.1, 15.4, 16.1) | `session-history-v1`, `site-live-board-v1`, `driver-app-v1`; the subscribers `session-ended-subscriber-v1` and `journey-session-relay-v1`, and the outbox relay `integration-relay-v1`, which keep offsets like any projection; a new read-model shape is a new id, never a reused one |
+| Projection ids (sections 13.5, 13.8, 14.6, 15.1, 15.4, 16.1, 16.8) | `session-history-v1`, `site-live-board-v1`, `driver-app-v1`; the subscribers `session-ended-subscriber-v1` and `journey-session-relay-v1`, and the outbox relay `integration-relay-v1` and the `charging-profile-dispatcher-v1` (section 16.8), which keep offsets like any projection; a new read-model shape is a new id, never a reused one |
 | Published Language (section 16.1) | wire names `ohmline.{context}.{kebab-type-name}.v{N}`, such as `ohmline.charging.session-completed.v1`, in `[JsonDerivedType]`; the outbox table `read_models.integration_outbox` and its positions, which consumers store |
 | Idempotency keys (section 15.6) | `{journeyId}-{step}`, with the steps `lock`, `hold`, `allocation`, `charger`, `release`, `capture`, `unlock` (`IdempotencyKey`); the command id derived from a key (`GuidV7.Derive`) is how Driver Accounts and Site Energy recognise a request sent again, so neither the format nor the derivation may change while a journey is in flight |
 | DistributedPubSub topics (sections 14.4, 14.6, 16.7) | `session-summaries`, `driver-app-cards` (`LiveTopics`); one per charge point, `charger-commands-{chargePointId}` (`ChargerTopics`), which the gateway node holding the charger's WebSocket subscribes to; a subscriber to a renamed topic hears nothing, and nothing says so. The mediator runs on every node, whatever its role |

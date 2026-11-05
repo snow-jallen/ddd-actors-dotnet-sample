@@ -1,7 +1,8 @@
 using System.Globalization;
 
 // Ohmline on a laptop: PostgreSQL 17 and a cluster of three nodes (section 12.10), Billing and
-// the TallyPay stand-in (section 16.5), the Device Gateway and a charger simulator (16.7).
+// the TallyPay stand-in (section 16.5), the Device Gateway and a charger simulator (16.7), and
+// the Northgate Grid stand-in (16.8).
 var builder = DistributedApplication.CreateBuilder(args);
 
 // The seed node's Akka.Remote address, which every member of the cluster joins.
@@ -17,6 +18,13 @@ var fakePsp = builder.AddProject<Projects.Ohmline_FakePsp>("fakepsp", launchProf
     .WithHttpEndpoint(name: "http")
     .WithHttpHealthCheck("/health")
     .WithEnvironment("FLAKY_RATE", "0.1");
+
+// Northgate Grid, as the stand-in plays it: announce an event with POST /signals, and the
+// node's poller curtails the site its VEN id is mapped to.
+var fakeGrid = builder.AddProject<Projects.Ohmline_FakeGridOperator>(
+        "fakegrid", launchProfileName: null)
+    .WithHttpEndpoint(name: "http")
+    .WithHttpHealthCheck("/health");
 
 // Billing: its own database, TallyPay behind it, and Charging's feed, which it reads from the
 // seed node (http://node). Charging's nodes call its hold API at http://billing.
@@ -65,6 +73,9 @@ IResourceBuilder<ProjectResource> Node(string name, int index) =>
         .WithEnvironment("Akka__Remote__Port", Port(4053 + index))
         .WithEnvironment("Akka__Cluster__SeedNodes__0", SeedNode)
         .WithReference(ohmline)
-        .WithReference(billing);
+        .WithReference(billing)
+        .WithReference(fakeGrid)
+        .WithEnvironment("Ohmline__SiteEnergy__GridOperator__Enabled", "true")
+        .WithEnvironment("Ohmline__SiteEnergy__GridOperator__Sites__NG-VEN-0042", "slc-depot");
 
 static string Port(int port) => port.ToString(CultureInfo.InvariantCulture);

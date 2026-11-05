@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Northgate Grid's anticorruption layer: the translator as a table, the poller with a probe
+    as the site budgets, and the client against the Northgate stand-in in memory.
+  -->
+
+  <ItemGroup>
+    <PackageReference Include="Akka.TestKit.Xunit" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference
+      Include="../../src/SiteEnergy/Ohmline.SiteEnergy.Acl.GridOperator/Ohmline.SiteEnergy.Acl.GridOperator.csproj" />
+    <ProjectReference
+      Include="../../tools/Ohmline.FakeGridOperator/Ohmline.FakeGridOperator.csproj" />
+    <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -19,5 +19,6 @@ public sealed class ChargingReadModelsExtensionsTests
                 "session-ended-subscriber-v1/charging-session",
                 "journey-session-relay-v1/charging-session",
                 "integration-relay-v1/charging-session",
+                "charging-profile-dispatcher-v1/site-energy",
             ]);
 }
