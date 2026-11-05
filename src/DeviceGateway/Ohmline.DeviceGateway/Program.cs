@@ -1,5 +1,6 @@
 using Akka.Hosting;
 using Ohmline.ActorShell.Clustering;
+using Ohmline.ActorShell.Telemetry;
 using Ohmline.Charging.Actors;
 using Ohmline.DeviceGateway;
 using Ohmline.DeviceGateway.Connections;
@@ -24,6 +25,7 @@ builder.Services.AddAkka("ohmline", akka => akka
         loggers.AddLoggerFactory();
     })
     .WithOhmlineCluster(builder.Configuration, builder.Environment, ClusterRoles.Gateway)
+    .WithShellMetrics() // Dead letters and actors' lifecycles; it hosts no shard (section 18.2).
     .AddChargingProxies()
     .AddTariffsProxy());
 

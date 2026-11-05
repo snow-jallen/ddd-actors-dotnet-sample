@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+    <!-- The actor test configuration and the instrument recorder (section 18.2). -->
+    <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
   </ItemGroup>
 
 </Project>

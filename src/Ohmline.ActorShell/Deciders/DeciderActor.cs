@@ -6,6 +6,7 @@ using Akka.Event;
 using Akka.Persistence;
 using Ohmline.ActorShell.Serialization;
 using Ohmline.ActorShell.Sharding;
+using Ohmline.ActorShell.Telemetry;
 using Ohmline.ActorShell.Tracing;
 using Ohmline.SharedKernel;
 using Ohmline.SharedKernel.Deciders;
@@ -223,15 +224,19 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
 
     /// <summary>
     /// The last message of recovery. Commands that arrived since the actor started have waited
-    /// in the internal stash and are handled after this, in the order they arrived.
+    /// in the internal stash and are handled after this, in the order they arrived. How long
+    /// it took, from the actor's start, includes any wait for a recovery permit (section 11.3),
+    /// and is recorded by the actor's type (section 18.2).
     /// </summary>
     private void Recovered()
     {
+        var took = Stopwatch.GetElapsedTime(_startedAt);
+        ActorShellMetrics.For(Context.System).Recovered(GetType(), took);
         _log.Info(
             "{0} recovered to sequence number {1} in {2} ms: {3}, {4} events replayed",
             PersistenceId,
             LastSequenceNr,
-            (long)Stopwatch.GetElapsedTime(_startedAt).TotalMilliseconds,
+            (long)took.TotalMilliseconds,
             _snapshotSequenceNr > 0 ? $"snapshot at {_snapshotSequenceNr}" : "no snapshot",
             _eventsReplayed);
         OnRecovered();

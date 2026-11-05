@@ -1,5 +1,6 @@
 using Akka.Hosting;
 using Ohmline.ActorShell.Clustering;
+using Ohmline.ActorShell.Telemetry;
 using Ohmline.Charging.Actors;
 using Ohmline.Charging.Actors.Diagnostics;
 using Ohmline.Charging.Api;
@@ -36,6 +37,9 @@ builder.Services.AddAkka("ohmline", akka => akka
         loggers.AddLoggerFactory(); // Akka.NET logs through Microsoft.Extensions.Logging.
     })
     .WithOhmlineCluster(builder.Configuration, builder.Environment, ClusterRoles.Charging)
+    // Dead letters, actors' lifecycles and the shard regions' size (section 18.2).
+    .WithShellMetrics()
+    .WithShardStats()
     // At most this many persistent actors replay their journals at once; the rest wait for a
     // permit, so a node restart does not stampede the database (section 11.3). 50 is Akka.NET's
     // default, written down here so that it is a decision and not an accident.
