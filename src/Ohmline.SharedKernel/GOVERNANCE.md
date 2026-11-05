@@ -67,6 +67,7 @@ and this version becomes the package version.
 | 1.0.0 | `Result`, `Unit`, `ValidationError`, `IValueObject`, `GuidV7` | 3.5–3.8 |
 | 1.1.0 | Units: `Energy`, `Power`, `Current`, `Voltage` and the `Dimensions` operators | 6.1 |
 | 2.0.0 | `ValidationError` becomes a union of `OutOfRange`, `Malformed` and `Missing` (major: its constructor is gone; it was never written to the wire); the units implement `IValueObject` | 6.2 |
+| 2.1.0 | `Currency`, `Money`, `CurrencyMismatch` and `RoundingPolicy` in `Monetary` | 6.3 |
 
 ## How a change gets in
 
