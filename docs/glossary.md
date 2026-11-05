@@ -45,6 +45,7 @@ The context that runs charge points, connectors, reservations and charging sessi
 | Meter reading | The charge point's cumulative energy register (Wh) with a timestamp; it never decreases | `MeterReading` |
 | Meter anomaly | A meter reading that breaks the rules, such as a register that went backwards. Recorded, never rejected | `MeterAnomalyDetected` |
 | Energy delivered | Energy between two meter readings, or over a whole session | `Energy` |
+| Active (session) | A session that is running and not suspended. In code `Active`, never `Charging`, which is the context's namespace | `Active` |
 | Suspended | Charging paused during a session while the car stays plugged in | `SuspendCharging`, `ChargingSuspended` |
 | Spend cap | The most the driver pre-authorized; reaching it stops charging | `SpendCapReached` |
 | Tariff snapshot | The version of the site's tariff copied into a session when it starts; later tariff changes never affect that session | `TariffSnapshot` |
