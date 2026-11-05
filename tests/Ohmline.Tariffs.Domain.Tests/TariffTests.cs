@@ -18,7 +18,7 @@ public sealed class TariffTests
         var tariff = Version1();
 
         tariff.Version.ShouldBe(1);
-        tariff.Components.ShouldBe([Energy, Fee, Idle]);
+        tariff.Components.ShouldBe([BaseRate, Fee, Idle]);
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class TariffTests
     [Fact]
     public void Given_an_amount_in_another_currency_then_it_is_not_a_tariff()
     {
-        Create(Energy, new SessionFee(new Money(1.00m, Currency.Eur))).ShouldBe(Invalid(
+        Create(BaseRate, new SessionFee(new Money(1.00m, Currency.Eur))).ShouldBe(Invalid(
             new Malformed("Session fee currency", "EUR", "USD, the tariff's")));
     }
 
@@ -58,14 +58,14 @@ public sealed class TariffTests
     [Fact]
     public void Given_two_session_fees_then_it_is_not_a_tariff()
     {
-        Create(Energy, Fee, new SessionFee(Usd(2.00m))).ShouldBe(Invalid(
+        Create(BaseRate, Fee, new SessionFee(Usd(2.00m))).ShouldBe(Invalid(
             new Malformed("Components", "more than one session fee", "at most one session fee")));
     }
 
     [Fact]
     public void Given_two_energy_rates_without_a_band_then_it_is_not_a_tariff()
     {
-        Create(Energy, new EnergyRate(Usd(0.50m))).ShouldBe(Invalid(new Malformed(
+        Create(BaseRate, new EnergyRate(Usd(0.50m))).ShouldBe(Invalid(new Malformed(
             "energy rates", "two rates without a band", "at most one rate without a band")));
     }
 
@@ -91,7 +91,7 @@ public sealed class TariffTests
     [Fact]
     public void Given_a_negative_grace_period_then_it_is_not_a_tariff()
     {
-        Create(Energy, Idle with { GracePeriod = TimeSpan.FromMinutes(-5) }).ShouldBe(Invalid(
+        Create(BaseRate, Idle with { GracePeriod = TimeSpan.FromMinutes(-5) }).ShouldBe(Invalid(
             new OutOfRange("Grace period", -5m, "0 minutes or more")));
     }
 
@@ -148,7 +148,7 @@ public sealed class TariffTests
 
         snapshot.ShouldBe(Version1().Snapshot());
         snapshot.Version.ShouldBe(1);
-        snapshot.Components.ShouldBe([Energy, Fee, Idle]);
+        snapshot.Components.ShouldBe([BaseRate, Fee, Idle]);
     }
 
     [Fact]

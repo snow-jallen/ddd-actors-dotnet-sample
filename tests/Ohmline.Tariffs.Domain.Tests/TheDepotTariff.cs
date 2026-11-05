@@ -17,13 +17,13 @@ internal static class TheDepotTariff
     public static readonly TimeOfUseBand Night =
         new("night", new TimeOnly(22, 0), new TimeOnly(6, 0));
 
-    public static readonly EnergyRate Energy = new(Usd(0.42m));
+    public static readonly EnergyRate BaseRate = new(Usd(0.42m));
 
     public static readonly SessionFee Fee = new(Usd(1.00m));
 
     public static readonly IdleFee Idle = new(Usd(0.40m), TimeSpan.FromMinutes(15));
 
-    public static readonly TariffComponent[] Components = [Energy, Fee, Idle];
+    public static readonly TariffComponent[] Components = [BaseRate, Fee, Idle];
 
     public static Tariff Version1(params TariffComponent[] components) => Tariff.Create(
         Id,
