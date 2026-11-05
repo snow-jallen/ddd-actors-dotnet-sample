@@ -83,6 +83,8 @@ the event it records when it accepts it:
 | `ReleaseConnector` | `ConnectorReleased` | "Car unplugged" |
 | `ReportConnectorFault` | `ConnectorFaulted` | The separate strip under the timeline |
 | `ClearConnectorFault` | `ConnectorFaultCleared` | A technician repaired the connector |
+| `MakeConnectorUnavailable` | `ConnectorMadeUnavailable` | Operators close a bay (added in section 7.2) |
+| `MakeConnectorAvailable` | `ConnectorMadeAvailable` | Operators reopen it (added in section 7.2) |
 
 ## The other aggregates
 

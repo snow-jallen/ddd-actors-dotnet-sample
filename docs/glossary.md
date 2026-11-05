@@ -41,6 +41,7 @@ The context that runs charge points, connectors, reservations and charging sessi
 | Reservation | A claim on a connector for one token until it expires. Not a payment hold | `ReserveConnector`, `ConnectorReserved`, `ReservationExpired` |
 | Occupied | A car is plugged into the connector | `OccupyConnector`, `ConnectorOccupied` |
 | Fault | The charge point reports that a connector cannot be used | `ReportConnectorFault`, `ConnectorFaulted` |
+| Unavailable | Operators took a working connector out of use, for maintenance or a closed bay; it takes no reservation and no session until they put it back | `MakeConnectorUnavailable`, `ConnectorMadeUnavailable` |
 | Meter reading | The charge point's cumulative energy register (Wh) with a timestamp; it never decreases | `MeterReading` |
 | Meter anomaly | A meter reading that breaks the rules, such as a register that went backwards. Recorded, never rejected | `MeterAnomalyDetected` |
 | Energy delivered | Energy between two meter readings, or over a whole session | `Energy` |

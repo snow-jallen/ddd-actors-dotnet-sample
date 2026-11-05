@@ -39,7 +39,7 @@ it changes only by adding a new version next to the old one (sections 10.3 and 2
 | Device Gateway | `StartSession`, `RecordMeterValue`, `SuspendCharging`, `ResumeCharging`, `StopSession` | Command | `Ohmline.Charging.Contracts` |
 | Device Gateway | `ChargerAccepted`, `ChargerRejected` (answers to a remote start) | Event (reply) | Charger command port (section 15.4) |
 | Driver app, operators (HTTP) | `ReserveConnector`, `CancelReservation`, start charging | Command | `Ohmline.Charging.Contracts` |
-| Operators (HTTP) | `RegisterChargePoint`, `ReviseChargePointListing` | Command | `Ohmline.Charging.Contracts` |
+| Operators (HTTP) | `RegisterChargePoint`, `MakeConnectorUnavailable`, `MakeConnectorAvailable`, `ReviseChargePointListing` | Command | `Ohmline.Charging.Contracts` |
 | Driver app, operators (HTTP) | Charge point status, listing, session history, site live board | Query | `Ohmline.Charging.Contracts` |
 | Site Energy | Allocation granted, allocation queued | Event (reply) | `Ohmline.SiteEnergy.Contracts` |
 | Driver Accounts | `TokenLocked`, `TokenLockRefused` | Event (reply) | `Ohmline.DriverAccounts.Contracts` |

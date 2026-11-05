@@ -1,0 +1,50 @@
+using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.SharedKernel.Units;
+using static Ohmline.Charging.Domain.Tests.Known;
+
+namespace Ohmline.Charging.Domain.Tests.ChargePoints;
+
+public sealed class ChargePointProtocolTests
+{
+    [Fact]
+    public void Given_two_registrations_of_the_same_connectors_then_the_events_are_equal()
+    {
+        Power[] connectors = [new(50m), new(50m)];
+        var first = new ChargePointRegistered(ChargePoint, Depot, [.. connectors]);
+        var second = new ChargePointRegistered(ChargePoint, Depot, [new(50m), new(50m)]);
+
+        second.ShouldBe(first);
+        second.GetHashCode().ShouldBe(first.GetHashCode());
+    }
+
+    [Fact]
+    public void Given_registrations_of_different_connectors_then_the_events_differ()
+    {
+        var twoConnectors = new ChargePointRegistered(ChargePoint, Depot, [new(50m), new(50m)]);
+        var derated = new ChargePointRegistered(ChargePoint, Depot, [new(50m), new(22m)]);
+        var elsewhere = new ChargePointRegistered(ChargePoint, new("slc-west-garage"), [new(50m)]);
+
+        derated.ShouldNotBe(twoConnectors);
+        elsewhere.ShouldNotBe(new ChargePointRegistered(ChargePoint, Depot, [new(50m)]));
+    }
+
+    [Fact]
+    public void Given_a_connector_command_then_it_names_its_charge_point_on_the_base()
+    {
+        ChargePointCommand command = new OccupyConnector(ChargePoint, 1, Session, DriversCard);
+
+        command.ChargePointId.ShouldBe(ChargePoint);
+        command.ShouldBeAssignableTo<ConnectorCommand>().ConnectorNumber.ShouldBe(1);
+    }
+
+    [Fact]
+    public void Given_an_event_about_a_connector_then_it_is_a_charge_point_event()
+    {
+        ChargePointEvent faulted = new ConnectorFaulted(ChargePoint, 2, "GroundFailure");
+
+        var connectorEvent = faulted.ShouldBeAssignableTo<ConnectorEvent>();
+        connectorEvent.ChargePointId.ShouldBe(ChargePoint);
+        connectorEvent.ConnectorNumber.ShouldBe(2);
+    }
+}
