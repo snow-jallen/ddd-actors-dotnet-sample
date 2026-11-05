@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Learning tests for C# 15 and .NET 11. Each test pins down one language behaviour the book
+    relies on; if a new SDK changes that behaviour, a test here fails first.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+
+</Project>
