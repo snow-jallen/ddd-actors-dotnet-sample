@@ -32,7 +32,8 @@ current allocation of each request that was admitted.
 1. **The sum of all allocations never exceeds the effective capacity**: the grid connection
    limit minus the active curtailment minus the safety margin.
 2. Each allocation stays within its connector's minimum and maximum power, and never above what
-   the request asked for.
+   the request asked for, unless the request is below the connector's minimum: no allocation is
+   smaller than the minimum, because the charger cannot deliver less.
 3. Fleet requests are served before public ones; within a priority class, requests are served in
    the order they arrived, and none overtakes an earlier one that is still waiting.
 4. A connector has at most one open request.

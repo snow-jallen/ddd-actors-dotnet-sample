@@ -48,7 +48,7 @@ project, so it is pure (section 5.3).
 | Element | Where (from the section named) | Section |
 |---|---|---|
 | `SitePowerBudget` decider: the sum of allocations never exceeds the effective capacity | `Ohmline.SiteEnergy.Domain/Budgets` | 7.8 |
-| `PowerAllocation`, `PriorityClass`, `AllocationDecision` | `Ohmline.SiteEnergy.Domain/Budgets` | 7.8 |
+| `PowerAllocation`, `AllocationDecision`; `PriorityClass`, which commands carry, in the contracts | `Ohmline.SiteEnergy.Domain/Budgets`, `Ohmline.SiteEnergy.Contracts/Budgets` | 7.8 |
 | `FairShareAllocator.Allocate`: water-filling, fleet first | `Ohmline.SiteEnergy.Domain/Budgets` | 7.8 |
 | `ChargingSession` decider and `SessionState`: monotonic meters, tariff snapshot, spend cap | `Ohmline.Charging.Domain/Sessions` | 7.7 |
 | `MeterReading` and its anomalies | `Ohmline.Charging.Domain/Metering` | 6.5 |

@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Ohmline.SharedKernel;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Units;
+using Ohmline.SiteEnergy.Contracts.Budgets;
 using Ohmline.SiteEnergy.Domain.Sites;
 
 namespace Ohmline.SiteEnergy.Acl.AssetRegistry;

@@ -127,6 +127,14 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch06-s06` | 6.6 Entities inside an aggregate: a connector is a record, not an actor | `Connector` and `ConnectorComparer.ById` |
 | `ch06-s07` | 6.7 Value objects at the boundary: parsing a Big Ball of Mud | `SiteConfiguration`, the AssetTrack anticorruption layer and its tests |
 | `ch06-s08` | 6.8 Property-based tests for value objects | CsCheck 5.0.1, generators and property tests for units and money |
+| `ch07-s01` | 7.1 Finding the true invariants: the Aggregate Design Canvas | An Aggregate Design Canvas for each of the four aggregates in `docs/canvases/` |
+| `ch07-s02` | 7.2 Commands and events as closed hierarchies | The charge point's commands and events with their data; `PersistedShapeTests` |
+| `ch07-s03` | 7.3 State as a union: making illegal states unrepresentable | `union ConnectorState(...)`, `union ChargePointState(Unregistered, Registered)` |
+| `ch07-s04` | 7.4 Decide: business rules as an exhaustive decision table | `DecisionContext`, `ChargePoint.Decide`, `union ChargePointError(...)` |
+| `ch07-s05` | 7.5 Evolve: total, deterministic, never failing | `ChargePoint.Evolve` and `ChargePoint.Fold` |
+| `ch07-s06` | 7.6 The Decider abstraction | `IDecider<TState, TCommand, TEvent, TError>`, `Decider.Fold` |
+| `ch07-s07` | 7.7 The ChargingSession aggregate | Session commands, events, `union SessionState(...)` and the `ChargingSession` decider |
+| `ch07-s08` | 7.8 The SitePowerBudget aggregate and the fair-share allocator | `FairShareAllocator`, `union AllocationDecision(...)` and the `SitePowerBudget` decider |
 
 ## Licence and disclaimers
 

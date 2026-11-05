@@ -1,6 +1,7 @@
 using Ohmline.SharedKernel;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Units;
+using Ohmline.SiteEnergy.Contracts.Budgets;
 
 namespace Ohmline.SiteEnergy.Domain.Sites;
 
