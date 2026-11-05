@@ -111,3 +111,55 @@ What is **not** there:
   the `tags` table, keyed by `ordering_id`, which is the journal row's `ordering`.
 - **No snapshot.** Snapshots arrive in section 11.2.
 - **No command.** The journal stores what happened, never what was asked.
+
+## Two writers
+
+One live actor per persistence id is what makes the sequence number a version and the actor a
+lock (section 10.9). `TwoIncarnationsTests` breaks that rule on purpose: it starts two
+`ChargePointActor`s for `OHM-SLC-0042` under the names `first` and `second`, in the same node,
+on the same SQLite file. Both recover to sequence number 2 (the charge point is registered and
+connector 1 is reserved for card `04A2B3C4D5E6F7` until 14:55).
+
+1. `first` accepts a reservation of connector 2 and writes it as sequence number 3.
+2. `second` has a clock 16 minutes later. From what it recovered, the reservation of connector 1
+   has lapsed, so it accepts card `04FFEEDDCC`'s reservation: `ReservationExpired` and
+   `ConnectorReserved`, one `PersistAll`, sequence numbers 3 and 4.
+
+The journal refuses the second write. Akka.Persistence.Sql writes a batch in one transaction, and
+the unique index `journal_uq` on `(persistence_id, sequence_number)` rejects sequence number 3.
+`second` logs at ERROR, from `OnPersistFailure`, and stops:
+
+```text
+akka://ohmline/user/second: Failed to persist event type [Ohmline.Charging.Domain.ChargePoints.ReservationExpired] with sequence number [3] for persistenceId [charge-point-OHM-SLC-0042].
+Cause: SQLite Error 19: 'UNIQUE constraint failed: journal.persistence_id, journal.sequence_number'.
+Dead letter: GetChargePointStatus { ChargePointId = OHM-SLC-0042 }
+```
+
+- **The sender of the failed command gets no reply** at all; it would time out. A watching
+  probe sees `Terminated`.
+- **Messages stashed behind the failed write become dead letters:** the status query sent to
+  `second` right after the reservation is the dead letter above.
+- **The batch failed whole:** there is no row 4, although only number 3 collided.
+- **The journal holds the first writer's history only,** one row per sequence number, all with
+  the same `writer_uuid`:
+
+```text
+ordering=1 | sequence_number=1 | manifest=charging.charge-point-registered.v1 | writer_uuid=6312b8dd923d44b5a4dc67ef88e7e1e0
+ordering=2 | sequence_number=2 | manifest=charging.connector-reserved.v1 | writer_uuid=6312b8dd923d44b5a4dc67ef88e7e1e0
+ordering=3 | sequence_number=3 | manifest=charging.connector-reserved.v1 | writer_uuid=6312b8dd923d44b5a4dc67ef88e7e1e0
+```
+
+(Trimmed to four columns; the test output has every column.)
+
+- **A fresh incarnation recovers the first writer's events:** version 3, both connectors
+  reserved for `04A2B3C4D5E6F7`.
+
+What protects reads if two writers ever got rows in, for example on a journal without the unique
+index: every row carries its writer's `writer_uuid`, and Akka.Persistence's replay filter
+(`akka.persistence.journal-plugin-fallback.replay-filter.mode = repair-by-discard-old`, the
+default in 1.5.73) discards events of an older writer that overlap a newer one's sequence
+numbers, and logs a warning. That path is not exercised here: SQLite's unique index stops the
+second writer first.
+
+None of this is a concurrency strategy. Sharding and the split-brain resolver keep one writer
+per persistence id (Chapter 12); this is the net under them.
