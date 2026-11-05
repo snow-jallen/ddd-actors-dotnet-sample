@@ -1,8 +1,10 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
 using Ohmline.Charging.Actors.ChargePoints;
+using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Actors.Tests.Sqlite;
 using Ohmline.Charging.Contracts;
+using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.ChargePoints;
 using Ohmline.Testing;
 using static Ohmline.Charging.Actors.Tests.Known;
@@ -52,8 +54,52 @@ public sealed class JournalTourTests(ITestOutputHelper output)
                 Registered(by: register.CommandId),
                 Reserved(1, DriversCard, by: reserve.CommandId),
             ]);
-        (await Lines(connection, JournalTourQueries.Tags)).ShouldBeEmpty();
+        (await Lines(connection, JournalTourQueries.Tags)).Count.ShouldBe(2); // Section 13.2.
         (await Lines(connection, JournalTourQueries.Snapshots)).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task Given_two_events_then_each_has_a_tags_row_that_points_at_its_journal_row()
+    {
+        using var database = new TemporaryDatabase();
+        var clock = new FakeTimeProvider(Morning);
+        await using var node = await SqliteNode.StartAsync(database, clock, Ct);
+
+        (await node.AskAsync<CommandReply>(Register(), Ct)).ShouldBe(new CommandAccepted(1));
+        (await node.AskAsync<CommandReply>(Reserve(1, DriversCard), Ct))
+            .ShouldBe(new CommandAccepted(2));
+
+        await using var connection = await OpenAsync(database);
+        var journal = await JournalTourQueries.ReadJournalAsync(connection, PersistenceId, Ct);
+        var tags = await JournalTourQueries.ReadTagsAsync(connection, PersistenceId, Ct);
+        output.WriteLine("tags:");
+        foreach (var row in tags)
+        {
+            output.WriteLine(row.ToString());
+        }
+
+        tags.ShouldBe(
+        [
+            new TagRow(journal[0].Ordering, "charging", "charge-point-OHM-SLC-0042", 1),
+            new TagRow(journal[1].Ordering, "charging", "charge-point-OHM-SLC-0042", 2),
+        ]);
+    }
+
+    [Fact]
+    public async Task Given_a_session_event_then_its_tag_is_charging_session()
+    {
+        using var database = new TemporaryDatabase();
+        var clock = new FakeTimeProvider(Morning);
+        await using var node = await SqliteNode.StartAsync(database, clock, Ct);
+
+        (await node.AskAsync<ChargingSessionRegion, CommandReply>(Begin(), Ct))
+            .ShouldBe(new CommandAccepted(1));
+
+        await using var connection = await OpenAsync(database);
+        var session = ChargingSessionActor.PersistenceIdOf(Session);
+        (await JournalTourQueries.ReadTagsAsync(connection, session, Ct))
+            .ShouldHaveSingleItem()
+            .ShouldBe(new TagRow(1, "charging-session", session, 1));
     }
 
     [Fact]

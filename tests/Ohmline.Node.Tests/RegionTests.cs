@@ -143,7 +143,7 @@ public sealed class RegionTests(ITestOutputHelper output) : ShardedNode(output)
             async () =>
             {
                 var status = await AskAsync<ChargePointRegion, ChargePointStatus>(
-                    new GetChargePointStatus(Charger));
+                    new GetChargePointStatus(Charger), TimeSpan.FromMilliseconds(500));
                 status.Version.ShouldBe(1);
                 status.Connectors[0].State.ShouldBe(ConnectorStatus.Available);
             },

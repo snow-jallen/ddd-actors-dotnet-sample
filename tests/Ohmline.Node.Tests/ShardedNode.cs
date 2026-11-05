@@ -69,10 +69,18 @@ public abstract class ShardedNode(ITestOutputHelper output)
     }
 
     /// <summary>Asks the region or proxy registered under the key, as an endpoint would.</summary>
-    protected async Task<TReply> AskAsync<TKey, TReply>(object message)
+    protected Task<TReply> AskAsync<TKey, TReply>(object message) =>
+        AskAsync<TKey, TReply>(message, Patience);
+
+    /// <summary>
+    /// Asks with a timeout of the test's choosing: inside <c>AwaitAssertAsync</c>, shorter than
+    /// the assertion's own patience, so that a question lost to a stopping entity leaves time
+    /// for another attempt.
+    /// </summary>
+    protected async Task<TReply> AskAsync<TKey, TReply>(object message, TimeSpan timeout)
     {
         var region = await ActorRegistry.GetAsync<TKey>(Ct);
-        return await region.Ask<TReply>(message, Patience, Ct);
+        return await region.Ask<TReply>(message, timeout, Ct);
     }
 
     private sealed class Development : IHostEnvironment

@@ -1,8 +1,10 @@
 using Akka.Cluster.Hosting;
 using Akka.Hosting;
+using Akka.Persistence.Hosting;
 using Ohmline.ActorShell.Sharding;
 using Ohmline.Charging.Actors.ChargePoints;
 using Ohmline.Charging.Actors.Listings;
+using Ohmline.Charging.Actors.Persistence;
 using Ohmline.Charging.Actors.Serialization;
 using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts.ChargePoints;
@@ -56,5 +58,17 @@ public static class ChargingAkkaExtensions
                         resolver.Props<ChargePointListingActor>(new ChargePointId(entityId)),
                     ChargingMessageExtractors.Listings,
                     EntityShardOptions.Create());
+    }
+
+    extension(AkkaPersistenceJournalBuilder journal)
+    {
+        /// <summary>
+        /// Charging's tagger, for the journal the host keeps Charging's events in: every event
+        /// Charging persists is stored with its tag (section 13.2). The host calls it where it
+        /// configures that journal.
+        /// </summary>
+        public AkkaPersistenceJournalBuilder AddChargingTagger() =>
+            journal.AddWriteEventAdapter<ChargingTagger>(
+                ChargingTagger.Name, ChargingTagger.BoundTypes);
     }
 }

@@ -129,16 +129,6 @@ public sealed class ShardRegionTests
         ChargingSamples.AccessInstructions,
         ChargingSamples.OpeningHours);
 
-    private static StartSession Begin() => new(
-        Command,
-        Session,
-        Depot,
-        new ConnectorId(Charger, 1),
-        DriversCard,
-        ChargingSamples.Tariff,
-        ChargingSamples.SpendCap,
-        MeterStartWh: 1_200_000);
-
     private static async Task<List<string>> PersistenceIdsAsync(TemporaryDatabase database)
     {
         await using var connection = new SqliteConnection(database.ConnectionString);

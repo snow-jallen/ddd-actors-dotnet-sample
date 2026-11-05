@@ -18,6 +18,10 @@ region (section 12.2). Each folder therefore also holds the key under which a no
 registry keeps that region (`ChargePointRegion`, `ChargingSessionRegion`,
 `ChargePointListingRegion`), so that a sender needs these contracts and no actor.
 
+Readers inside the node ask the journal for Charging's events by tag (section 13.2).
+`ChargingTags` names the tags, so a projection needs these contracts and not the actors that
+write them. Tags are as durable as wire names: events keep the tag they were stored with.
+
 The Published Language is served by an **Open Host Service**, the charging feed
 (`GET /feeds/charging`, section 16.2): one protocol for every consumer, instead of an
 integration built for each.

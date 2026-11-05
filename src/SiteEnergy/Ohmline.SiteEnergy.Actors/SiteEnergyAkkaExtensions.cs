@@ -1,8 +1,10 @@
 using Akka.Cluster.Hosting;
 using Akka.Hosting;
+using Akka.Persistence.Hosting;
 using Ohmline.ActorShell.Sharding;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SiteEnergy.Actors.Budgets;
+using Ohmline.SiteEnergy.Actors.Persistence;
 using Ohmline.SiteEnergy.Actors.Serialization;
 using Ohmline.SiteEnergy.Contracts.Budgets;
 
@@ -30,5 +32,16 @@ public static class SiteEnergyAkkaExtensions
                         resolver.Props<SitePowerBudgetActor>(new SiteId(entityId)),
                     SiteEnergyMessageExtractors.Budgets,
                     EntityShardOptions.Create());
+    }
+
+    extension(AkkaPersistenceJournalBuilder journal)
+    {
+        /// <summary>
+        /// Site Energy's tagger, for the journal the host keeps its events in: every event is
+        /// stored with the <c>site-energy</c> tag (section 13.2).
+        /// </summary>
+        public AkkaPersistenceJournalBuilder AddSiteEnergyTagger() =>
+            journal.AddWriteEventAdapter<SiteEnergyTagger>(
+                SiteEnergyTagger.Name, SiteEnergyTagger.BoundTypes);
     }
 }

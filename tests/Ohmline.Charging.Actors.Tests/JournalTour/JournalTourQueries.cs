@@ -25,8 +25,9 @@ public static class JournalTourQueries
         ORDER BY sequence_number
         """;
 
+    /// <summary>The tags of one aggregate's events, one row per event and tag.</summary>
     public const string Tags = """
-        SELECT ordering_id, tag, sequence_nr, persistence_id
+        SELECT ordering_id, tag, persistence_id, sequence_nr
         FROM tags
         WHERE persistence_id = $persistenceId
         ORDER BY ordering_id, tag
@@ -58,6 +59,24 @@ public static class JournalTourQueries
                 Identifier: reader.GetInt32(6),
                 WriterUuid: reader.GetString(7),
                 Message: (byte[])reader.GetValue(8)));
+        }
+
+        return rows;
+    }
+
+    public static async Task<IReadOnlyList<TagRow>> ReadTagsAsync(
+        SqliteConnection connection, string persistenceId, CancellationToken cancellationToken)
+    {
+        var rows = new List<TagRow>();
+        await using var reader = await QueryAsync(
+            connection, Tags, persistenceId, cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            rows.Add(new TagRow(
+                OrderingId: reader.GetInt64(0),
+                Tag: reader.GetString(1),
+                PersistenceId: reader.GetString(2),
+                SequenceNr: reader.GetInt64(3)));
         }
 
         return rows;

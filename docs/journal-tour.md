@@ -82,7 +82,7 @@ ordering=2 | persistence_id=charge-point-OHM-SLC-0042 | sequence_number=2
   | manifest=charging.connector-reserved.v1 | identifier=9101
   | writer_uuid=2620fa9aa3da4417baa4f57738f9d859
   | message={"tokenUid":"04A2B3C4D5E6F7","expiresAt":"2026-11-04T14:55:00+00:00","connectorNumber":1,"chargePointId":"OHM-SLC-0042","commandId":"01a1a700-a600-73d7-9e75-42534c1ac52b","occurredAt":"2026-11-04T14:40:00+00:00"}
-tags: 0 rows
+tags: 2 rows
 snapshot: 0 rows
 ```
 
@@ -107,10 +107,30 @@ What is **not** there:
 
 - **No row for the rejected `OccupyConnector`.** A rejection is a reply, not an event: nothing
   was decided, so nothing was recorded, and `sequence_number` stays at 2.
-- **No tags.** Nothing tags Charging's events yet; the tagging write adapter of Chapter 13 fills
-  the `tags` table, keyed by `ordering_id`, which is the journal row's `ordering`.
 - **No snapshot.** A charge point saves one every 100 events (section 11.2; see below).
 - **No command.** The journal stores what happened, never what was asked.
+
+## The tags rows
+
+From section 13.2, `ChargingTagger` (a write event adapter) wraps every event Charging persists
+in a `Tagged` with one tag, and the journal writes the tag to the `tags` table beside the
+event's row. `Given_two_events_then_each_has_a_tags_row_that_points_at_its_journal_row` reads
+them back:
+
+```text
+ordering_id=1 | tag=charging | persistence_id=charge-point-OHM-SLC-0042 | sequence_nr=1
+ordering_id=2 | tag=charging | persistence_id=charge-point-OHM-SLC-0042 | sequence_nr=2
+```
+
+| Column | What it holds |
+|---|---|
+| `ordering_id` | The event's `ordering` in the journal: the offset `EventsByTag` reports for it |
+| `tag` | `charging` for charge points and listings, `charging-session` for sessions, `site-energy` for site power budgets (`ChargingTags`, `SiteEnergyTags`) |
+| `persistence_id`, `sequence_nr` | Which aggregate's event, and which of its events |
+
+The primary key is `(ordering_id, tag)`: an event with two tags would have two rows. Ohmline
+gives every event exactly one. The message bytes do not change: the tag is not part of the
+event, and recovery never sees it.
 
 ## The snapshot row
 

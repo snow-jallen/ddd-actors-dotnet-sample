@@ -1,4 +1,6 @@
+using Ohmline.Charging.Actors.Tests.Serialization;
 using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.ChargePoints;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Units;
@@ -46,6 +48,17 @@ internal static class Known
 
     public static GetChargePointStatus Status(ChargePointId? chargePoint = null) =>
         new(chargePoint ?? Charger);
+
+    /// <summary>The driver's session on connector 1, at the sample tariff.</summary>
+    public static StartSession Begin() => new(
+        Command,
+        Session,
+        Depot,
+        new ConnectorId(Charger, 1),
+        DriversCard,
+        ChargingSamples.Tariff,
+        ChargingSamples.SpendCap,
+        MeterStartWh: 1_200_000);
 
     /// <summary>What <see cref="Register"/> records, stamped as the decider stamps it.</summary>
     public static ChargePointEvent Registered(CommandId? by = null) =>
