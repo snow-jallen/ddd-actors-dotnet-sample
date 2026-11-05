@@ -1,10 +1,13 @@
 using System.Collections.Immutable;
 using Ohmline.Charging.Actors.ChargePoints;
+using Ohmline.Charging.Actors.Listings;
 using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Contracts.Listings;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.Charging.Domain.Listings;
 using Ohmline.Charging.Domain.Metering;
 using Ohmline.Charging.Domain.Sessions;
 using Ohmline.SharedKernel.Identity;
@@ -53,6 +56,12 @@ internal static class ChargingSamples
         "America/Denver");
 
     public static readonly Money SpendCap = new(40m, Currency.Usd);
+
+    public const string DisplayName = "Salt Lake bus depot, public bays";
+
+    public const string AccessInstructions = "Level -2, bays 14-19. Gate code at the kiosk.";
+
+    public const string OpeningHours = "Mon-Fri 05:00-23:00; Sat-Sun 07:00-21:00";
 
     public static IReadOnlyList<object> All { get; } =
     [
@@ -134,11 +143,24 @@ internal static class ChargingSamples
                 MeterReading.FromWattHours(18_204_000, At),
                 MeterReading.FromWattHours(18_210_350, At.AddMinutes(10)),
                 Since: At.AddMinutes(12))),
+
+        new ReviseChargePointListing(
+            Command, ChargePoint, DisplayName, AccessInstructions, OpeningHours),
+        Stamped(new ChargePointListingRevised(
+            ChargePoint, DisplayName, AccessInstructions, OpeningHours, Revision: 3)),
+        new GetChargePointListing(ChargePoint),
+        new ChargePointListingView(
+            ChargePoint, Revision: 3, DisplayName, AccessInstructions, OpeningHours),
+        new ChargePointListingSnapshot(
+            ChargePoint, DisplayName, AccessInstructions, OpeningHours, Revision: 3),
     ];
 
     private static ChargePointEvent Stamped(ChargePointEvent @event) =>
         @event with { CommandId = Command, OccurredAt = At };
 
     private static SessionEvent Stamped(SessionEvent @event) =>
+        @event with { CommandId = Command, OccurredAt = At };
+
+    private static ChargePointListingEvent Stamped(ChargePointListingEvent @event) =>
         @event with { CommandId = Command, OccurredAt = At };
 }

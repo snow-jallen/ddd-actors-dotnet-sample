@@ -1,4 +1,5 @@
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.Charging.Domain.Listings;
 using Ohmline.Charging.Domain.Sessions;
 
 namespace Ohmline.Charging.Domain.Tests;
@@ -18,6 +19,12 @@ internal static class Stamps
     extension(SessionEvent @event)
     {
         public SessionEvent At(DateTimeOffset time) =>
+            @event with { CommandId = Known.Command, OccurredAt = time };
+    }
+
+    extension(ChargePointListingEvent @event)
+    {
+        public ChargePointListingEvent At(DateTimeOffset time) =>
             @event with { CommandId = Known.Command, OccurredAt = time };
     }
 }

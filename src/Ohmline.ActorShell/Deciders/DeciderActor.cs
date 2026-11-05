@@ -54,9 +54,8 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
         Recover<RecoveryCompleted>(_ => Recovered());
         Command<TCommand>(command => Handle(command, Sender));
 
-        // A new snapshot makes the older ones useless: keep one. A failure costs only replay time.
-        Command<SaveSnapshotSuccess>(saved =>
-            DeleteSnapshots(new SnapshotSelectionCriteria(saved.Metadata.SequenceNr - 1)));
+        // A failed snapshot costs only replay time.
+        Command<SaveSnapshotSuccess>(saved => OnSnapshotSaved(saved.Metadata));
         Command<SaveSnapshotFailure>(failed => _log.Warning(
             failed.Cause,
             "{0} could not save its snapshot at sequence number {1}; recovery replays more events",
@@ -102,6 +101,13 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
 
     /// <summary>The state back from the DTO that <see cref="ToSnapshot"/> made.</summary>
     protected abstract TState FromSnapshot(object snapshot);
+
+    /// <summary>
+    /// A snapshot is stored, which makes the older ones useless: they are deleted, so that one
+    /// is kept. The events stay; a state-sourced aggregate deletes those too (section 11.7).
+    /// </summary>
+    protected virtual void OnSnapshotSaved(SnapshotMetadata saved) =>
+        DeleteSnapshots(new SnapshotSelectionCriteria(saved.SequenceNr - 1));
 
     /// <summary>
     /// Called after each event of a decision is stored and applied, and after a snapshot is

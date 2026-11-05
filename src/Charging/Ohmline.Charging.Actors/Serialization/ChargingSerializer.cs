@@ -3,11 +3,14 @@ using System.Text.Json;
 using Akka.Actor;
 using Ohmline.ActorShell.Serialization;
 using Ohmline.Charging.Actors.ChargePoints;
+using Ohmline.Charging.Actors.Listings;
 using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Contracts.Listings;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.Charging.Domain.Listings;
 using Ohmline.Charging.Domain.Sessions;
 using Ohmline.Tariffs.Contracts;
 
@@ -37,6 +40,11 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         typeof(CommandReply),
         typeof(ChargePointSnapshot),
         typeof(ChargingSessionSnapshot),
+        typeof(ChargePointListingCommand),
+        typeof(ChargePointListingEvent),
+        typeof(ChargePointListingQuery),
+        typeof(ChargePointListingView),
+        typeof(ChargePointListingSnapshot),
     ];
 
     public static FrozenDictionary<Type, string> Manifests { get; } = new Dictionary<Type, string>
@@ -86,6 +94,12 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
 
         [typeof(ChargePointSnapshot)] = "charging.charge-point-snapshot.v1",
         [typeof(ChargingSessionSnapshot)] = "charging.charging-session-snapshot.v1",
+
+        [typeof(ReviseChargePointListing)] = "charging.revise-charge-point-listing.v1",
+        [typeof(ChargePointListingRevised)] = "charging.charge-point-listing-revised.v1",
+        [typeof(GetChargePointListing)] = "charging.get-charge-point-listing.v1",
+        [typeof(ChargePointListingView)] = "charging.charge-point-listing-view.v1",
+        [typeof(ChargePointListingSnapshot)] = "charging.charge-point-listing-snapshot.v1",
     }.ToFrozenDictionary();
 
     /// <summary>Permanent: Ohmline's serializer ids are listed in ADR 0007.</summary>

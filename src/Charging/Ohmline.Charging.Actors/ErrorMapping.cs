@@ -1,5 +1,6 @@
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.Charging.Domain.Listings;
 using Ohmline.Charging.Domain.Sessions;
 using Ohmline.SharedKernel.Monetary;
 
@@ -39,6 +40,18 @@ public static class ErrorMapping
             SessionError.SpendCapNotPositive => "spend-cap-not-positive",
             CurrencyMismatch => "currency-mismatch",
             null => throw DefaultError(nameof(SessionError)),
+        };
+
+        public CommandRejected ToReply() => new(error.Code, error.Message);
+    }
+
+    extension(ListingError error)
+    {
+        public string Code => error switch
+        {
+            ListingError.DisplayNameMissing => "display-name-missing",
+            ListingError.TextTooLong => "text-too-long",
+            null => throw DefaultError(nameof(ListingError)),
         };
 
         public CommandRejected ToReply() => new(error.Code, error.Message);
