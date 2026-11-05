@@ -56,6 +56,7 @@ billing.WithReference(seed).WaitFor(seed);
 var gateway = builder.AddProject<Projects.Ohmline_DeviceGateway>("gateway")
     .WithHttpHealthCheck("/health/ready")
     .WithEnvironment("Akka__Remote__Port", Port(4060))
+    .WithEnvironment("PetabridgeCmd__Port", Port(9120))
     .WithEnvironment("Akka__Cluster__SeedNodes__0", SeedNode)
     .WaitFor(seed);
 
@@ -76,6 +77,8 @@ IResourceBuilder<ProjectResource> Node(string name, int index) =>
         .WithHttpHealthCheck("/health/ready")
         .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Development")
         .WithEnvironment("Akka__Remote__Port", Port(4053 + index))
+        // pbm on 127.0.0.1:9110 for the seed, 9111 and 9112 for the others (section 18.8).
+        .WithEnvironment("PetabridgeCmd__Port", Port(9110 + index))
         .WithEnvironment("Akka__Cluster__SeedNodes__0", SeedNode)
         .WithReference(ohmline)
         .WithReference(billing)

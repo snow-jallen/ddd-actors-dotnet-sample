@@ -47,6 +47,10 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.20.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.20.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.20.1" />
+    <!-- Operators' commands for a running cluster (pbm), bound to loopback (section 18.8). -->
+    <PackageVersion Include="Petabridge.Cmd.Cluster" Version="1.5.2" />
+    <PackageVersion Include="Petabridge.Cmd.Cluster.Sharding" Version="1.5.2" />
+    <PackageVersion Include="Petabridge.Cmd.Host" Version="1.5.2" />
   </ItemGroup>
 
   <ItemGroup Label="Mobile">

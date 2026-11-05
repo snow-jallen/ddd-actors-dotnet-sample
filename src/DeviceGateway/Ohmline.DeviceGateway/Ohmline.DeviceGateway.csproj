@@ -8,6 +8,10 @@
 
   <ItemGroup>
     <PackageReference Include="Akka.Cluster.Hosting" />
+    <!-- pbm's host and its cluster and sharding palettes, for operators (section 18.8). -->
+    <PackageReference Include="Petabridge.Cmd.Cluster" />
+    <PackageReference Include="Petabridge.Cmd.Cluster.Sharding" />
+    <PackageReference Include="Petabridge.Cmd.Host" />
   </ItemGroup>
 
   <ItemGroup>

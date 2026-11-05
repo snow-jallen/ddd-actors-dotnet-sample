@@ -13,6 +13,9 @@ using Ohmline.SiteEnergy.Actors;
 using Ohmline.SiteEnergy.Actors.Diagnostics;
 using Ohmline.SiteEnergy.Api;
 using Ohmline.Tariffs.Actors;
+using Petabridge.Cmd.Cluster;
+using Petabridge.Cmd.Cluster.Sharding;
+using Petabridge.Cmd.Host;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +49,19 @@ builder.Services.AddAkka("ohmline", akka => akka
     // Dead letters, actors' lifecycles and the shard regions' size (section 18.2).
     .WithShellMetrics()
     .WithShardStats()
+    // Operators' commands (pbm): cluster and sharding, on the loopback interface only, never
+    // Petabridge.Cmd's default 0.0.0.0. Reached with port forwarding (section 18.8).
+    .AddPetabridgeCmd(
+        new PetabridgeCmdOptions
+        {
+            Host = "127.0.0.1",
+            Port = builder.Configuration.GetValue("PetabridgeCmd:Port", 9110),
+        },
+        commands =>
+        {
+            commands.RegisterCommandPalette(ClusterCommands.Instance);
+            commands.RegisterCommandPalette(ClusterShardingCommands.Instance);
+        })
     // At most this many persistent actors replay their journals at once; the rest wait for a
     // permit, so a node restart does not stampede the database (section 11.3). 50 is Akka.NET's
     // default, written down here so that it is a decision and not an accident.

@@ -6,6 +6,9 @@ using Ohmline.DeviceGateway;
 using Ohmline.DeviceGateway.Connections;
 using Ohmline.ServiceDefaults;
 using Ohmline.Tariffs.Actors;
+using Petabridge.Cmd.Cluster;
+using Petabridge.Cmd.Cluster.Sharding;
+using Petabridge.Cmd.Host;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +31,19 @@ builder.Services.AddAkka("ohmline", akka => akka
     })
     .WithOhmlineCluster(builder.Configuration, builder.Environment, ClusterRoles.Gateway)
     .WithShellMetrics() // Dead letters and actors' lifecycles; it hosts no shard (section 18.2).
+    // Operators' commands (pbm): cluster and sharding, on the loopback interface only, never
+    // Petabridge.Cmd's default 0.0.0.0. Reached with port forwarding (section 18.8).
+    .AddPetabridgeCmd(
+        new PetabridgeCmdOptions
+        {
+            Host = "127.0.0.1",
+            Port = builder.Configuration.GetValue("PetabridgeCmd:Port", 9110),
+        },
+        commands =>
+        {
+            commands.RegisterCommandPalette(ClusterCommands.Instance);
+            commands.RegisterCommandPalette(ClusterShardingCommands.Instance);
+        })
     .AddChargingProxies()
     .AddTariffsProxy());
 
