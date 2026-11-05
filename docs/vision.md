@@ -1,6 +1,7 @@
 # Ohmline domain vision statement
 
-*First draft, written in section 1.6. Section 5.8 revises it once the domain has been distilled.*
+*Drafted in section 1.6 and revised in section 5.8, once the subdomains had been classified and
+the contexts drawn. `docs/highlighted-core.md` says where in the model the core lives.*
 
 Ohmline turns limited grid connections into reliable, fairly priced charging.
 
@@ -14,13 +15,22 @@ operator asks for power back, every allocation at the site is recomputed within 
 site never draws more than it is allowed to. No off-the-shelf product does this for Ohmline's mix
 of sites, and it is the main reason a site owner chooses Ohmline.
 
+The charging session is where that power becomes a driver's charge, and it is the second half
+of the core. A session must be right even when the world is not: a charge point that loses its
+connection underground and reports its readings late, a register that jumps backwards, a car
+that pauses itself while the site is curtailed. Every reading is kept, nothing reported by a
+charge point is silently thrown away, and every session ends in a state that operations,
+Billing and the driver agree on.
+
 Drivers return when they can trust what they pay. The price of a session is fixed by the tariff
 in force when it starts, a hold on the driver's card covers it in advance, the amount captured
-matches the price breakdown to the cent, and the receipt explains every line. Charging also has
-to work when nothing else does: in an underground car park without signal, with a charge point
-that reconnects mid-session, or while a payment provider is slow.
+matches the price breakdown to the cent, and the receipt explains every line. Prices are
+Ohmline's to set, but they are data, not a competitive edge: the pricing analyst changes them
+without a release.
 
-Some things matter but do not set Ohmline apart, and the model does not try to excel at them.
-Card payments are bought from a payment provider. Chargers are bought from vendors and spoken to
-through a translator for their protocol. Maps, driver identity and accounting are handled by
-standard tools or simple supporting software.
+Everything else is done well enough and no better. Card payments are bought from a payment
+provider. Grid signals, the legacy asset registry and roaming partners are integrated behind
+translators that keep their language out of the model. Chargers are bought from vendors and
+spoken to in their own protocol at the edge. Driver accounts and billing are kept deliberately
+simple. When a choice must be made between polishing one of these and improving how power is
+shared or how sessions survive failure, the core wins.
