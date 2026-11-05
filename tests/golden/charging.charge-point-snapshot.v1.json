@@ -1,0 +1,35 @@
+{
+  "chargePointId": "OHM-SLC-0042",
+  "siteId": "slc-depot",
+  "connectors": [
+    {
+      "$kind": "available",
+      "number": 1,
+      "maxPower": 22
+    },
+    {
+      "$kind": "reserved",
+      "tokenUid": "04A2B3C4D5E6F7",
+      "expiresAt": "2026-11-04T07:55:00-07:00",
+      "number": 2,
+      "maxPower": 22
+    },
+    {
+      "$kind": "occupied",
+      "sessionId": "019a4f6e-1c40-7a51-8e2f-3b1d00000001",
+      "number": 3,
+      "maxPower": 150
+    },
+    {
+      "$kind": "faulted",
+      "errorCode": "GroundFailure",
+      "number": 4,
+      "maxPower": 150
+    },
+    {
+      "$kind": "unavailable",
+      "number": 5,
+      "maxPower": 7.4
+    }
+  ]
+}

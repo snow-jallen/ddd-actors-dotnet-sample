@@ -14,7 +14,8 @@ namespace Ohmline.Charging.Actors.Tests;
 /// <summary>
 /// What happens between an actor's construction and its first command. A new incarnation
 /// replays the journal through Evolve and nothing else, so its state is the fold of the events,
-/// and a command that arrives meanwhile waits for the replay to finish.
+/// and a command that arrives meanwhile waits for the replay to finish. A snapshot only shortens
+/// the replay: the state it gives is the same.
 /// </summary>
 public sealed class RecoveryTests(ITestOutputHelper output)
     : PersistenceTestKit(
@@ -43,6 +44,27 @@ public sealed class RecoveryTests(ITestOutputHelper output)
 
         await ExpectMsgAsync(
             ChargePoint.Fold(events).ToStatus(Charger, Recorded), cancellationToken: Ct);
+    }
+
+    [Fact]
+    public async Task Given_a_snapshot_and_a_tail_when_recovering_then_it_equals_a_full_replay()
+    {
+        await RecordHistoryAsync(events: 105); // The snapshot is taken at 100.
+        var events = await JournalProbe.EventsAsync<ChargePointEvent>(Sys, PersistenceId, Ct);
+        events.Length.ShouldBe(105);
+
+        IActorRef recovered = ActorRefs.Nobody;
+        await EventFilter
+            .Info(contains: ": snapshot at 100, 5 events replayed")
+            .ExpectOneAsync(() =>
+            {
+                recovered = Start();
+                return Task.CompletedTask;
+            }, Ct);
+        recovered.Tell(Status(), TestActor);
+
+        await ExpectMsgAsync(
+            ChargePoint.Fold(events).ToStatus(Charger, 105), cancellationToken: Ct);
     }
 
     [Fact]
@@ -78,15 +100,20 @@ public sealed class RecoveryTests(ITestOutputHelper output)
 
     private IActorRef Start() => Sys.ActorOf(ChargePointActor.Props(Charger, _clock));
 
-    /// <summary>Records the history with one incarnation, then stops it.</summary>
-    private async Task RecordHistoryAsync()
+    /// <summary>
+    /// With one incarnation, records a registration and then reservations, each cancelled by the
+    /// next event: one event per command. Then stops it.
+    /// </summary>
+    private async Task RecordHistoryAsync(int events = Recorded)
     {
         var first = Start();
         await AcceptAsync(first, Register(), version: 1);
-        for (var version = 2; version <= Recorded; version += 2)
+        for (var version = 2; version <= events; version++)
         {
-            await AcceptAsync(first, Reserve(1, DriversCard), version);
-            await AcceptAsync(first, Cancel(1, DriversCard), version + 1);
+            await AcceptAsync(
+                first,
+                version % 2 == 0 ? Reserve(1, DriversCard) : Cancel(1, DriversCard),
+                version);
         }
 
         await WatchAsync(first);

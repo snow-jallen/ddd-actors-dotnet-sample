@@ -4,6 +4,7 @@ using Ohmline.Charging.Actors.ChargePoints;
 using Ohmline.Charging.Actors.Tests.Sqlite;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.Testing;
 using static Ohmline.Charging.Actors.Tests.Known;
 
 namespace Ohmline.Charging.Actors.Tests.JournalTour;
@@ -76,6 +77,63 @@ public sealed class JournalTourTests(ITestOutputHelper output)
         schema.ShouldContain(line => line.Contains(
             "CREATE UNIQUE INDEX journal_uq ON journal (persistence_id, sequence_number)"));
         schema.Single(line => line.StartsWith("name=journal |")).ShouldNotContain("[tags]");
+    }
+
+    [Fact]
+    public async Task Given_200_events_then_one_snapshot_row_remains_and_every_event_stays()
+    {
+        using var database = new TemporaryDatabase();
+        var clock = new FakeTimeProvider(Morning);
+        await using var node = await SqliteNode.StartAsync(database, clock, Ct);
+        var before = DateTimeOffset.UtcNow;
+
+        await node.AskAsync<CommandReply>(Register(), Ct);
+        for (var version = 2; version <= 200; version++)
+        {
+            await node.AskAsync<CommandReply>(
+                version % 2 == 0 ? Reserve(1, DriversCard) : Cancel(1, DriversCard), Ct);
+        }
+
+        await using var connection = await OpenAsync(database);
+        var snapshot = (await SnapshotsOnceSettledAsync(connection, 200)).ShouldHaveSingleItem();
+        output.WriteLine("snapshot:");
+        output.WriteLine(snapshot.ToString());
+
+        snapshot.PersistenceId.ShouldBe("charge-point-OHM-SLC-0042");
+        snapshot.SequenceNumber.ShouldBe(200); // The one at 100 was deleted.
+        snapshot.Manifest.ShouldBe("charging.charge-point-snapshot.v1");
+        snapshot.SerializerId.ShouldBe(9101);
+        snapshot.CreatedAt.ShouldBeInRange(before, DateTimeOffset.UtcNow);
+        node.System.Serialization
+            .Deserialize(snapshot.Snapshot, snapshot.SerializerId, snapshot.Manifest)
+            .ShouldBeOfType<ChargePointSnapshot>()
+            .ToState()
+            .ShouldBe(ChargePoint.Fold(
+                await JournalProbe.EventsAsync<ChargePointEvent>(node.System, PersistenceId, Ct)));
+        (await JournalTourQueries.ReadJournalAsync(connection, PersistenceId, Ct))
+            .Select(row => row.SequenceNumber)
+            .ShouldBe(Enumerable.Range(1, 200).Select(number => (long)number));
+    }
+
+    /// <summary>
+    /// Snapshots are saved and old ones deleted in the background, so the test reads the table
+    /// until only the expected one is left, or gives up and lets the assertions say why.
+    /// </summary>
+    private static async Task<IReadOnlyList<SnapshotRow>> SnapshotsOnceSettledAsync(
+        SqliteConnection connection, long sequenceNumber)
+    {
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(5 * ActorTestConfig.TimeFactor);
+        while (true)
+        {
+            var rows = await JournalTourQueries.ReadSnapshotsAsync(connection, PersistenceId, Ct);
+            if (rows is [{ } only] && only.SequenceNumber == sequenceNumber
+                || DateTimeOffset.UtcNow > deadline)
+            {
+                return rows;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(50), Ct);
+        }
     }
 
     private static ChargePointEvent Stamped(ChargePointEvent @event) =>

@@ -1,8 +1,11 @@
 using System.Collections.Immutable;
+using Ohmline.Charging.Actors.ChargePoints;
+using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.Charging.Domain.Metering;
 using Ohmline.Charging.Domain.Sessions;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Monetary;
@@ -108,6 +111,29 @@ internal static class ChargingSamples
         new CommandRejected(
             "reserved-for-another-token",
             "Connector 1 is reserved for another driver until 2026-11-04 14:55:00Z."),
+
+        // A charge point with a connector in every state, so every kind has a golden file.
+        new ChargePointSnapshot(
+            ChargePoint,
+            Depot,
+            [
+                new ConnectorSnapshot.Available(1, new Power(22m)),
+                new ConnectorSnapshot.Reserved(2, new Power(22m), Token, At.AddMinutes(15)),
+                new ConnectorSnapshot.Occupied(3, new Power(150m), Session),
+                new ConnectorSnapshot.Faulted(4, new Power(150m), "GroundFailure"),
+                new ConnectorSnapshot.Unavailable(5, new Power(7.4m)),
+            ]),
+        new ChargingSessionSnapshot(
+            Session,
+            Depot,
+            Connector,
+            Token,
+            Tariff,
+            SpendCap,
+            new SessionPhaseSnapshot.SuspendedByEv(
+                MeterReading.FromWattHours(18_204_000, At),
+                MeterReading.FromWattHours(18_210_350, At.AddMinutes(10)),
+                Since: At.AddMinutes(12))),
     ];
 
     private static ChargePointEvent Stamped(ChargePointEvent @event) =>

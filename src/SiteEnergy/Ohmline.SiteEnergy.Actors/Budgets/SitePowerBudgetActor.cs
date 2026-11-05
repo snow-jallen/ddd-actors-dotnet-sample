@@ -32,4 +32,9 @@ public sealed class SitePowerBudgetActor
     protected override object Accepted(long version) => new BudgetCommandAccepted(version);
 
     protected override object Rejected(SitePowerBudgetError error) => error.ToReply();
+
+    protected override object? ToSnapshot(SitePowerBudgetState state) => state.ToSnapshot();
+
+    protected override SitePowerBudgetState FromSnapshot(object snapshot) =>
+        ((SitePowerBudgetSnapshot)snapshot).ToState();
 }

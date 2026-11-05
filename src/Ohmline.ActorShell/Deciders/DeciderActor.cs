@@ -31,6 +31,7 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     private readonly ILoggingAdapter _log = Context.GetLogger();
     private readonly long _startedAt = Stopwatch.GetTimestamp();
     private int _eventsReplayed;
+    private long _snapshotSequenceNr;
 
     /// <param name="typeName">The durable type name, such as <c>charge-point</c>.</param>
     /// <param name="entityId">The aggregate's identity, such as <c>OHM-SLC-0042</c>.</param>
@@ -40,10 +41,31 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
         PersistenceId = $"{typeName}-{entityId}";
         _clock = clock;
 
-        // Recovery: replay through Evolve only. Never Decide, never a reply, never a side effect.
+        // Recovery: the latest snapshot, if there is one, then every later event, through Evolve
+        // only. Never Decide, never a reply, never a side effect.
+        Recover<SnapshotOffer>(offer =>
+        {
+            State = FromSnapshot(offer.Snapshot);
+            _snapshotSequenceNr = offer.Metadata.SequenceNr;
+        });
         Recover<TEvent>(Replay);
         Recover<RecoveryCompleted>(_ => Recovered());
         Command<TCommand>(Handle);
+
+        // A new snapshot makes the older ones useless: keep one. A failure costs only replay time.
+        Command<SaveSnapshotSuccess>(saved =>
+            DeleteSnapshots(new SnapshotSelectionCriteria(saved.Metadata.SequenceNr - 1)));
+        Command<SaveSnapshotFailure>(failed => _log.Warning(
+            failed.Cause,
+            "{0} could not save its snapshot at sequence number {1}; recovery replays more events",
+            PersistenceId,
+            failed.Metadata.SequenceNr));
+        Command<DeleteSnapshotsSuccess>(_ => { });
+        Command<DeleteSnapshotsFailure>(failed => _log.Warning(
+            failed.Cause,
+            "{0} could not delete its snapshots up to sequence number {1}",
+            PersistenceId,
+            failed.Criteria.MaxSequenceNr));
     }
 
     public override string PersistenceId { get; }
@@ -58,8 +80,24 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     protected abstract object Rejected(TError error);
 
     /// <summary>
-    /// Called after each event of a decision is stored and applied, not during recovery. Chapter
-    /// 11 saves snapshots and starts timers from here.
+    /// A snapshot is saved after every event whose sequence number is a multiple of this: 100 by
+    /// default. An aggregate chooses its own from its size and its measured replay cost; zero
+    /// turns snapshots off.
+    /// </summary>
+    protected virtual int SnapshotEvery => 100;
+
+    /// <summary>
+    /// The state as the aggregate's snapshot DTO, which has a manifest of its own and is never
+    /// the state union itself; or null when the state has nothing worth keeping.
+    /// </summary>
+    protected abstract object? ToSnapshot(TState state);
+
+    /// <summary>The state back from the DTO that <see cref="ToSnapshot"/> made.</summary>
+    protected abstract TState FromSnapshot(object snapshot);
+
+    /// <summary>
+    /// Called after each event of a decision is stored and applied, and after a snapshot is
+    /// taken if one is due; not during recovery. Section 11.4 starts timers from here.
     /// </summary>
     protected virtual void OnEventApplied(TEvent @event)
     {
@@ -83,10 +121,11 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     private void Recovered()
     {
         _log.Info(
-            "{0} recovered to sequence number {1} in {2} ms: {3} events replayed",
+            "{0} recovered to sequence number {1} in {2} ms: {3}, {4} events replayed",
             PersistenceId,
             LastSequenceNr,
             (long)Stopwatch.GetElapsedTime(_startedAt).TotalMilliseconds,
+            _snapshotSequenceNr > 0 ? $"snapshot at {_snapshotSequenceNr}" : "no snapshot",
             _eventsReplayed);
         OnRecovered();
     }
@@ -113,6 +152,13 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     private void Apply(TEvent @event)
     {
         State = TDecider.Evolve(State, @event);
+        if (SnapshotEvery > 0 && LastSequenceNr % SnapshotEvery == 0
+            && ToSnapshot(State) is { } snapshot)
+        {
+            // Asynchronous: the next command does not wait for the snapshot store.
+            SaveSnapshot(snapshot);
+        }
+
         OnEventApplied(@event);
     }
 }

@@ -35,4 +35,9 @@ public sealed class ChargePointActor
     protected override object Accepted(long version) => new CommandAccepted(version);
 
     protected override object Rejected(ChargePointError error) => error.ToReply();
+
+    protected override object? ToSnapshot(ChargePointState state) => state.ToSnapshot();
+
+    protected override ChargePointState FromSnapshot(object snapshot) =>
+        ((ChargePointSnapshot)snapshot).ToState();
 }

@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using System.Text.Json;
 using Akka.Actor;
 using Ohmline.ActorShell.Serialization;
+using Ohmline.SiteEnergy.Actors.Budgets;
 using Ohmline.SiteEnergy.Contracts;
 using Ohmline.SiteEnergy.Contracts.Budgets;
 using Ohmline.SiteEnergy.Domain.Budgets;
@@ -24,6 +25,7 @@ public sealed class SiteEnergySerializer(ExtendedActorSystem system)
         typeof(SitePowerBudgetCommand),
         typeof(SitePowerBudgetEvent),
         typeof(BudgetCommandReply),
+        typeof(SitePowerBudgetSnapshot),
     ];
 
     public static FrozenDictionary<Type, string> Manifests { get; } = new Dictionary<Type, string>
@@ -44,6 +46,8 @@ public sealed class SiteEnergySerializer(ExtendedActorSystem system)
 
         [typeof(BudgetCommandAccepted)] = "site-energy.budget-command-accepted.v1",
         [typeof(BudgetCommandRejected)] = "site-energy.budget-command-rejected.v1",
+
+        [typeof(SitePowerBudgetSnapshot)] = "site-energy.site-power-budget-snapshot.v1",
     }.ToFrozenDictionary();
 
     /// <summary>Permanent: Ohmline's serializer ids are listed in ADR 0007.</summary>

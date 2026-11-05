@@ -109,8 +109,36 @@ What is **not** there:
   was decided, so nothing was recorded, and `sequence_number` stays at 2.
 - **No tags.** Nothing tags Charging's events yet; the tagging write adapter of Chapter 13 fills
   the `tags` table, keyed by `ordering_id`, which is the journal row's `ordering`.
-- **No snapshot.** Snapshots arrive in section 11.2.
+- **No snapshot.** A charge point saves one every 100 events (section 11.2; see below).
 - **No command.** The journal stores what happened, never what was asked.
+
+## The snapshot row
+
+`DeciderActor` saves a snapshot after every event whose sequence number is a multiple of
+`SnapshotEvery` (100 by default), and deletes the older snapshots once the new one is stored.
+`Given_200_events_then_one_snapshot_row_remains_and_every_event_stays` registers the charge
+point and then reserves and cancels connector 1 until the journal holds 200 events. Snapshots
+were saved at 100 and 200; the one at 100 is gone:
+
+```text
+persistence_id=charge-point-OHM-SLC-0042 | sequence_number=200
+  | created=639294661338809208 (2026-11-05T09:02:13.8809208+00:00)
+  | manifest=charging.charge-point-snapshot.v1 | serializer_id=9101
+  | snapshot={"chargePointId":"OHM-SLC-0042","siteId":"slc-depot","connectors":[{"$kind":"reserved","tokenUid":"04A2B3C4D5E6F7","expiresAt":"2026-11-04T14:55:00+00:00","number":1,"maxPower":22},{"$kind":"available","number":2,"maxPower":22}]}
+```
+
+| Column | What it holds |
+|---|---|
+| `persistence_id` | The same durable name as the journal's rows |
+| `sequence_number` | The last event the snapshot includes: recovery replays from 201 |
+| `created` | When the store wrote the row: .NET ticks, UTC, the machine's clock |
+| `manifest` | `charging.charge-point-snapshot.v1`: the DTO's own manifest, never an event's |
+| `serializer_id` | `9101`: the same `ChargingSerializer` as the events |
+| `snapshot` | `ChargePointSnapshot` as UTF-8 JSON; each connector's state is its `$kind` |
+
+All 200 journal rows are still there. A snapshot is a cache of the fold of the events before
+it: it shortens recovery, and it never replaces the events, which stay the truth for
+projections (Chapter 13) and for the day the snapshot's shape changes (Chapter 20).
 
 ## Two writers
 

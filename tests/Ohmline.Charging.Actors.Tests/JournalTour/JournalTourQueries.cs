@@ -32,8 +32,9 @@ public static class JournalTourQueries
         ORDER BY ordering_id, tag
         """;
 
+    /// <summary>One aggregate's snapshots. The snapshot column is UTF-8 JSON.</summary>
     public const string Snapshots = """
-        SELECT persistence_id, sequence_number, created, manifest, serializer_id
+        SELECT persistence_id, sequence_number, created, manifest, serializer_id, snapshot
         FROM snapshot
         WHERE persistence_id = $persistenceId
         ORDER BY sequence_number
@@ -57,6 +58,26 @@ public static class JournalTourQueries
                 Identifier: reader.GetInt32(6),
                 WriterUuid: reader.GetString(7),
                 Message: (byte[])reader.GetValue(8)));
+        }
+
+        return rows;
+    }
+
+    public static async Task<IReadOnlyList<SnapshotRow>> ReadSnapshotsAsync(
+        SqliteConnection connection, string persistenceId, CancellationToken cancellationToken)
+    {
+        var rows = new List<SnapshotRow>();
+        await using var reader = await QueryAsync(
+            connection, Snapshots, persistenceId, cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            rows.Add(new SnapshotRow(
+                PersistenceId: reader.GetString(0),
+                SequenceNumber: reader.GetInt64(1),
+                Created: reader.GetInt64(2),
+                Manifest: reader.GetString(3),
+                SerializerId: reader.GetInt32(4),
+                Snapshot: (byte[])reader.GetValue(5)));
         }
 
         return rows;

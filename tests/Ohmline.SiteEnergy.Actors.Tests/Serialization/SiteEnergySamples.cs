@@ -1,4 +1,5 @@
 using Ohmline.SharedKernel.Units;
+using Ohmline.SiteEnergy.Actors.Budgets;
 using Ohmline.SiteEnergy.Contracts;
 using Ohmline.SiteEnergy.Contracts.Budgets;
 using Ohmline.SiteEnergy.Domain.Budgets;
@@ -42,6 +43,15 @@ internal static class SiteEnergySamples
         new BudgetCommandRejected(
             "connector-has-open-request",
             $"Connector {Fleet1} already has a request, for session {BusSession}."),
+
+        new SitePowerBudgetSnapshot(
+            Depot,
+            Curtailment: new Power(120m),
+            [
+                new OpenRequest(Fleet1, BusSession, new Power(50m)),
+                new OpenRequest(Public2, CarSession, new Power(50m)),
+            ],
+            [new PowerAllocation(Fleet1, new Power(50m)), new PowerAllocation(Public2, new(20m))]),
     ];
 
     private static SitePowerBudgetEvent Stamped(SitePowerBudgetEvent @event) =>

@@ -2,6 +2,8 @@ using System.Collections.Frozen;
 using System.Text.Json;
 using Akka.Actor;
 using Ohmline.ActorShell.Serialization;
+using Ohmline.Charging.Actors.ChargePoints;
+using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.Charging.Contracts.Sessions;
@@ -33,6 +35,8 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         typeof(SessionEvent),
         typeof(ChargePointStatus),
         typeof(CommandReply),
+        typeof(ChargePointSnapshot),
+        typeof(ChargingSessionSnapshot),
     ];
 
     public static FrozenDictionary<Type, string> Manifests { get; } = new Dictionary<Type, string>
@@ -79,6 +83,9 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
 
         [typeof(CommandAccepted)] = "charging.command-accepted.v1",
         [typeof(CommandRejected)] = "charging.command-rejected.v1",
+
+        [typeof(ChargePointSnapshot)] = "charging.charge-point-snapshot.v1",
+        [typeof(ChargingSessionSnapshot)] = "charging.charging-session-snapshot.v1",
     }.ToFrozenDictionary();
 
     /// <summary>Permanent: Ohmline's serializer ids are listed in ADR 0007.</summary>
@@ -95,5 +102,16 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
             (typeof(TimeRate), "time-rate"),
             (typeof(SessionFee), "session-fee"),
             (typeof(IdleFee), "idle-fee"));
+        options.AddClosedHierarchy<ConnectorSnapshot>(
+            (typeof(ConnectorSnapshot.Available), "available"),
+            (typeof(ConnectorSnapshot.Reserved), "reserved"),
+            (typeof(ConnectorSnapshot.Occupied), "occupied"),
+            (typeof(ConnectorSnapshot.Faulted), "faulted"),
+            (typeof(ConnectorSnapshot.Unavailable), "unavailable"));
+        options.AddClosedHierarchy<SessionPhaseSnapshot>(
+            (typeof(SessionPhaseSnapshot.Active), "active"),
+            (typeof(SessionPhaseSnapshot.SuspendedByEv), "suspended-by-ev"),
+            (typeof(SessionPhaseSnapshot.SuspendedByCharger), "suspended-by-charger"),
+            (typeof(SessionPhaseSnapshot.Ended), "ended"));
     }
 }
