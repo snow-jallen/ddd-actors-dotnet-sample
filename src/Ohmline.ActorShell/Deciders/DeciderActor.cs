@@ -249,7 +249,7 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
                 break;
             case Ok<ImmutableArray<TEvent>> accepted:
                 _writeFor = replyTo;
-                PersistAll(
+                PersistAllTraced(
                     accepted.Value, Apply, () => AnswerWrite(Accepted(command, LastSequenceNr)));
                 break;
             case Err<TError> rejected:

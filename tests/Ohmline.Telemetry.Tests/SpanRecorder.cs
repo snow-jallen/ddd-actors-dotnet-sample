@@ -49,6 +49,27 @@ public sealed class SpanRecorder : IDisposable
         }
     }
 
+    /// <summary>
+    /// The trace's spans, once at least <paramref name="count"/> of them are named
+    /// <paramref name="name"/>, or after five seconds, whichever comes first.
+    /// </summary>
+    public async Task<IReadOnlyList<Activity>> WaitForAsync(
+        ActivityTraceId traceId, string name, int count)
+    {
+        using var patience = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        while (true)
+        {
+            var spans = Trace(traceId);
+            if (spans.Count(span => span.DisplayName == name) >= count
+                || patience.IsCancellationRequested)
+            {
+                return spans;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(10), CancellationToken.None);
+        }
+    }
+
     /// <summary>Every span that ended in an error, whatever its trace.</summary>
     public IReadOnlyList<Activity> Failed =>
         [.. _stopped.Where(span => span.Status == ActivityStatusCode.Error)];

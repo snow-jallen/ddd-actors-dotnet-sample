@@ -165,7 +165,7 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
             return;
         }
 
-        PersistAll(step.Events, Apply, () => Done(step, replyTo));
+        PersistAllTraced(step.Events, Apply, () => Done(step, replyTo));
     }
 
     private void Apply(JourneyEvent @event)

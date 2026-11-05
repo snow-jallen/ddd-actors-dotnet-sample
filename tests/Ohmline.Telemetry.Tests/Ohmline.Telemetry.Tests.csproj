@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="Akka.TestKit.Xunit" />
+    <!-- A scriptable journal: a write held back on purpose, so commands are stashed (17.6). -->
+    <PackageReference Include="Akka.Persistence.TestKit.Xunit" />
   </ItemGroup>
 
   <ItemGroup>

@@ -36,6 +36,20 @@ internal static class ConsumerSpans
         return span;
     }
 
+    /// <summary>
+    /// No handler ran: a persistent actor stashed the message, because it was recovering or
+    /// waiting for a write. It comes back through the shell when it is unstashed, and is
+    /// processed then, in a span of its own; this one says how long it waited.
+    /// </summary>
+    public static void Stashed(Activity? span, string actorType)
+    {
+        if (span is not null)
+        {
+            span.DisplayName = $"stash {actorType}";
+            span.SetTag("akka.message.stashed", true);
+        }
+    }
+
     /// <summary>The handler threw: the span says so, and the actor's supervisor decides.</summary>
     public static void Failed(Activity? span, Exception exception)
     {
