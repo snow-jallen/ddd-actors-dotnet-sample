@@ -1,9 +1,11 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Akka.Actor;
+using Akka.Cluster.Sharding;
 using Akka.Event;
 using Akka.Persistence;
 using Ohmline.ActorShell.Serialization;
+using Ohmline.ActorShell.Sharding;
 using Ohmline.SharedKernel;
 using Ohmline.SharedKernel.Deciders;
 
@@ -53,6 +55,10 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
         Recover<TEvent>(Replay);
         Recover<RecoveryCompleted>(_ => Recovered());
         Command<TCommand>(command => Handle(command, Sender));
+
+        // From the shard: passivation, a hand-off or shutdown (section 12.4). Its turn comes
+        // after everything that arrived before it, so the entity stops with nothing unanswered.
+        Command<Stop>(_ => Context.Stop(Self));
 
         // A failed snapshot costs only replay time.
         Command<SaveSnapshotSuccess>(saved => OnSnapshotSaved(saved.Metadata));
@@ -121,6 +127,15 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     protected virtual void OnRecovered()
     {
     }
+
+    /// <summary>
+    /// For an aggregate that knows it is done: asks its shard to stop it now, rather than after
+    /// the idle timeout. The shard stops routing to it, tells it <see cref="Stop"/>, holds on to
+    /// whatever arrives for it meanwhile, and starts it again if anything does. Never
+    /// <c>Context.Stop(Self)</c>: the shard would not know, and would keep routing messages to
+    /// an actor that is gone, and the commands already waiting in its stash would be lost.
+    /// </summary>
+    protected void Passivate() => Context.Parent.Tell(new Passivate(Stop.Instance));
 
     /// <summary>
     /// The journal could not be read, or an event could not be deserialized or applied. Akka.NET

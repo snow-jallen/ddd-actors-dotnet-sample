@@ -1,5 +1,10 @@
+using Akka.Actor;
+using Akka.Event;
+using Akka.TestKit;
+using Akka.TestKit.Xunit;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
+using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Actors.Tests.Serialization;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
@@ -77,6 +82,45 @@ public sealed class ShardRegionTests
         (await node.AskAsync<ChargePointStatus>(Status(), Ct))
             .Connectors[0].ReservedUntil.ShouldBe(Morning.AddMinutes(5 + 15));
     }
+
+    [Fact]
+    public async Task Given_an_ended_session_then_its_shard_stops_it_until_the_next_command()
+    {
+        using var database = new TemporaryDatabase();
+        await using var node =
+            await SqliteNode.StartAsync(database, new FakeTimeProvider(Morning), Ct);
+        var probe = new TestProbe(node.System, new XunitAssertions());
+        node.System.EventStream.Subscribe(probe.Ref, typeof(Info));
+        (await node.AskAsync<ChargingSessionRegion, CommandReply>(Begin(), Ct))
+            .ShouldBe(new CommandAccepted(1));
+        var entity = await EntityAsync(node.System, probe);
+        await probe.WatchAsync(entity);
+
+        (await node.AskAsync<ChargingSessionRegion, CommandReply>(End(), Ct))
+            .ShouldBe(new CommandAccepted(2));
+        await probe.FishForMessageAsync<Terminated>(
+            terminated => terminated.ActorRef.Equals(entity), cancellationToken: Ct);
+
+        // A late retry of the stop starts the session again from its journal.
+        (await node.AskAsync<ChargingSessionRegion, CommandReply>(End(), Ct))
+            .ShouldBe(new CommandAccepted(2));
+        await probe.FishForMessageAsync<Info>(
+            info => $"{info.Message}".StartsWith(
+                $"charging-session-{Session} recovered to sequence number 2 in "),
+            cancellationToken: Ct);
+    }
+
+    /// <summary>The session's entity: a child of its shard, under the region's type name.</summary>
+    private static async Task<IActorRef> EntityAsync(ActorSystem system, TestProbe probe)
+    {
+        system.ActorSelection($"/system/sharding/{ChargingSessionActor.TypeName}/*/{Session}")
+            .Tell(new Identify(Session), probe.Ref);
+        var identity = await probe.FishForMessageAsync<ActorIdentity>(
+            _ => true, cancellationToken: Ct);
+        return identity.Subject.ShouldNotBeNull();
+    }
+
+    private static StopSession End() => new(Command, Session);
 
     private static ReviseChargePointListing Revise() => new(
         Command,

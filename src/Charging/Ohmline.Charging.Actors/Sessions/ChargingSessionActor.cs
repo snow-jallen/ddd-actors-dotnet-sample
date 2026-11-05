@@ -42,4 +42,16 @@ public sealed class ChargingSessionActor
 
     protected override SessionState FromSnapshot(object snapshot) =>
         ((ChargingSessionSnapshot)snapshot).ToState();
+
+    /// <summary>
+    /// An ended session changes no more: it leaves memory now, instead of after two idle
+    /// minutes. A late command starts it again from the journal and is refused as usual.
+    /// </summary>
+    protected override void OnEventApplied(SessionEvent @event)
+    {
+        if (@event is SessionEnded)
+        {
+            Passivate();
+        }
+    }
 }
