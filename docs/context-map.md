@@ -154,3 +154,37 @@ translator, and their words never appear in Site Energy's or Charging's model.
   drivers come first. Until the Roaming context exists, drivers from other operators pay by card
   at the charge point, like anyone else, and Charging knows nothing of roaming. When Roaming is
   built, it conforms to the hub and talks to Charging through Charging's own contracts.
+
+## The executable context map: one artifact per relationship
+
+A context map on a wall goes stale the day after the workshop. This one is kept honest by making
+every relationship something in the sample repo that a build or a test can see. If a
+relationship has no artifact, either the artifact is missing or the relationship is not real.
+
+| Relationship | Pattern | Artifact | Section |
+|---|---|---|---|
+| All contexts | Shared Kernel | `src/Ohmline.SharedKernel` (BCL only), its `GOVERNANCE.md`, `.github/CODEOWNERS`, `SharedKernelPurityTests` | 3.5, 5.5 |
+| Device Gateway and Charging | Partnership | `Ohmline.DeviceGateway.Ocpp` translates straight into `Ohmline.Charging.Contracts`; `Ohmline.DeviceGateway` reaches Charging through shard-region proxies (`charge-point`, `charging-session`, `charging-journey`) in the same cluster | 16.6, 16.7 |
+| Site Energy to Charging | Customer/Supplier | `Ohmline.SiteEnergy.Contracts`, sent to the `site-power-budget` shard region; allocations read back by the `site-energy` event tag | 7.8, 15.2, 16.8 |
+| Tariffs to Charging | Customer/Supplier | `Ohmline.Tariffs.Contracts`, asked of the `tariff-book` singleton through its proxy | 8.2, 12.8 |
+| Driver Accounts to Charging | Customer/Supplier | `Ohmline.DriverAccounts.Contracts`, sent to the `id-token` shard region | 12.7 |
+| Charging to Billing | Customer/Supplier; Open Host Service, Published Language | `Ohmline.Charging.Contracts/Integration`, the outbox relay, the HTTP feed `GET /feeds/charging`, Billing's feed consumer, contract tests with golden files | 16.1, 16.2, 16.3, 16.10 |
+| Billing to Charging | Customer/Supplier | `Ohmline.Billing.Contracts` and the HTTP hold API, called by Charging's payment port through service discovery (`billing`) | 16.3, 16.5 |
+| Charge points to Device Gateway | Anticorruption Layer | `Ohmline.DeviceGateway.Ocpp`: the frame parser and translator, with recorded frames per vendor | 16.6 |
+| AssetTrack to Site Energy | Anticorruption Layer | `Ohmline.SiteEnergy.Acl.AssetRegistry`; rules in `docs/acl/assettrack.md`; fixture `tools/legacy-assets/assettrack-export.csv` | 5.6, 6.7 |
+| Northgate Grid to Site Energy | Anticorruption Layer | `Ohmline.SiteEnergy.Acl.GridOperator`: a pure signal translator and a polling actor; `tools/Ohmline.FakeGridOperator` | 16.8 |
+| TallyPay to Billing | Anticorruption Layer | The TallyPay client and translator inside `Ohmline.Billing`; `tools/Ohmline.FakePsp` | 16.4 |
+| Accounting package to Billing | Conformist | None in the sample: an export file in the package's format | — |
+| Roaming hub to Roaming | Conformist | None yet: the context is planned | — |
+| Marketing CRM, roaming in the first release | Separate Ways | Deliberately nothing. A reference from any Ohmline project to such a system is a mistake | 5.6 |
+
+Most of these artifacts arrive in later chapters. At `ch05-s07` the shared kernel, every
+`Contracts` project, `Ohmline.DeviceGateway.Ocpp` and the AssetTrack fixture already exist, and
+the project references between them follow the arrows on the map: a downstream project may
+reference its upstream's `Contracts`, never its `Domain` or its actors. `ContextBoundaryTests`
+in `tests/Ohmline.ArchitectureTests` reads every project file and fails when a project inside
+one context's folder references another context's anything but `Contracts`. That test is the
+part of the map that fails the build when someone draws a new line without asking.
+
+Where the contexts run, and why Charging and the Device Gateway share a cluster while Billing
+does not, is ADR 0005 (`docs/adr/0005-deployment-topology.md`).

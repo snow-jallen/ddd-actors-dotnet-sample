@@ -12,6 +12,13 @@ internal static class Repository
 {
     public static DirectoryInfo Root { get; } = FindRoot();
 
+    /// <summary>Every project file in the solution, as a path relative to the root.</summary>
+    public static IReadOnlyList<string> ProjectFiles { get; } =
+        XDocument.Load(Path.Combine(Root.FullName, "Ohmline.slnx"))
+            .Descendants("Project")
+            .Select(project => project.Attribute("Path")!.Value)
+            .ToList();
+
     public static IReadOnlyList<string> DomainProjects { get; } = ProjectsEndingWith(".Domain");
 
     public static IReadOnlyList<string> ContractsProjects { get; } =
@@ -34,9 +41,9 @@ internal static class Repository
     }
 
     private static IReadOnlyList<string> ProjectsEndingWith(string suffix) =>
-        XDocument.Load(Path.Combine(Root.FullName, "Ohmline.slnx"))
-            .Descendants("Project")
-            .Select(project => Path.GetFileNameWithoutExtension(project.Attribute("Path")!.Value))
+        ProjectFiles
+            .Select(Path.GetFileNameWithoutExtension)
+            .OfType<string>()
             .Where(name => name.StartsWith("Ohmline.", StringComparison.Ordinal)
                            && name.EndsWith(suffix, StringComparison.Ordinal))
             .Order(StringComparer.Ordinal)
