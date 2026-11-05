@@ -111,8 +111,16 @@ public sealed class DriverAppTests(PostgresFixture postgres)
     /// A listed charge point of the test's own, a driver token of its own, a car plugged in
     /// and charging: the session is in its history and has a card when this returns.
     /// </summary>
-    private async Task<(string ChargePoint, string Token, Guid Session)> ChargeAsync(
-        OhmlineNode node, HttpClient http)
+    private Task<(string ChargePoint, string Token, Guid Session)> ChargeAsync(
+        OhmlineNode node, HttpClient http) =>
+        ChargeAsync(node, http, postgres);
+
+    /// <summary>
+    /// The same for another test class (section 19.7): a session charging, with its card in
+    /// the driver app's read model.
+    /// </summary>
+    internal static async Task<(string ChargePoint, string Token, Guid Session)> ChargeAsync(
+        OhmlineNode node, HttpClient http, PostgresFixture postgres)
     {
         var (chargePoint, session) = (Chargers.Next(), Guid.CreateVersion7());
         var token = Convert.ToHexString(Guid.NewGuid().ToByteArray()[..7]);
@@ -130,14 +138,20 @@ public sealed class DriverAppTests(PostgresFixture postgres)
         // Each read model is a stream of its own, and on a node that has just started they may
         // all still be starting: longer than read-your-writes waits for the history.
         await RowAsync(
-            "SELECT status FROM read_models.session_history WHERE session_id = @id", session);
+            postgres,
+            "SELECT status FROM read_models.session_history WHERE session_id = @id",
+            session);
         await RowAsync(
-            "SELECT status FROM read_models.driver_app_cards WHERE session_id = @id", session);
+            postgres,
+            "SELECT status FROM read_models.driver_app_cards WHERE session_id = @id",
+            session);
         return (chargePoint, token, session);
     }
 
     /// <summary>The first column of the row the query finds, once a projection wrote it.</summary>
-    private async Task<string> RowAsync(string sql, object id)
+    private Task<string> RowAsync(string sql, object id) => RowAsync(postgres, sql, id);
+
+    private static async Task<string> RowAsync(PostgresFixture postgres, string sql, object id)
     {
         await using var database = NpgsqlDataSource.Create(postgres.ConnectionString);
         var deadline = DateTimeOffset.UtcNow + Patience;

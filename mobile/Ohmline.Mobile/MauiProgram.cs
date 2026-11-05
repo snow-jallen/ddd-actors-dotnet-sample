@@ -4,6 +4,7 @@ using Ohmline.Mobile.Core.Charging;
 using Ohmline.Mobile.Core.Listings;
 using Ohmline.Mobile.Core.Outbox;
 using Ohmline.Mobile.Core.Platform;
+using Ohmline.Mobile.Core.ReadModels;
 using Ohmline.Mobile.Pages;
 using Ohmline.Mobile.Platform;
 using Ohmline.Mobile.Settings;
@@ -46,10 +47,19 @@ public static class MauiProgram
         builder.Services.AddSingleton<ICommandSender, HttpCommandSender>();
         builder.Services.AddSingleton<OutboxDispatcher>();
 
+        // The disposable cache of the server's read model, in the same file, kept current by
+        // the hub's pushes and the feed (section 19.7).
+        builder.Services.AddSingleton(new SqliteReadModelCache($"Data Source={database}"));
+        builder.Services.AddSingleton<FeedCatchUp>();
+        builder.Services.AddSingleton(LiveUpdatesClient.Connect(settings.ApiBaseAddress));
+        builder.Services.AddSingleton<ILiveUpdates, LiveUpdatesClient>();
+
         builder.Services.AddTransient<ChargePointListingViewModel>();
         builder.Services.AddTransient<ListingPage>();
         builder.Services.AddSingleton<StartChargingViewModel>();
         builder.Services.AddTransient<StartChargingPage>();
+        builder.Services.AddSingleton<SessionCardViewModel>();
+        builder.Services.AddTransient<SessionPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

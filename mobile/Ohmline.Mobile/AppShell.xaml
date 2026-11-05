@@ -3,6 +3,9 @@
        Title="Ohmline">
 
   <TabBar>
+    <ShellContent Title="Session"
+                  ContentTemplate="{DataTemplate pages:SessionPage}"
+                  Route="session" />
     <ShellContent Title="Charge"
                   ContentTemplate="{DataTemplate pages:StartChargingPage}"
                   Route="charge" />

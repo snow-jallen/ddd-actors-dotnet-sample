@@ -15,4 +15,10 @@ public sealed record OutboxCommand(Guid CommandId, string Kind, string Aggregate
         OutboxKinds.StartCharging,
         request.JourneyId.ToString(),
         JsonSerializer.Serialize(request, ChargingClientJsonContext.Default.StartChargingRequest));
+
+    public static OutboxCommand StopCharging(Guid sessionId, StopChargingRequest request) => new(
+        request.CommandId,
+        OutboxKinds.StopCharging,
+        sessionId.ToString(),
+        JsonSerializer.Serialize(request, ChargingClientJsonContext.Default.StopChargingRequest));
 }

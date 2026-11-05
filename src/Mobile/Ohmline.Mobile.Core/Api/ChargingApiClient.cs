@@ -38,4 +38,15 @@ public sealed class ChargingApiClient(HttpClient http)
         return await response.Content.ReadFromJsonAsync(
             Json.ChargePointListingDto, cancellationToken);
     }
+
+    /// <summary>
+    /// <c>GET /app/v1/tokens/{uid}/feed?after={position}</c>: the token's card changes after a
+    /// position, oldest first, a page at a time.
+    /// </summary>
+    public async Task<DriverFeedPage> GetFeedAsync(
+        string tokenUid, long after, CancellationToken cancellationToken) =>
+        (await http.GetFromJsonAsync(
+            $"/app/v1/tokens/{Uri.EscapeDataString(tokenUid)}/feed?after={after}",
+            Json.DriverFeedPage,
+            cancellationToken))!;
 }

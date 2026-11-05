@@ -16,6 +16,8 @@
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <!-- The outbox (section 19.6): ADO.NET and plain SQL, nothing reflected, trim-safe. -->
     <PackageReference Include="Microsoft.Data.Sqlite" />
+    <!-- Live updates from the hub at /hubs/charging (section 19.7): SignalR's .NET client. -->
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
   </ItemGroup>
 
   <ItemGroup>

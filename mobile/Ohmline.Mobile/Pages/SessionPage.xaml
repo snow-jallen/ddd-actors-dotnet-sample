@@ -1,0 +1,20 @@
+<ContentPage
+  x:Class="Ohmline.Mobile.Pages.SessionPage"
+  xmlns:readModels="clr-namespace:Ohmline.Mobile.Core.ReadModels;assembly=Ohmline.Mobile.Core"
+  x:DataType="readModels:SessionCardViewModel"
+  Title="Session">
+
+  <RefreshView Command="{Binding RefreshCommand}">
+    <VerticalStackLayout Padding="16" Spacing="8">
+      <Label Text="{Binding Card.ChargePointDisplayName}" FontSize="22" FontAttributes="Bold" />
+      <Label Text="{Binding Card.ConnectorId}" />
+      <Label Text="{Binding Card.Status}" />
+      <Label Text="{Binding Card.EnergyKwh, StringFormat='{0:0.00} kWh'}" FontSize="32" />
+      <!-- The overlay: what the driver asked for and the server's read model does not show. -->
+      <Label Text="{Binding Pending}" FontAttributes="Italic" />
+      <Label Text="{Binding Problem}" TextColor="DarkRed" />
+      <Button Text="Stop charging" Command="{Binding StopChargingCommand}" />
+    </VerticalStackLayout>
+  </RefreshView>
+
+</ContentPage>

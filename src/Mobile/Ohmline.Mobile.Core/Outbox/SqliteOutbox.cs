@@ -55,6 +55,15 @@ public sealed class SqliteOutbox(string connectionString)
         ReadAsync("WHERE aggregate_key = $key ORDER BY rowid", [("$key", aggregateKey)],
             cancellationToken);
 
+    /// <summary>
+    /// Every command made since <paramref name="since"/>, oldest first: what a screen overlays
+    /// on the cached cards until the server's read model shows it.
+    /// </summary>
+    public Task<IReadOnlyList<OutboxRow>> ReadSinceAsync(
+        DateTimeOffset since, CancellationToken cancellationToken) =>
+        ReadAsync("WHERE created_utc >= $since ORDER BY rowid", [("$since", Stamp(since))],
+            cancellationToken);
+
     public async Task<OutboxRow?> FindAsync(Guid commandId, CancellationToken cancellationToken)
     {
         var rows = await ReadAsync(
