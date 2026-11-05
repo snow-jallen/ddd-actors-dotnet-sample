@@ -5,6 +5,8 @@ using LinqToDB;
 using Ohmline.Charging.Actors;
 using Ohmline.Charging.Api;
 using Ohmline.Charging.Api.Development;
+using Ohmline.DriverAccounts.Actors;
+using Ohmline.DriverAccounts.Api;
 using Ohmline.Node;
 using Ohmline.SiteEnergy.Actors;
 using Ohmline.SiteEnergy.Api;
@@ -37,11 +39,13 @@ builder.Services.AddAkka("ohmline", akka => akka
         autoInitialize: true, // Creates missing tables; Chapter 20 owns the schema instead.
         tagStorageMode: TagMode.TagTable)
     .AddChargingContext()
-    .AddSiteEnergyContext());
+    .AddSiteEnergyContext()
+    .AddDriverAccountsContext());
 
 builder.Services.AddProblemDetails();
 builder.Services.AddChargingApi();
 builder.Services.AddSiteEnergyApi();
+builder.Services.AddDriverAccountsApi();
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddDevScaffolding();
@@ -53,6 +57,7 @@ var app = builder.Build();
 app.MapGet("/alive", () => TypedResults.Text("alive"));
 app.MapChargingEndpoints();
 app.MapSiteEnergyEndpoints();
+app.MapDriverAccountsEndpoints();
 if (app.Environment.IsDevelopment())
 {
     app.MapDevScaffoldingEndpoints(); // A pretend charger, until section 16.7.

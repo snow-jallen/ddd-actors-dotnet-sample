@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Akka.Persistence.TestKit.Xunit" />
+    <PackageReference Include="Akka.TestKit.Xunit" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference
+      Include="../../src/DriverAccounts/Ohmline.DriverAccounts.Actors/Ohmline.DriverAccounts.Actors.csproj" />
+    <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
+  </ItemGroup>
+
+</Project>

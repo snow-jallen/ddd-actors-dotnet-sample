@@ -9,6 +9,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- IRequiredActor<TKey>: the shard region, from the node's actor registry. -->
+    <PackageReference Include="Akka.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference
       Include="../Ohmline.DriverAccounts.Contracts/Ohmline.DriverAccounts.Contracts.csproj" />
     <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />

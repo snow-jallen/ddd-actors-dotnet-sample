@@ -90,6 +90,15 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     protected abstract object Rejected(TError error);
 
     /// <summary>
+    /// The reply to this accepted command: <see cref="Accepted(long)"/>, unless a subclass
+    /// gives some of its commands answers of their own, such as an id token's lock.
+    /// </summary>
+    protected virtual object Accepted(TCommand command, long version) => Accepted(version);
+
+    /// <summary>The reply to this refused command, <see cref="Rejected(TError)"/>.</summary>
+    protected virtual object Rejected(TCommand command, TError error) => Rejected(error);
+
+    /// <summary>
     /// The reply to a command the shell could not carry out, with a code from
     /// <see cref="ShellRejectionCodes"/>, in the context's wire vocabulary.
     /// </summary>
@@ -219,21 +228,22 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
         {
             // Sent again: a retry after a timeout, or a duplicate delivery. It gets the answer
             // it got the first time, and nothing is decided or stored again (section 12.6).
-            replyTo.Tell(Accepted(version));
+            replyTo.Tell(Accepted(command, version));
             return;
         }
 
         switch (TDecider.Decide(State, command, DecisionContext.From(_clock)))
         {
             case Ok<ImmutableArray<TEvent>> { Value.IsEmpty: true }:
-                replyTo.Tell(Accepted(LastSequenceNr));
+                replyTo.Tell(Accepted(command, LastSequenceNr));
                 break;
             case Ok<ImmutableArray<TEvent>> accepted:
                 _writeFor = replyTo;
-                PersistAll(accepted.Value, Apply, () => AnswerWrite(Accepted(LastSequenceNr)));
+                PersistAll(
+                    accepted.Value, Apply, () => AnswerWrite(Accepted(command, LastSequenceNr)));
                 break;
             case Err<TError> rejected:
-                replyTo.Tell(Rejected(rejected.Error));
+                replyTo.Tell(Rejected(command, rejected.Error));
                 break;
             case null:
                 throw new InvalidOperationException("Decide returned a default Result.");

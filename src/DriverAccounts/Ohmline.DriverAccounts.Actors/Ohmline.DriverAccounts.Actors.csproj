@@ -6,6 +6,13 @@
   -->
 
   <ItemGroup>
+    <!-- Akka.Persistence for the persistent actor, Akka.Hosting for the builder. -->
+    <PackageReference Include="Akka.Persistence.Hosting" />
+    <!-- The id-token shard region. -->
+    <PackageReference Include="Akka.Cluster.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference
       Include="../Ohmline.DriverAccounts.Domain/Ohmline.DriverAccounts.Domain.csproj" />
     <ProjectReference

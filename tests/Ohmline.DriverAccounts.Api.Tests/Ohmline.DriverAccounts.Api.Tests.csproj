@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Driver Accounts' application services, with a test probe in place of the region. -->
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Akka.TestKit.Xunit" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference
+      Include="../../src/DriverAccounts/Ohmline.DriverAccounts.Api/Ohmline.DriverAccounts.Api.csproj" />
+    <ProjectReference
+      Include="../../src/DriverAccounts/Ohmline.DriverAccounts.Actors/Ohmline.DriverAccounts.Actors.csproj" />
+    <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
+  </ItemGroup>
+
+</Project>

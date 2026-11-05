@@ -22,6 +22,10 @@
       Include="../SiteEnergy/Ohmline.SiteEnergy.Actors/Ohmline.SiteEnergy.Actors.csproj" />
     <ProjectReference
       Include="../SiteEnergy/Ohmline.SiteEnergy.Api/Ohmline.SiteEnergy.Api.csproj" />
+    <ProjectReference
+      Include="../DriverAccounts/Ohmline.DriverAccounts.Actors/Ohmline.DriverAccounts.Actors.csproj" />
+    <ProjectReference
+      Include="../DriverAccounts/Ohmline.DriverAccounts.Api/Ohmline.DriverAccounts.Api.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference
+      Include="../../src/DriverAccounts/Ohmline.DriverAccounts.Domain/Ohmline.DriverAccounts.Domain.csproj" />
+    <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
+  </ItemGroup>
+
+</Project>
