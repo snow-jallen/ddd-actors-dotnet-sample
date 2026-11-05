@@ -57,10 +57,10 @@ public sealed class ChargePoint
         (state, command) switch
         {
             (Available, ReserveConnector reserve) => Accept(Reservation(reserve, context)),
-            (Reserved held, ReserveConnector reserve) when held.TokenUid == reserve.TokenUid =>
-                NoChange,
             (Reserved held, ReserveConnector reserve) when held.HasExpiredAt(context.Now) =>
                 Accept(Expiry(reserve, held), Reservation(reserve, context)),
+            (Reserved held, ReserveConnector reserve) when held.TokenUid == reserve.TokenUid =>
+                NoChange,
             (Reserved held, ReserveConnector) => Reject(HeldForAnother(command, held)),
             (Occupied or Unavailable, ReserveConnector) => Reject(Unusable(command)),
             (Faulted fault, ReserveConnector) => Reject(Broken(command, fault)),

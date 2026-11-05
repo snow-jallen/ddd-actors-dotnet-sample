@@ -66,6 +66,12 @@ public sealed class DeciderSpec<TDecider, TState, TCommand, TEvent, TError>
         }
 
         /// <summary>
+        /// The decider's answer as it is, for a test that states what it expects in its own
+        /// terms, such as a table of outcomes in the domain's words (section 9.3).
+        /// </summary>
+        public Result<ImmutableArray<TEvent>, TError> Result => result;
+
+        /// <summary>
         /// Accepted, with exactly these events in this order. Returns them for anything more a
         /// test wants to say about them.
         /// </summary>

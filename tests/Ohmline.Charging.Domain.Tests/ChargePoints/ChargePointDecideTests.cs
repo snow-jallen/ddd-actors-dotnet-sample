@@ -110,6 +110,18 @@ public sealed class ChargePointDecideTests
                     .At(Expiry));
     }
 
+    [Fact]
+    public void Given_the_drivers_expired_reservation_when_reserved_again_then_a_new_one_starts()
+    {
+        var later = Expiry.AddMinutes(3);
+
+        Given("reserved").At(later)
+            .When(new ReserveConnector(Command, Charger, 1, DriversCard))
+            .Then(
+                new ReservationExpired(Charger, 1, DriversCard).At(later),
+                new ConnectorReserved(Charger, 1, DriversCard, later.AddMinutes(15)).At(later));
+    }
+
     [Theory]
     [InlineData("occupied")]
     [InlineData("unavailable")]

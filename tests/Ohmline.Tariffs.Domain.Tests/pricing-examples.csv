@@ -1,0 +1,13 @@
+example,tariff,plugged_in,charging_stopped,energy_kwh,unplugged,price_usd,breakdown
+The primer's charge,standard,07:52,08:40,27.6,09:05,16.59,energy 11.59; session fee 1.00; idle fee 4.00
+Unplugged within the grace period,standard,09:00,09:30,10,09:44,5.20,energy 4.20; session fee 1.00
+Unplugged as the grace period ends,standard,09:00,09:30,10,09:45,5.20,energy 4.20; session fee 1.00
+One minute past the grace period,standard,09:00,09:30,10,09:46,5.60,energy 4.20; session fee 1.00; idle fee 0.40
+Plugged in but nothing delivered,standard,10:00,10:05,0,10:05,1.00,session fee 1.00
+Fractions of a cent,standard,09:00,09:20,7.123,09:20,3.99,energy 2.99; session fee 1.00
+A charge that runs into the evening peak,peak,15:30,16:30,20,16:30,11.20,energy 4.20; energy (peak) 6.00; session fee 1.00
+A charge inside the peak,peak,17:00,18:00,30,18:10,19.00,energy (peak) 18.00; session fee 1.00
+An overnight charge across midnight,night,21:00,01:00,40,01:00,12.70,energy 4.20; energy (night) 7.50; session fee 1.00
+An early charge as the night rate ends,night,05:00,07:00,20,07:00,7.70,energy 4.20; energy (night) 2.50; session fee 1.00
+Energy and time,time rate,12:00,12:45,15,12:45,8.55,energy 6.30; time 2.25
+A long stay that reaches the price cap,capped,07:52,08:40,27.6,09:05,10.00,energy 11.59; session fee 1.00; idle fee 4.00; price cap -6.59

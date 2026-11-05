@@ -68,7 +68,7 @@ connector, is the aggregate (section 6.6): a connector is an entity inside it, s
 | Command | From | Accepted when |
 |---|---|---|
 | `RegisterChargePoint` | Operators, the AssetTrack import | Not yet registered |
-| `ReserveConnector` | Driver app | Available, or reserved by the same token (no change), or reserved by a token whose reservation has expired |
+| `ReserveConnector` | Driver app | Available, or reserved by the same token and not yet expired (no change), or reserved by any token whose reservation has expired (it expires, and a new one starts) |
 | `CancelReservation` | Driver app | Reserved by the same token; anything else that holds no reservation is a no-op |
 | `ExpireReservation` | Timer (section 11.4) | Reserved and the expiry time has passed; otherwise a no-op |
 | `OccupyConnector` | Device Gateway | Available, reserved by the same token, or reserved by a token whose reservation has expired |
