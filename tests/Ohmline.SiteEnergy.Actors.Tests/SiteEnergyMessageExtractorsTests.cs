@@ -3,7 +3,7 @@ using Ohmline.SiteEnergy.Contracts.Budgets;
 
 namespace Ohmline.SiteEnergy.Actors.Tests;
 
-/// <summary>Every budget command reaches its site's budget; nothing else is routed.</summary>
+/// <summary>Every budget command and question reaches its site's budget; nothing else.</summary>
 public sealed class SiteEnergyMessageExtractorsTests
 {
     public static TheoryData<string> Samples =>
@@ -11,11 +11,15 @@ public sealed class SiteEnergyMessageExtractorsTests
 
     [Theory]
     [MemberData(nameof(Samples))]
-    public void Given_a_message_then_it_is_routed_to_its_site_only_if_it_is_a_command(string type)
+    public void Given_a_message_then_only_commands_and_questions_reach_the_site(string type)
     {
         var message = SiteEnergySamples.All.First(sample => sample.GetType().Name == type);
 
-        SiteEnergyMessageExtractors.Budgets.EntityId(message)
-            .ShouldBe(message is SitePowerBudgetCommand command ? command.SiteId.Value : null);
+        SiteEnergyMessageExtractors.Budgets.EntityId(message).ShouldBe(message switch
+        {
+            SitePowerBudgetCommand command => command.SiteId.Value,
+            SitePowerBudgetQuery query => query.SiteId.Value,
+            _ => null,
+        });
     }
 }

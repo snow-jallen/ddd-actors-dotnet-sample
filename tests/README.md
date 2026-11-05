@@ -15,6 +15,7 @@ someone about to write a test: where the helpers are, and the smells to avoid.
 | A translator or a policy | A table of inputs and outputs, one row per case | `AssetTrackTranslationTableTests`, `PolicyTableTests` |
 | What an actor replies, persists and recovers | `PersistenceShellSpec` in `Ohmline.Testing` (on Akka.Persistence.TestKit.Xunit) with `ActorTestConfig.With(...)`: given events in the journal, when a message, then a reply and the events persisted; every message serialized | `ChargePointActorTests` in `Ohmline.Charging.Actors.Tests` |
 | What the shell does when the journal or snapshot store misbehaves | `PersistenceShellSpec`'s `WithJournalWrite`/`WithSnapshotSave`, or the test kit's `WithJournalRecovery` | `PersistenceFailureTests`, `SnapshotFailureTests`, `RecoveryFailureTests` |
+| An HTTP endpoint: the request mapped to a command, the reply mapped to a status | The endpoint's handler called as a method, with a `TestProbe` as the shard region (`IRequiredActor<T>`) that answers as the aggregate would | `ChargePointEndpointsTests` in `Ohmline.Charging.Api.Tests` |
 | The shape of what is persisted or sent | `Golden.Verify` in `Ohmline.Testing`, one file per manifest in `tests/golden/`; accept a new file with `OHMLINE_ACCEPT_GOLDEN=1` | `SerializationTests` in `Ohmline.Charging.Actors.Tests` |
 
 Fixtures are named for the domain: `Known` (Charging), `TheDepot` (Site Energy) and

@@ -52,6 +52,17 @@ internal static class SiteEnergySamples
                 new OpenRequest(Public2, CarSession, new Power(50m)),
             ],
             [new PowerAllocation(Fleet1, new Power(50m)), new PowerAllocation(Public2, new(20m))]),
+
+        new GetSitePowerBudget(Site),
+        new SitePowerBudgetView(
+            Site,
+            Version: 5,
+            EffectiveCapacity: new Power(70m),
+            Curtailment: new Power(120m),
+            [
+                new RequestView(Fleet1, BusSession, new Power(50m), new Power(50m)),
+                new RequestView(Public2, CarSession, new Power(50m), Allocated: null),
+            ]),
     ];
 
     private static SitePowerBudgetEvent Stamped(SitePowerBudgetEvent @event) =>

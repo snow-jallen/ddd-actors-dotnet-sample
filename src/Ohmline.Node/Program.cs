@@ -3,8 +3,11 @@ using Akka.Persistence.Sql.Config;
 using Akka.Persistence.Sql.Hosting;
 using LinqToDB;
 using Ohmline.Charging.Actors;
+using Ohmline.Charging.Api;
+using Ohmline.Charging.Api.Development;
 using Ohmline.Node;
 using Ohmline.SiteEnergy.Actors;
+using Ohmline.SiteEnergy.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,9 +39,23 @@ builder.Services.AddAkka("ohmline", akka => akka
     .AddChargingContext()
     .AddSiteEnergyContext());
 
+builder.Services.AddProblemDetails();
+builder.Services.AddChargingApi();
+builder.Services.AddSiteEnergyApi();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDevScaffolding();
+}
+
 var app = builder.Build();
 
 // Liveness only: the process is up and serving HTTP. Readiness arrives with the cluster.
 app.MapGet("/alive", () => TypedResults.Text("alive"));
+app.MapChargingEndpoints();
+app.MapSiteEnergyEndpoints();
+if (app.Environment.IsDevelopment())
+{
+    app.MapDevScaffoldingEndpoints(); // A pretend charger, until section 16.7.
+}
 
 app.Run();

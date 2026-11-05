@@ -9,6 +9,7 @@ public static class SiteEnergyMessageExtractors
     public static EntityMessageExtractor Budgets { get; } = new(message => message switch
     {
         SitePowerBudgetCommand command => command.SiteId.Value,
+        SitePowerBudgetQuery query => query.SiteId.Value,
         _ => null,
     });
 }

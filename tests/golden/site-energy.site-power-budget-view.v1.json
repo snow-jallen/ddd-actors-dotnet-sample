@@ -1,0 +1,20 @@
+{
+  "siteId": "slc-depot",
+  "version": 5,
+  "effectiveCapacity": 70,
+  "curtailment": 120,
+  "requests": [
+    {
+      "connectorId": "OHM-SLC-0042/1",
+      "sessionId": "019a4f6e-1c40-7a51-8e2f-3b1d00000001",
+      "requested": 50,
+      "allocated": 50
+    },
+    {
+      "connectorId": "OHM-SLC-0042/2",
+      "sessionId": "019a4f6e-1c40-7a51-8e2f-3b1d00000002",
+      "requested": 50,
+      "allocated": null
+    }
+  ]
+}

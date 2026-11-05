@@ -10,7 +10,7 @@ using Ohmline.SiteEnergy.Domain.Budgets;
 namespace Ohmline.SiteEnergy.Actors.Serialization;
 
 /// <summary>
-/// Everything Site Energy tells, replies or persists, as JSON under a permanent manifest. The
+/// Everything Site Energy tells, asks, replies or persists, as JSON under a permanent manifest. The
 /// identifier and the manifests are never changed or reused (ADR 0007).
 /// </summary>
 public sealed class SiteEnergySerializer(ExtendedActorSystem system)
@@ -26,6 +26,8 @@ public sealed class SiteEnergySerializer(ExtendedActorSystem system)
         typeof(SitePowerBudgetEvent),
         typeof(BudgetCommandReply),
         typeof(SitePowerBudgetSnapshot),
+        typeof(SitePowerBudgetQuery),
+        typeof(SitePowerBudgetView),
     ];
 
     public static FrozenDictionary<Type, string> Manifests { get; } = new Dictionary<Type, string>
@@ -48,6 +50,9 @@ public sealed class SiteEnergySerializer(ExtendedActorSystem system)
         [typeof(BudgetCommandRejected)] = "site-energy.budget-command-rejected.v1",
 
         [typeof(SitePowerBudgetSnapshot)] = "site-energy.site-power-budget-snapshot.v1",
+
+        [typeof(GetSitePowerBudget)] = "site-energy.get-site-power-budget.v1",
+        [typeof(SitePowerBudgetView)] = "site-energy.site-power-budget-view.v1",
     }.ToFrozenDictionary();
 
     /// <summary>Permanent: Ohmline's serializer ids are listed in ADR 0007.</summary>

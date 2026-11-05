@@ -70,6 +70,36 @@ public sealed class SitePowerBudgetActorTests(ITestOutputHelper output)
             .ThenAsync<BudgetCommandRejected>(
                 rejected => rejected.Code.ShouldBe("already-configured"));
 
+    [Fact]
+    public async Task Given_a_curtailed_site_when_asked_then_it_shows_each_request_and_power() =>
+        await Budget.Given(
+                Configured(),
+                Granted(Fleet1, BusSession),
+                Granted(Public2, CarSession),
+                Stamped(new CurtailmentApplied(Site, new Power(120m))),
+                Stamped(new AllocationsRebalanced(
+                    Site,
+                    [
+                        new PowerAllocation(Fleet1, new Power(50m)),
+                        new PowerAllocation(Public2, new Power(20m)),
+                    ])))
+            .When(new GetSitePowerBudget(Site))
+            .ThenAsync(new SitePowerBudgetView(
+                Site,
+                Version: 5,
+                EffectiveCapacity: new Power(70m),
+                Curtailment: new Power(120m),
+                [
+                    new RequestView(Fleet1, BusSession, new Power(50m), new Power(50m)),
+                    new RequestView(Public2, CarSession, new Power(50m), new Power(20m)),
+                ]));
+
+    [Fact]
+    public async Task Given_an_unconfigured_site_when_asked_then_it_has_version_0_and_no_power() =>
+        await Budget.Given()
+            .When(new GetSitePowerBudget(Site))
+            .ThenAsync(new SitePowerBudgetView(Site, 0, Power.Zero, Power.Zero, []));
+
     private static SitePowerBudgetEvent Configured() =>
         Stamped(new SiteConfigured(Site, SiteEnergySamples.Depot));
 

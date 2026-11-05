@@ -9,8 +9,8 @@ namespace Ohmline.SiteEnergy.Actors.Budgets;
 
 /// <summary>
 /// One site's power budget in the shell. The fair-share allocator and the budget's invariant
-/// stay in <see cref="SitePowerBudget"/>; this class adds a durable name and Site Energy's
-/// replies.
+/// stay in <see cref="SitePowerBudget"/>; this class adds a durable name, Site Energy's
+/// replies and the answer to a question about the budget.
 /// </summary>
 public sealed class SitePowerBudgetActor
     : DeciderActor<SitePowerBudget, SitePowerBudgetState, SitePowerBudgetCommand,
@@ -20,9 +20,8 @@ public sealed class SitePowerBudgetActor
     public const string TypeName = "site-power-budget";
 
     public SitePowerBudgetActor(SiteId siteId, TimeProvider clock)
-        : base(TypeName, siteId.Value, clock)
-    {
-    }
+        : base(TypeName, siteId.Value, clock) =>
+        Command<GetSitePowerBudget>(_ => Sender.Tell(State.ToView(siteId, LastSequenceNr)));
 
     public static string PersistenceIdOf(SiteId siteId) => $"{TypeName}-{siteId}";
 

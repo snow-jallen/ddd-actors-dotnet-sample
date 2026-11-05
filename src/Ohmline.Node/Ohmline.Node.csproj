@@ -17,8 +17,11 @@
   <ItemGroup>
     <ProjectReference
       Include="../Charging/Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
+    <ProjectReference Include="../Charging/Ohmline.Charging.Api/Ohmline.Charging.Api.csproj" />
     <ProjectReference
       Include="../SiteEnergy/Ohmline.SiteEnergy.Actors/Ohmline.SiteEnergy.Actors.csproj" />
+    <ProjectReference
+      Include="../SiteEnergy/Ohmline.SiteEnergy.Api/Ohmline.SiteEnergy.Api.csproj" />
   </ItemGroup>
 
 </Project>
