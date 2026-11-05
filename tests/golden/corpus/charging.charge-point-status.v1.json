@@ -1,0 +1,25 @@
+{
+  "chargePointId": "OHM-SLC-0042",
+  "version": 2,
+  "siteId": "slc-depot",
+  "connectors": [
+    {
+      "connectorNumber": 1,
+      "maxPower": 22,
+      "state": "reserved",
+      "reservedFor": "04A2B3C4D5E6F7",
+      "reservedUntil": "2026-11-04T07:55:00-07:00",
+      "sessionId": null,
+      "errorCode": null
+    },
+    {
+      "connectorNumber": 2,
+      "maxPower": 22,
+      "state": "available",
+      "reservedFor": null,
+      "reservedUntil": null,
+      "sessionId": null,
+      "errorCode": null
+    }
+  ]
+}

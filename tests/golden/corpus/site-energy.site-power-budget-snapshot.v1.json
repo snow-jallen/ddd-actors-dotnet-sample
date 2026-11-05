@@ -1,0 +1,50 @@
+{
+  "site": {
+    "siteId": "slc-depot",
+    "gridLimit": 200,
+    "safetyMargin": 10,
+    "timeZoneId": "America/Denver",
+    "connectors": [
+      {
+        "connectorId": "OHM-SLC-0042/1",
+        "minPower": 5,
+        "maxPower": 50,
+        "priority": {
+          "$kind": "fleet"
+        }
+      },
+      {
+        "connectorId": "OHM-SLC-0042/2",
+        "minPower": 5,
+        "maxPower": 50,
+        "priority": {
+          "$kind": "public"
+        }
+      }
+    ]
+  },
+  "curtailment": 120,
+  "requests": [
+    {
+      "connectorId": "OHM-SLC-0042/1",
+      "sessionId": "019a4f6e-1c40-7a51-8e2f-3b1d00000001",
+      "requested": 50
+    },
+    {
+      "connectorId": "OHM-SLC-0042/2",
+      "sessionId": "019a4f6e-1c40-7a51-8e2f-3b1d00000002",
+      "requested": 50
+    }
+  ],
+  "allocations": [
+    {
+      "connectorId": "OHM-SLC-0042/1",
+      "power": 50
+    },
+    {
+      "connectorId": "OHM-SLC-0042/2",
+      "power": 20
+    }
+  ],
+  "recentCommands": []
+}

@@ -1,0 +1,7 @@
+{
+  "traceParent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+  "traceState": null,
+  "serializerId": 9101,
+  "manifest": "charging.get-charge-point-status.v1",
+  "payload": "eyJjaGFyZ2VQb2ludElkIjoiT0hNLVNMQy0wMDQyIn0="
+}

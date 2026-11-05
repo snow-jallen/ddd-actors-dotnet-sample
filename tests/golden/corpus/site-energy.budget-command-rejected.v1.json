@@ -1,0 +1,4 @@
+{
+  "code": "connector-has-open-request",
+  "message": "Connector OHM-SLC-0042/1 already has a request, for session 019a4f6e-1c40-7a51-8e2f-3b1d00000001."
+}

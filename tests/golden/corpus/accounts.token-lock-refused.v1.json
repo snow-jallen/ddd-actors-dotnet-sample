@@ -1,0 +1,6 @@
+{
+  "tokenUid": "04A2B3C4D5E6F7",
+  "sessionId": "019a4f6f-0680-7a51-8e2f-3b1d00000002",
+  "code": "locked-by-another-session",
+  "message": "Token 04A2B3C4D5E6F7 is charging in session 019a4f6e-1c40-7a51-8e2f-3b1d00000001."
+}

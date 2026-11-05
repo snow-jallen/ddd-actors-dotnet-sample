@@ -1,0 +1,9 @@
+{
+  "amount": {
+    "amount": 29.51,
+    "currency": "USD"
+  },
+  "reason": "Capture failed 4 times; last: The payment provider did not answer.",
+  "journeyId": "019a4f6e-1c40-7a51-8e2f-3b1d00000a01",
+  "occurredAt": "2026-11-04T07:40:00-07:00"
+}

@@ -1,0 +1,8 @@
+{
+  "journeyId": "019a4f6e-1c40-7a51-8e2f-3b1d00000a01",
+  "version": 4,
+  "step": "abandoned",
+  "sessionId": "019a4f6e-1c40-7a51-8e2f-3b1d00000a01",
+  "abandonReason": "charger-rejected",
+  "detail": "Connector 1 is occupied."
+}
