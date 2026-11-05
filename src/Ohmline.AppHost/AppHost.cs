@@ -30,7 +30,7 @@ var fakeGrid = builder.AddProject<Projects.Ohmline_FakeGridOperator>(
 // seed node (http://node). Charging's nodes call its hold API at http://billing. Its endpoint
 // is the one in its launch profile (http://localhost:5185), named "http" after its scheme.
 var billing = builder.AddProject<Projects.Ohmline_Billing>("billing")
-    .WithHttpHealthCheck("/health")
+    .WithHttpHealthCheck("/health/ready")
     .WithReference(billingDb, connectionName: "billing")
     .WithReference(fakePsp)
     .WaitFor(billingDb);
@@ -54,7 +54,7 @@ billing.WithReference(seed).WaitFor(seed);
 // ws://localhost:5190/ocpp/{chargePointId}, its launch profile's address, and it reaches
 // Charging's regions through proxies.
 var gateway = builder.AddProject<Projects.Ohmline_DeviceGateway>("gateway")
-    .WithHttpHealthCheck("/health")
+    .WithHttpHealthCheck("/health/ready")
     .WithEnvironment("Akka__Remote__Port", Port(4060))
     .WithEnvironment("Akka__Cluster__SeedNodes__0", SeedNode)
     .WaitFor(seed);
@@ -73,7 +73,7 @@ builder.Build().Run();
 IResourceBuilder<ProjectResource> Node(string name, int index) =>
     builder.AddProject<Projects.Ohmline_Node>(name, launchProfileName: null)
         .WithHttpEndpoint(port: 5180 + index, name: "http")
-        .WithHttpHealthCheck("/health")
+        .WithHttpHealthCheck("/health/ready")
         .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Development")
         .WithEnvironment("Akka__Remote__Port", Port(4053 + index))
         .WithEnvironment("Akka__Cluster__SeedNodes__0", SeedNode)

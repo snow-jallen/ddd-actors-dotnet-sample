@@ -5,6 +5,7 @@ using Akka.Hosting;
 using Akka.Remote.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Ohmline.ActorShell.Health;
 using Ohmline.ActorShell.Tracing;
 
 namespace Ohmline.ActorShell.Clustering;
@@ -51,8 +52,11 @@ public static class ClusterExtensions
                     // change in reachability, the side with most nodes downs the other side.
                     SplitBrainResolver = new KeepMajorityOption(),
                 })
-                // /health is Healthy only once this node is an Up member of the cluster.
-                .WithAkkaClusterReadinessCheck()
+                // Live while the actor system runs; ready only once this node is an Up member
+                // of the cluster. The tags are written down: both checks come with defaults of
+                // their own (section 18.5).
+                .WithActorSystemLivenessCheck(tags: [HealthTags.Live, "akka"])
+                .WithAkkaClusterReadinessCheck(tags: [HealthTags.Ready, "akka", "akka.cluster"])
                 // On every node, whatever its role: live updates reach every charging node
                 // (section 14.4), and a charger command reaches the gateway node that holds the
                 // charger's connection (section 16.7).

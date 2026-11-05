@@ -15,14 +15,23 @@ using OpenTelemetry.Trace;
 namespace Ohmline.ServiceDefaults;
 
 /// <summary>
-/// The defaults every Ohmline service shares. Two health endpoints: <c>/alive</c> says the
-/// process answers (only checks tagged <see cref="LiveTag"/>), and <c>/health</c> runs every
-/// check, such as "this node is an Up member of the cluster", and says whether it is ready.
+/// The defaults every Ohmline service shares. Two health endpoints (section 18.5):
+/// <c>/health/live</c> runs only the checks tagged <see cref="LiveTag"/> and says whether the
+/// process should be restarted; <c>/health/ready</c> runs those tagged <see cref="ReadyTag"/>,
+/// such as "an Up member of the cluster" and "the journal's database answers", and says whether
+/// it should be sent work.
 /// </summary>
 public static class ServiceDefaultsExtensions
 {
-    /// <summary>The tag of the checks that <c>/alive</c> runs: never a dependency.</summary>
+    /// <summary>The tag of the checks that <c>/health/live</c> runs: never a dependency.</summary>
     public const string LiveTag = "live";
+
+    /// <summary>The tag of the checks that <c>/health/ready</c> runs.</summary>
+    public const string ReadyTag = "ready";
+
+    public const string LivePath = "/health/live";
+
+    public const string ReadyPath = "/health/ready";
 
     /// <summary>
     /// Every source and meter Ohmline names (section 17.1): each context's, the actor shell's,
@@ -105,15 +114,20 @@ public static class ServiceDefaultsExtensions
     extension(WebApplication app)
     {
         /// <summary>
-        /// <c>/health</c> and <c>/alive</c>, in every environment: orchestrators probe them
-        /// (Chapter 21), and they say no more than healthy or not.
+        /// <c>/health/live</c> and <c>/health/ready</c>, in every environment, not only in
+        /// Development as the Aspire template maps them: orchestrators probe them in production
+        /// (Chapter 21). Each runs only the checks with its tag, so a check without a tag runs
+        /// in neither, and each says no more than its status.
         /// </summary>
         public WebApplication MapDefaultEndpoints()
         {
-            app.MapHealthChecks("/health");
-            app.MapHealthChecks("/alive", new HealthCheckOptions
+            app.MapHealthChecks(LivePath, new HealthCheckOptions
             {
                 Predicate = check => check.Tags.Contains(LiveTag),
+            });
+            app.MapHealthChecks(ReadyPath, new HealthCheckOptions
+            {
+                Predicate = check => check.Tags.Contains(ReadyTag),
             });
             return app;
         }
@@ -136,5 +150,5 @@ public static class ServiceDefaultsExtensions
 
     /// <summary>Probes come every few seconds and say nothing about a charge: no trace.</summary>
     private static bool IsProbe(PathString path) =>
-        path.StartsWithSegments("/health") || path.StartsWithSegments("/alive");
+        path.StartsWithSegments("/health");
 }

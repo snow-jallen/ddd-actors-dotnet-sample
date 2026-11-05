@@ -67,7 +67,8 @@ builder.Services.AddSignalR(); // Live updates for app clients, at /hubs/chargin
 
 var app = builder.Build();
 
-// /alive: the process answers. /health: also an Up member of the cluster, so ready for work.
+// /health/live: the actor system runs. /health/ready: also an Up member of the cluster that
+// reaches its journal's database, so ready for work (section 18.5).
 app.MapDefaultEndpoints();
 app.MapChargingEndpoints();
 app.MapSiteEnergyEndpoints();

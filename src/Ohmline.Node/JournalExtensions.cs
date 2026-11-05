@@ -2,6 +2,7 @@ using Akka.Hosting;
 using Akka.Persistence.Sql.Config;
 using Akka.Persistence.Sql.Hosting;
 using LinqToDB;
+using Ohmline.ActorShell.Health;
 using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Actors;
 using Ohmline.SiteEnergy.Actors;
@@ -20,6 +21,11 @@ public static class JournalExtensions
         /// of their own, written by each context's tagger (section 13.2), and for a traced event,
         /// stored in its envelope, by the node's <see cref="TracedEventTagger"/> (section 17.7).
         /// </summary>
+        /// <remarks>
+        /// Readiness asks the database itself (section 18.5). Akka.Persistence's own journal
+        /// check asks the journal actor, which is alive and answers while PostgreSQL is down, so
+        /// it stays Healthy through an outage; the connectivity check opens a connection.
+        /// </remarks>
         public AkkaConfigurationBuilder WithOhmlineJournal(IConfiguration configuration)
         {
             var (connectionString, provider) = configuration.GetConnectionString("ohmline") is
@@ -39,7 +45,10 @@ public static class JournalExtensions
                 journalBuilder: journal => journal
                     .AddChargingTagger()
                     .AddSiteEnergyTagger()
-                    .AddTraceEnvelopeTagger<TracedEventTagger>());
+                    .AddTraceEnvelopeTagger<TracedEventTagger>()
+                    .WithConnectivityCheck(tags: [HealthTags.Ready, "akka", "persistence"]),
+                snapshotBuilder: snapshots => snapshots
+                    .WithConnectivityCheck(tags: [HealthTags.Ready, "akka", "persistence"]));
         }
     }
 }
