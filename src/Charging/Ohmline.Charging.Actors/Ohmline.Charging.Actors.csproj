@@ -16,6 +16,8 @@
     <ProjectReference Include="../Ohmline.Charging.Domain/Ohmline.Charging.Domain.csproj" />
     <ProjectReference Include="../Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
     <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+    <ProjectReference
+      Include="../../SiteEnergy/Ohmline.SiteEnergy.Contracts/Ohmline.SiteEnergy.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
