@@ -1,4 +1,5 @@
 using Akka.Hosting;
+using Ohmline.Charging.Actors.ChargePoints;
 using Ohmline.Charging.Actors.Serialization;
 
 namespace Ohmline.Charging.Actors;
@@ -13,13 +14,21 @@ public static class ChargingAkkaExtensions
     extension(AkkaConfigurationBuilder akka)
     {
         /// <summary>
-        /// Charging's serializer, bound to every message family Charging owns. Section 10.4 adds
-        /// the charge point actor.
+        /// Charging's serializer, bound to every message family Charging owns, and the charge
+        /// point directory, registered as <see cref="ChargePointDirectory"/>. The journal is the
+        /// host's choice.
         /// </summary>
         public AkkaConfigurationBuilder AddChargingContext() =>
-            akka.WithCustomSerializer(
-                ChargingSerializer.Name,
-                ChargingSerializer.BoundTypes,
-                system => new ChargingSerializer(system));
+            akka
+                .WithCustomSerializer(
+                    ChargingSerializer.Name,
+                    ChargingSerializer.BoundTypes,
+                    system => new ChargingSerializer(system))
+                .WithActors((system, registry, resolver) =>
+                {
+                    var clock = resolver.GetService<TimeProvider>();
+                    registry.Register<ChargePointDirectory>(
+                        system.ActorOf(ChargePointDirectory.Props(clock), "charge-points"));
+                });
     }
 }

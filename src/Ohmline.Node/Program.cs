@@ -1,4 +1,5 @@
 using Akka.Hosting;
+using Akka.Persistence.Hosting;
 using Ohmline.Charging.Actors;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,8 @@ builder.Services.AddAkka("ohmline", akka => akka
         loggers.ClearLoggers();
         loggers.AddLoggerFactory(); // Akka.NET logs through Microsoft.Extensions.Logging.
     })
+    .WithInMemoryJournal() // For now: forgets everything on restart (section 10.7 fixes that).
+    .WithInMemorySnapshotStore()
     .AddChargingContext());
 
 var app = builder.Build();

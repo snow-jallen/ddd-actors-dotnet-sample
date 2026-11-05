@@ -1,10 +1,7 @@
-using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Akka.Actor;
-using Akka.Actor.Setup;
-using Akka.Serialization;
 using Akka.TestKit.Xunit;
 using Ohmline.Charging.Actors.Serialization;
 using Ohmline.Testing;
@@ -17,7 +14,7 @@ namespace Ohmline.Charging.Actors.Tests.Serialization;
 /// file, which can itself still be read.
 /// </summary>
 public sealed partial class SerializationTests(ITestOutputHelper output)
-    : TestKit(WithChargingSerializer(), nameof(SerializationTests), output)
+    : TestKit(ActorTestConfig.With(Serializers.Charging), nameof(SerializationTests), output)
 {
     private static readonly Dictionary<string, object> Samples =
         ChargingSamples.All.ToDictionary(sample => ChargingSerializer.Manifests[sample.GetType()]);
@@ -104,13 +101,6 @@ public sealed partial class SerializationTests(ITestOutputHelper output)
                 serializer.FromBinary("{}"u8.ToArray(), "charging.connector-teleported.v1"))
             .Message.ShouldContain("charging.connector-teleported.v1");
     }
-
-    private static ActorSystemSetup WithChargingSerializer() =>
-        BootstrapSetup.Create().And(SerializationSetup.Create(system =>
-            ImmutableHashSet.Create(SerializerDetails.Create(
-                ChargingSerializer.Name,
-                new ChargingSerializer(system),
-                [.. ChargingSerializer.BoundTypes]))));
 
     [GeneratedRegex(@"^charging\.[a-z0-9]+(-[a-z0-9]+)*\.v[1-9][0-9]*$")]
     private static partial Regex Scheme();
