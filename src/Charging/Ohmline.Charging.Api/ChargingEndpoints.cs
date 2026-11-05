@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Ohmline.Charging.Api.Tariffs;
 
 namespace Ohmline.Charging.Api;
 
@@ -14,13 +15,17 @@ public static class ChargingEndpoints
 {
     extension(IServiceCollection services)
     {
-        /// <summary>The edge's settings, from <c>Ohmline:Charging</c>, checked at start.</summary>
+        /// <summary>
+        /// The edge's settings, from <c>Ohmline:Charging</c>, checked at start, and the tariff
+        /// book as the catalog a starting session copies its tariff from.
+        /// </summary>
         public IServiceCollection AddChargingApi()
         {
             services.AddOptions<ChargingApiOptions>()
                 .BindConfiguration(ChargingApiOptions.Section)
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
+            services.AddSingleton<ITariffCatalog, TariffBookCatalog>();
             return services;
         }
     }
@@ -41,6 +46,10 @@ public static class ChargingEndpoints
             sessions.MapPost("", SessionEndpoints.StartAsync);
             sessions.MapPost("/{id:guid}/meter-values", SessionEndpoints.RecordMeterValueAsync);
             sessions.MapPost("/{id:guid}/stop", SessionEndpoints.StopAsync);
+
+            var tariffs = endpoints.MapGroup("/tariffs").WithTags("Tariffs");
+            tariffs.MapPost("", TariffEndpoints.PublishAsync);
+            tariffs.MapGet("/{id}", TariffEndpoints.GetAsync);
 
             return endpoints;
         }

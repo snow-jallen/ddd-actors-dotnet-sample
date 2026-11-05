@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference
       Include="../../src/Tariffs/Ohmline.Tariffs.Domain/Ohmline.Tariffs.Domain.csproj" />
+    <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
   </ItemGroup>
 
   <!-- The pricing analyst's examples, in the form the analyst writes them (section 9.3). -->

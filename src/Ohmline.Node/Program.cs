@@ -10,6 +10,7 @@ using Ohmline.DriverAccounts.Api;
 using Ohmline.Node;
 using Ohmline.SiteEnergy.Actors;
 using Ohmline.SiteEnergy.Api;
+using Ohmline.Tariffs.Actors;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,16 +41,13 @@ builder.Services.AddAkka("ohmline", akka => akka
         tagStorageMode: TagMode.TagTable)
     .AddChargingContext()
     .AddSiteEnergyContext()
-    .AddDriverAccountsContext());
+    .AddDriverAccountsContext()
+    .AddTariffsContext());
 
 builder.Services.AddProblemDetails();
 builder.Services.AddChargingApi();
 builder.Services.AddSiteEnergyApi();
 builder.Services.AddDriverAccountsApi();
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddDevScaffolding();
-}
 
 var app = builder.Build();
 

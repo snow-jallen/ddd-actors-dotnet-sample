@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 using Ohmline.Charging.Actors.Serialization;
+using Ohmline.Tariffs.Actors.Serialization;
 using Ohmline.Testing;
 
 namespace Ohmline.Charging.Api.Tests;
@@ -17,7 +18,7 @@ namespace Ohmline.Charging.Api.Tests;
 /// and every message serialized on its way to the probe, as it would be to another node.
 /// </summary>
 public abstract class EdgeTestKit(ITestOutputHelper output)
-    : TestKit(ActorTestConfig.With(Charging), output: output)
+    : TestKit(ActorTestConfig.With(Charging, Tariffs), output: output)
 {
     public static readonly DateTimeOffset Morning = new(2026, 11, 4, 14, 40, 0, TimeSpan.Zero);
 
@@ -56,4 +57,10 @@ public abstract class EdgeTestKit(ITestOutputHelper output)
             ChargingSerializer.Name,
             new ChargingSerializer(system),
             [.. ChargingSerializer.BoundTypes]);
+
+    private static SerializerDetails Tariffs(ExtendedActorSystem system) =>
+        SerializerDetails.Create(
+            TariffsSerializer.Name,
+            new TariffsSerializer(system),
+            [.. TariffsSerializer.BoundTypes]);
 }

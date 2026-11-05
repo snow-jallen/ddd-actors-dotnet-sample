@@ -4,10 +4,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Ohmline.Charging.Api.Responses;
-using Ohmline.Charging.Api.Tariffs;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.SharedKernel.Identity;
 
@@ -16,17 +14,10 @@ namespace Ohmline.Charging.Api.Development;
 /// <summary>
 /// Temporary, and for Development only: until the Device Gateway connects real chargers
 /// (section 16.7 deletes this file), these endpoints pretend to be a charger and report what a
-/// charger reports: a car plugged in or unplugged, a fault, a repair. They also supply a tariff
-/// catalog until the tariff book exists (section 12.8).
+/// charger reports: a car plugged in or unplugged, a fault, a repair.
 /// </summary>
 public static class DevScaffoldingEndpoints
 {
-    extension(IServiceCollection services)
-    {
-        public IServiceCollection AddDevScaffolding() =>
-            services.AddSingleton<ITariffCatalog, DevelopmentTariffCatalog>();
-    }
-
     extension(IEndpointRouteBuilder endpoints)
     {
         public IEndpointRouteBuilder MapDevScaffoldingEndpoints()

@@ -22,11 +22,14 @@ internal static class Problems
         detail, statusCode: StatusCodes.Status404NotFound, title: "Not found.");
 
     /// <summary>The aggregate's stable code travels as the <c>code</c> extension.</summary>
-    public static ProblemHttpResult Rejected(CommandRejected rejected) => TypedResults.Problem(
-        rejected.Message,
+    public static ProblemHttpResult Rejected(CommandRejected rejected) =>
+        Rejected(rejected.Code, rejected.Message);
+
+    public static ProblemHttpResult Rejected(string code, string message) => TypedResults.Problem(
+        message,
         statusCode: StatusCodes.Status409Conflict,
         title: "The command was rejected.",
-        extensions: new Dictionary<string, object?> { ["code"] = rejected.Code });
+        extensions: new Dictionary<string, object?> { ["code"] = code });
 
     public static ProblemHttpResult Timeout(TimeSpan waited) => TypedResults.Problem(
         $"No answer within {waited.TotalSeconds:0.###} s. The command may still have been " +

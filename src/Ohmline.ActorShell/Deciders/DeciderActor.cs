@@ -43,8 +43,16 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     /// <param name="entityId">The aggregate's identity, such as <c>OHM-SLC-0042</c>.</param>
     /// <param name="clock">Read once per command, into the decision's context.</param>
     protected DeciderActor(string typeName, string entityId, TimeProvider clock)
+        : this($"{typeName}-{entityId}", clock)
     {
-        PersistenceId = $"{typeName}-{entityId}";
+    }
+
+    /// <summary>For an aggregate of which there is only one, such as a cluster singleton.</summary>
+    /// <param name="persistenceId">Its durable name, such as <c>tariff-book</c>.</param>
+    /// <param name="clock">Read once per command, into the decision's context.</param>
+    protected DeciderActor(string persistenceId, TimeProvider clock)
+    {
+        PersistenceId = persistenceId;
         _clock = clock;
 
         // Recovery: the latest snapshot, if there is one, then every later event, through Evolve

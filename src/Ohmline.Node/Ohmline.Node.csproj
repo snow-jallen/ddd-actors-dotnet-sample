@@ -26,6 +26,7 @@
       Include="../DriverAccounts/Ohmline.DriverAccounts.Actors/Ohmline.DriverAccounts.Actors.csproj" />
     <ProjectReference
       Include="../DriverAccounts/Ohmline.DriverAccounts.Api/Ohmline.DriverAccounts.Api.csproj" />
+    <ProjectReference Include="../Tariffs/Ohmline.Tariffs.Actors/Ohmline.Tariffs.Actors.csproj" />
   </ItemGroup>
 
 </Project>

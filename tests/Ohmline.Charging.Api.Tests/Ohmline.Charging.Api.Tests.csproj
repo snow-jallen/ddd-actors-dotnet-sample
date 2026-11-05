@@ -18,9 +18,11 @@
   <ItemGroup>
     <ProjectReference
       Include="../../src/Charging/Ohmline.Charging.Api/Ohmline.Charging.Api.csproj" />
-    <!-- Charging's serializer: what the edge sends must make the trip across the cluster. -->
+    <!-- The serializers: what the edge sends must make the trip across the cluster. -->
     <ProjectReference
       Include="../../src/Charging/Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
+    <ProjectReference
+      Include="../../src/Tariffs/Ohmline.Tariffs.Actors/Ohmline.Tariffs.Actors.csproj" />
     <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
   </ItemGroup>
 

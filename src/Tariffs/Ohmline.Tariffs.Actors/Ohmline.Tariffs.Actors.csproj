@@ -5,6 +5,13 @@
   -->
 
   <ItemGroup>
+    <!-- Akka.Persistence for the persistent actor, Akka.Hosting for the builder. -->
+    <PackageReference Include="Akka.Persistence.Hosting" />
+    <!-- The tariff book as a cluster singleton, and its proxy. -->
+    <PackageReference Include="Akka.Cluster.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../Ohmline.Tariffs.Domain/Ohmline.Tariffs.Domain.csproj" />
     <ProjectReference Include="../Ohmline.Tariffs.Contracts/Ohmline.Tariffs.Contracts.csproj" />
     <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
