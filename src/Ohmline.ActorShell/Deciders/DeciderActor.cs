@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Akka.Actor;
+using Akka.Event;
 using Akka.Persistence;
 using Ohmline.SharedKernel;
 using Ohmline.SharedKernel.Deciders;
@@ -26,6 +28,9 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     where TEvent : class
 {
     private readonly TimeProvider _clock;
+    private readonly ILoggingAdapter _log = Context.GetLogger();
+    private readonly long _startedAt = Stopwatch.GetTimestamp();
+    private int _eventsReplayed;
 
     /// <param name="typeName">The durable type name, such as <c>charge-point</c>.</param>
     /// <param name="entityId">The aggregate's identity, such as <c>OHM-SLC-0042</c>.</param>
@@ -35,8 +40,9 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
         PersistenceId = $"{typeName}-{entityId}";
         _clock = clock;
 
-        Recover<TEvent>(@event => State = TDecider.Evolve(State, @event));
-        Recover<RecoveryCompleted>(_ => OnRecovered());
+        // Recovery: replay through Evolve only. Never Decide, never a reply, never a side effect.
+        Recover<TEvent>(Replay);
+        Recover<RecoveryCompleted>(_ => Recovered());
         Command<TCommand>(Handle);
     }
 
@@ -62,6 +68,27 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     /// <summary>Called once all stored events are replayed, before the first command.</summary>
     protected virtual void OnRecovered()
     {
+    }
+
+    private void Replay(TEvent @event)
+    {
+        State = TDecider.Evolve(State, @event);
+        _eventsReplayed++;
+    }
+
+    /// <summary>
+    /// The last message of recovery. Commands that arrived since the actor started have waited
+    /// in the internal stash and are handled after this, in the order they arrived.
+    /// </summary>
+    private void Recovered()
+    {
+        _log.Info(
+            "{0} recovered to sequence number {1} in {2} ms: {3} events replayed",
+            PersistenceId,
+            LastSequenceNr,
+            (long)Stopwatch.GetElapsedTime(_startedAt).TotalMilliseconds,
+            _eventsReplayed);
+        OnRecovered();
     }
 
     private void Handle(TCommand command)

@@ -3,7 +3,7 @@
   <!--
     What the test projects share: the Given-When-Then harness for deciders (section 9.2), the
     model-based property helper (section 9.4), golden files (section 10.3) and the actor test
-    configuration (section 10.4). A library, not a test project, so it takes back what
+    configuration (section 10.4) and the journal probe (section 11.1). A library, not a test project, so it takes back what
     tests/Directory.Build.props gives every test project. It knows the shared kernel, Akka.NET
     and no bounded context, so every context's tests can use it.
   -->
@@ -17,6 +17,8 @@
     <PackageReference Remove="xunit.v3" />
     <Using Remove="Xunit" />
     <PackageReference Include="Akka" />
+    <!-- Akka.Persistence and its test kit: the scriptable journal and snapshot store. -->
+    <PackageReference Include="Akka.Persistence.TestKit.Xunit" />
     <PackageReference Include="CsCheck" />
   </ItemGroup>
 

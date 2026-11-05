@@ -8,6 +8,8 @@ namespace Ohmline.Charging.Actors.Tests.ChargePoints;
 /// A journal that is slow on cue: the write of a <typeparamref name="TEvent"/> waits until the
 /// test releases it, and every other write passes. Install it with
 /// <c>Journal.OnWrite.SetInterceptorAsync</c>; the test journal calls it once per event.
+/// Installed with <c>Journal.OnRecovery.SetInterceptorAsync</c>, it holds the replay of that
+/// event instead (section 11.1).
 /// </summary>
 /// <remarks>
 /// With <c>serialize-messages = on</c> the interceptor reaches the journal as a serialized copy,
