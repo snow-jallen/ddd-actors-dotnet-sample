@@ -6,31 +6,45 @@ namespace Ch02.AkkaBasics.Tests.Chargers;
 /// The back office's picture of one physical charge point. Until the charger's
 /// BootNotification arrives the twin knows nothing, so it stashes every other message. After
 /// that its behaviour is its state: Become swaps the set of handlers as the charger reports a
-/// new status, and each behaviour answers GetStatus with its own status.
+/// new status, and each behaviour answers GetStatus with its own status. A periodic timer
+/// counts missed heartbeats and marks the charger offline after three.
 /// </summary>
-public sealed class ChargerTwin : ReceiveActor, IWithStash
+public sealed class ChargerTwin : ReceiveActor, IWithStash, IWithTimers
 {
-    private readonly string _chargePointId;
-    private string _firmwareVersion = "";
+    public static readonly TimeSpan DefaultHeartbeatInterval = TimeSpan.FromMinutes(1);
 
-    public ChargerTwin(string chargePointId)
+    private const string HeartbeatCheckKey = "heartbeat-check";
+    private const int MaxMissedHeartbeats = 3;
+
+    private readonly string _chargePointId;
+    private readonly TimeSpan _heartbeatInterval;
+    private string _firmwareVersion = "";
+    private int _missedHeartbeats;
+
+    public ChargerTwin(string chargePointId, TimeSpan heartbeatInterval)
     {
         _chargePointId = chargePointId;
+        _heartbeatInterval = heartbeatInterval;
         Booting();
     }
 
     /// <summary>Set by Akka.NET when it creates the actor.</summary>
     public IStash Stash { get; set; } = null!;
 
-    public static Props Props(string chargePointId) =>
-        Akka.Actor.Props.Create(() => new ChargerTwin(chargePointId));
+    /// <summary>Set by Akka.NET. Its timers are cancelled when the actor stops.</summary>
+    public ITimerScheduler Timers { get; set; } = null!;
+
+    public static Props Props(string chargePointId, TimeSpan? heartbeatInterval = null)
+    {
+        var interval = heartbeatInterval ?? DefaultHeartbeatInterval;
+        return Akka.Actor.Props.Create(() => new ChargerTwin(chargePointId, interval));
+    }
 
     private void Booting()
     {
         Receive<BootNotification>(boot =>
         {
-            _firmwareVersion = boot.FirmwareVersion;
-            Become(Available);
+            Start(boot);
             Stash.UnstashAll(); // The stashed messages go back to the front of the mailbox.
         });
         ReceiveAny(_ => Stash.Stash());
@@ -64,10 +78,40 @@ public sealed class ChargerTwin : ReceiveActor, IWithStash
             Sender.Tell(new ChargerStatusReport(_chargePointId, status, _firmwareVersion)));
 
         // The charger restarted: it comes back Available, perhaps with new firmware.
-        Receive<BootNotification>(boot =>
+        Receive<BootNotification>(Start);
+
+        Receive<Heartbeat>(_ => _missedHeartbeats = 0);
+        Receive<CheckHeartbeat>(_ =>
         {
-            _firmwareVersion = boot.FirmwareVersion;
-            Become(Available);
+            if (++_missedHeartbeats < MaxMissedHeartbeats)
+                return;
+
+            Timers.Cancel(HeartbeatCheckKey);
+            Context.Parent.Tell(new ChargerWentOffline(_chargePointId, _missedHeartbeats));
+            Become(Offline);
         });
+    }
+
+    private void Offline()
+    {
+        // The twin no longer knows the charger's status. Only a new BootNotification, which a
+        // charger sends when it reconnects, brings it back.
+        Receive<BootNotification>(Start);
+        Receive<GetStatus>(_ => Sender.Tell(
+            new ChargerStatusReport(_chargePointId, ChargerStatus.Offline, _firmwareVersion)));
+    }
+
+    private void Start(BootNotification boot)
+    {
+        _firmwareVersion = boot.FirmwareVersion;
+        _missedHeartbeats = 0;
+        // Starting a timer with a key that is already in use replaces the old timer.
+        Timers.StartPeriodicTimer(HeartbeatCheckKey, CheckHeartbeat.Instance, _heartbeatInterval);
+        Become(Available);
+    }
+
+    private sealed record CheckHeartbeat
+    {
+        public static readonly CheckHeartbeat Instance = new();
     }
 }

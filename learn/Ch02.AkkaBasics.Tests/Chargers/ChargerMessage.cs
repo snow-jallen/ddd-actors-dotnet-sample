@@ -9,4 +9,7 @@ public sealed record BootNotification(string Vendor, string Model, string Firmwa
 
 public sealed record StatusChanged(ChargerStatus Status) : ChargerMessage;
 
+/// <summary>The charger's periodic sign of life.</summary>
+public sealed record Heartbeat : ChargerMessage;
+
 public sealed record GetStatus : ChargerMessage;
