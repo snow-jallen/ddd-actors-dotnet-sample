@@ -16,13 +16,24 @@ public closed record ChargePointCommand(CommandId CommandId, ChargePointId Charg
 /// <summary>
 /// Add a charge point and its connectors to Ohmline's network. Connectors are numbered from 1
 /// without gaps, as the charge point itself numbers them, so connector n is the nth entry.
+/// Equal when the values are equal: a record alone would compare the array by reference.
 /// </summary>
 public sealed record RegisterChargePoint(
     CommandId CommandId,
     ChargePointId ChargePointId,
     SiteId SiteId,
     ImmutableArray<Power> ConnectorMaxPowers)
-    : ChargePointCommand(CommandId, ChargePointId);
+    : ChargePointCommand(CommandId, ChargePointId)
+{
+    public bool Equals(RegisterChargePoint? other) =>
+        other is not null
+        && base.Equals(other)
+        && SiteId == other.SiteId
+        && ConnectorMaxPowers.SequenceEqual(other.ConnectorMaxPowers);
+
+    public override int GetHashCode() =>
+        HashCode.Combine(base.GetHashCode(), SiteId, ConnectorMaxPowers.Length);
+}
 
 /// <summary>A command about one connector of the charge point.</summary>
 public closed record ConnectorCommand(

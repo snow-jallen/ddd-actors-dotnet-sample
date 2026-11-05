@@ -1,8 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Akka.TestKit.Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference
       Include="../../src/Charging/Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
+    <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
   </ItemGroup>
 
 </Project>

@@ -13,6 +13,7 @@ someone about to write a test: where the helpers are, and the smells to avoid.
 | An invariant that must survive any sequence of commands | `DeciderProperties` in `Ohmline.Testing`, with CsCheck generators | `SitePowerBudgetProperties`, `ChargingSessionProperties` |
 | Anything about time | A `FakeTimeProvider` the test moves on, read once per command with `DecisionContext.From(clock)` | `ReservationExpiryTests`, `IdleFeeGraceTests`, `TouBoundaryTests` |
 | A translator or a policy | A table of inputs and outputs, one row per case | `AssetTrackTranslationTableTests`, `PolicyTableTests` |
+| The shape of what is persisted or sent | `Golden.Verify` in `Ohmline.Testing`, one file per manifest in `tests/golden/`; accept a new file with `OHMLINE_ACCEPT_GOLDEN=1` | `SerializationTests` in `Ohmline.Charging.Actors.Tests` |
 
 Fixtures are named for the domain: `Known` (Charging), `TheDepot` (Site Energy) and
 `TheDepotTariff` (Tariffs) hold the people, places, tariffs and fixed instants the tests talk

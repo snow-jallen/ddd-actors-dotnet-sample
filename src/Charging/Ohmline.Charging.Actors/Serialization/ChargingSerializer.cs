@@ -1,0 +1,65 @@
+using System.Collections.Frozen;
+using Akka.Actor;
+using Ohmline.ActorShell.Serialization;
+using Ohmline.Charging.Contracts;
+using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Domain.ChargePoints;
+
+namespace Ohmline.Charging.Actors.Serialization;
+
+/// <summary>
+/// Everything Charging tells, asks, replies or persists, as JSON under a permanent manifest. The
+/// identifier and every manifest below are written into the journal beside each event, so they
+/// never change and are never reused (ADR 0007). A new type gets a new line; a new shape of an
+/// existing type gets a new manifest version, and the old line stays.
+/// </summary>
+public sealed class ChargingSerializer(ExtendedActorSystem system)
+    : ManifestJsonSerializer(system, Manifests)
+{
+    /// <summary>The name Akka.NET knows the serializer by, in configuration and logs.</summary>
+    public const string Name = "charging";
+
+    /// <summary>Every message whose type derives from one of these is written here.</summary>
+    public static IReadOnlyList<Type> BoundTypes { get; } =
+    [
+        typeof(ChargePointCommand),
+        typeof(ChargePointEvent),
+        typeof(ChargePointQuery),
+        typeof(ChargePointStatus),
+        typeof(CommandReply),
+    ];
+
+    public static FrozenDictionary<Type, string> Manifests { get; } = new Dictionary<Type, string>
+    {
+        [typeof(RegisterChargePoint)] = "charging.register-charge-point.v1",
+        [typeof(ReserveConnector)] = "charging.reserve-connector.v1",
+        [typeof(CancelReservation)] = "charging.cancel-reservation.v1",
+        [typeof(ExpireReservation)] = "charging.expire-reservation.v1",
+        [typeof(OccupyConnector)] = "charging.occupy-connector.v1",
+        [typeof(ReleaseConnector)] = "charging.release-connector.v1",
+        [typeof(ReportConnectorFault)] = "charging.report-connector-fault.v1",
+        [typeof(ClearConnectorFault)] = "charging.clear-connector-fault.v1",
+        [typeof(MakeConnectorUnavailable)] = "charging.make-connector-unavailable.v1",
+        [typeof(MakeConnectorAvailable)] = "charging.make-connector-available.v1",
+
+        [typeof(ChargePointRegistered)] = "charging.charge-point-registered.v1",
+        [typeof(ConnectorReserved)] = "charging.connector-reserved.v1",
+        [typeof(ReservationCancelled)] = "charging.reservation-cancelled.v1",
+        [typeof(ReservationExpired)] = "charging.reservation-expired.v1",
+        [typeof(ConnectorOccupied)] = "charging.connector-occupied.v1",
+        [typeof(ConnectorReleased)] = "charging.connector-released.v1",
+        [typeof(ConnectorFaulted)] = "charging.connector-faulted.v1",
+        [typeof(ConnectorFaultCleared)] = "charging.connector-fault-cleared.v1",
+        [typeof(ConnectorMadeUnavailable)] = "charging.connector-made-unavailable.v1",
+        [typeof(ConnectorMadeAvailable)] = "charging.connector-made-available.v1",
+
+        [typeof(GetChargePointStatus)] = "charging.get-charge-point-status.v1",
+        [typeof(ChargePointStatus)] = "charging.charge-point-status.v1",
+
+        [typeof(CommandAccepted)] = "charging.command-accepted.v1",
+        [typeof(CommandRejected)] = "charging.command-rejected.v1",
+    }.ToFrozenDictionary();
+
+    /// <summary>Permanent: Ohmline's serializer ids are listed in ADR 0007.</summary>
+    public override int Identifier => 9101;
+}
