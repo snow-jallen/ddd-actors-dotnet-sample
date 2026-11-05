@@ -38,6 +38,13 @@ public sealed class ChargingMetrics
     /// <summary>The aggregate's durable type name, such as <c>charge-point</c>.</summary>
     public const string AggregateTag = "aggregate.type";
 
+    /// <summary>
+    /// WRONG: the aggregate's persistence id, such as <c>charge-point-OHM-SLC-0042</c>. Handy
+    /// for finding the one charge point that refuses everything, and a new series for every
+    /// charge point, session and listing there will ever be.
+    /// </summary>
+    public const string AggregateIdTag = "aggregate.id";
+
     /// <summary>The command's type name, such as <c>ReserveConnector</c>.</summary>
     public const string CommandTag = "command.type";
 
@@ -89,11 +96,15 @@ public sealed class ChargingMetrics
     /// refused for the case of its error.
     /// </summary>
     public void Decided<TEvent, TError>(
-        string aggregateType, object command, Result<ImmutableArray<TEvent>, TError> decision)
+        string aggregateType,
+        string persistenceId,
+        object command,
+        Result<ImmutableArray<TEvent>, TError> decision)
     {
         var tags = new TagList
         {
             { AggregateTag, aggregateType },
+            { AggregateIdTag, persistenceId },
             { CommandTag, MessageNames.Of(command) },
         };
         _commands.Add(1, tags);

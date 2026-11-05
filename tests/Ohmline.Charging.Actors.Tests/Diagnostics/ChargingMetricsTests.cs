@@ -46,15 +46,23 @@ public sealed class ChargingMetricsTests : PersistenceShellSpec
         var decided = _recorded.Of(ChargingMetrics.Commands).ShouldHaveSingleItem();
         decided.Value.ShouldBe(1);
         decided.Tags.ShouldBe(Tags(("aggregate.type", "charge-point"),
+            ("aggregate.id", "charge-point-OHM-SLC-0042"),
             ("command.type", "OccupyConnector")), ignoreOrder: true);
         var refused = _recorded.Of(ChargingMetrics.CommandsRejected).ShouldHaveSingleItem();
         refused.Tags.ShouldBe(Tags(("aggregate.type", "charge-point"),
+            ("aggregate.id", "charge-point-OHM-SLC-0042"),
             ("command.type", "OccupyConnector"), ("reason", "ReservedForAnotherToken")),
             ignoreOrder: true);
     }
 
+    /// <summary>
+    /// With an id among the tags, twenty charge points make twenty series of one measurement
+    /// each, where main makes one series of twenty. Ohmline's thousands of charge points, its
+    /// sessions by the million, and every series kept by the backend, for as long as it keeps
+    /// metrics: the bill and the query time grow with the business.
+    /// </summary>
     [Fact]
-    public async Task Given_commands_to_many_charge_points_then_they_add_up_in_one_series()
+    public async Task Demonstrates_entity_ids_as_tags_make_a_series_per_charge_point()
     {
         for (var number = 1; number <= 20; number++)
         {
@@ -65,7 +73,7 @@ public sealed class ChargingMetricsTests : PersistenceShellSpec
 
         var decided = _recorded.Of(ChargingMetrics.Commands);
         decided.Count.ShouldBe(20);
-        decided.Select(measurement => Series(measurement.Tags)).Distinct().ShouldHaveSingleItem();
+        decided.Select(measurement => Series(measurement.Tags)).Distinct().Count().ShouldBe(20);
     }
 
     [Fact]

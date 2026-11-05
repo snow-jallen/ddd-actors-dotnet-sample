@@ -65,7 +65,7 @@ public sealed class ChargePointListingActor
     protected override void OnDecided(
         ChargePointListingCommand command,
         Result<ImmutableArray<ChargePointListingEvent>, ListingError> decision) =>
-        _metrics.Decided(TypeName, command, decision);
+        _metrics.Decided(TypeName, PersistenceId, command, decision);
 
     protected override object? ToSnapshot(
         ListingState state, ImmutableArray<RecentCommand> recent) =>

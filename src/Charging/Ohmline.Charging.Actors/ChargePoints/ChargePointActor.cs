@@ -87,7 +87,7 @@ public sealed class ChargePointActor
     protected override void OnDecided(
         ChargePointCommand command,
         Result<ImmutableArray<ChargePointEvent>, ChargePointError> decision) =>
-        _metrics.Decided(TypeName, command, decision);
+        _metrics.Decided(TypeName, PersistenceId, command, decision);
 
     /// <summary>Whatever happened to a connector, its timer follows its new state.</summary>
     protected override void OnEventApplied(ChargePointEvent @event)

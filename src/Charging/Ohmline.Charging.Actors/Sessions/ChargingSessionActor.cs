@@ -65,7 +65,7 @@ public sealed class ChargingSessionActor
 
     protected override void OnDecided(
         SessionCommand command, Result<ImmutableArray<SessionEvent>, SessionError> decision) =>
-        _metrics.Decided(TypeName, command, decision);
+        _metrics.Decided(TypeName, PersistenceId, command, decision);
 
     /// <summary>
     /// Counted as it is stored, never as it is replayed: a session that recovers did not start
