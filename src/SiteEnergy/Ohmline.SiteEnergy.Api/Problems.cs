@@ -26,7 +26,7 @@ internal static class Problems
 
     public static ProblemHttpResult Timeout(TimeSpan waited) => TypedResults.Problem(
         $"No answer within {waited.TotalSeconds:0.###} s. The command may still have been " +
-        "carried out.",
+        "carried out: send it again with the same Idempotency-Key.",
         statusCode: StatusCodes.Status504GatewayTimeout,
         title: "The site's power budget did not answer in time.");
 }

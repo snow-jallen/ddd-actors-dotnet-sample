@@ -33,7 +33,13 @@ public sealed class SessionEndpointsTests(ITestOutputHelper output) : EdgeTestKi
         var region = CreateTestProbe();
 
         var answer = SessionEndpoints.StartAsync(
-            Start, RegionOf<ChargingSessionRegion>(region), new Tariffs(), Clock, Options, Ct);
+            Start,
+            idempotencyKey: null,
+            RegionOf<ChargingSessionRegion>(region),
+            new Tariffs(),
+            Clock,
+            Options,
+            Ct);
         var start = await AnswerAsync<StartSession>(region, new CommandAccepted(1));
 
         start.SessionId.ShouldBe(new SessionId(Session));
@@ -52,6 +58,7 @@ public sealed class SessionEndpointsTests(ITestOutputHelper output) : EdgeTestKi
 
         var answer = await SessionEndpoints.StartAsync(
             Start with { TariffId = "slc-gold" },
+            null,
             RegionOf<ChargingSessionRegion>(region),
             new Tariffs(),
             Clock,
@@ -69,6 +76,7 @@ public sealed class SessionEndpointsTests(ITestOutputHelper output) : EdgeTestKi
     {
         var answer = await SessionEndpoints.StartAsync(
             Start with { SessionId = Guid.NewGuid() },
+            null,
             RegionOf<ChargingSessionRegion>(CreateTestProbe()),
             new Tariffs(),
             Clock,
@@ -86,6 +94,7 @@ public sealed class SessionEndpointsTests(ITestOutputHelper output) : EdgeTestKi
         var answer = SessionEndpoints.RecordMeterValueAsync(
             Session,
             new MeterValueRequest(1_207_400, Morning.AddMinutes(10)),
+            null,
             RegionOf<ChargingSessionRegion>(region),
             Clock,
             Options,
@@ -103,7 +112,7 @@ public sealed class SessionEndpointsTests(ITestOutputHelper output) : EdgeTestKi
         var region = CreateTestProbe();
 
         var answer = SessionEndpoints.StopAsync(
-            Session, RegionOf<ChargingSessionRegion>(region), Clock, Options, Ct);
+            Session, null, RegionOf<ChargingSessionRegion>(region), Clock, Options, Ct);
         var stop = await AnswerAsync<StopSession>(region, new CommandAccepted(3));
 
         stop.SessionId.ShouldBe(new SessionId(Session));

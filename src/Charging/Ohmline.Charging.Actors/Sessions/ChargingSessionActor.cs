@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Akka.Actor;
 using Ohmline.ActorShell.Deciders;
 using Ohmline.Charging.Contracts;
@@ -38,10 +39,20 @@ public sealed class ChargingSessionActor
     protected override object Rejected(string code, string message) =>
         new CommandRejected(code, message);
 
-    protected override object? ToSnapshot(SessionState state) => state.ToSnapshot();
+    protected override CommandId CommandIdOf(SessionCommand command) => command.CommandId;
 
-    protected override SessionState FromSnapshot(object snapshot) =>
-        ((ChargingSessionSnapshot)snapshot).ToState();
+    protected override CommandId CausationOf(SessionEvent @event) => @event.CommandId;
+
+    protected override object? ToSnapshot(
+        SessionState state, ImmutableArray<RecentCommand> recent) =>
+        state.ToSnapshot() is { } snapshot ? snapshot with { RecentCommands = recent } : null;
+
+    protected override (SessionState State, ImmutableArray<RecentCommand> Recent) FromSnapshot(
+        object snapshot)
+    {
+        var stored = (ChargingSessionSnapshot)snapshot;
+        return (stored.ToState(), stored.RecentCommands);
+    }
 
     /// <summary>
     /// An ended session changes no more: it leaves memory now, instead of after two idle

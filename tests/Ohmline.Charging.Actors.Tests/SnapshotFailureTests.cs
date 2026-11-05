@@ -23,28 +23,31 @@ public sealed class SnapshotFailureTests(ITestOutputHelper output)
     [Fact]
     public async Task Given_a_snapshot_due_that_cannot_be_saved_then_the_reply_is_unchanged()
     {
+        var reserve = Reserve(1, DriversCard);
         var scenario = Shell(
                 ChargePointActor.Props(Charger, _clock), ChargePointActor.PersistenceIdOf(Charger))
             .Given(NinetyNineEvents())
-            .When(Reserve(1, DriversCard))
+            .When(reserve)
             .WithSnapshotSave(save => save.Fail());
 
         await EventFilter
             .Warning(contains:
                 "charge-point-OHM-SLC-0042 could not save its snapshot at sequence number 100")
             .ExpectOneAsync(
-                () => scenario.ThenAsync(new CommandAccepted(100), Reserved(1, DriversCard)),
+                () => scenario.ThenAsync(
+                    new CommandAccepted(100), Reserved(1, DriversCard, by: reserve.CommandId)),
                 Ct);
     }
 
     [Fact]
     public async Task Given_a_state_sourced_listing_whose_snapshot_fails_then_its_event_stays()
     {
+        var revise = new ReviseChargePointListing(Command, Charger, "Depot", "Level -2", "24/7");
         var scenario = Shell(
                 ChargePointListingActor.Props(Charger, _clock),
                 ChargePointListingActor.PersistenceIdOf(Charger))
             .Given()
-            .When(new ReviseChargePointListing(Command, Charger, "Depot", "Level -2", "24/7"))
+            .When(revise)
             .WithSnapshotSave(save => save.Fail());
 
         await EventFilter
@@ -54,7 +57,7 @@ public sealed class SnapshotFailureTests(ITestOutputHelper output)
                     new CommandAccepted(1),
                     new ChargePointListingRevised(Charger, "Depot", "Level -2", "24/7", 1)
                     {
-                        CommandId = Command,
+                        CommandId = revise.CommandId,
                         OccurredAt = Morning,
                     }),
                 Ct);

@@ -30,10 +30,14 @@ public sealed class ChargePointActorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Given_a_new_charge_point_when_registered_then_it_is_accepted_at_version_1() =>
+    public async Task Given_a_new_charge_point_when_registered_then_it_is_accepted_at_version_1()
+    {
+        var register = Register();
+
         await ChargePoint.Given()
-            .When(Register())
-            .ThenAsync(new CommandAccepted(1), Registered());
+            .When(register)
+            .ThenAsync(new CommandAccepted(1), Registered(by: register.CommandId));
+    }
 
     [Fact]
     public async Task Given_accepted_commands_then_each_version_counts_the_events_persisted()
@@ -42,12 +46,13 @@ public sealed class ChargePointActorTests(ITestOutputHelper output)
         _clock.SetUtcNow(later);
 
         // The lapsed reservation expires and the new one is made: two events in one decision.
+        var reserve = Reserve(1, SomeoneElsesCard);
         await ChargePoint.Given(Registered(), Reserved(1, DriversCard))
-            .When(Reserve(1, SomeoneElsesCard))
+            .When(reserve)
             .ThenAsync(
                 new CommandAccepted(4),
-                Stamped(new ReservationExpired(Charger, 1, DriversCard), later),
-                Reserved(1, SomeoneElsesCard, later));
+                Stamped(new ReservationExpired(Charger, 1, DriversCard), later, reserve.CommandId),
+                Reserved(1, SomeoneElsesCard, later, reserve.CommandId));
     }
 
     [Fact]

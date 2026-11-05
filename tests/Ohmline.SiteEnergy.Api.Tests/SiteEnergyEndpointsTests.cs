@@ -53,7 +53,8 @@ public sealed class SiteEnergyEndpointsTests(ITestOutputHelper output)
     {
         var region = CreateTestProbe();
 
-        var answer = SiteEnergyEndpoints.ConfigureAsync(Site, Budgets(region), _clock, Options, Ct);
+        var answer = SiteEnergyEndpoints.ConfigureAsync(
+            Site, null, Budgets(region), _clock, Options, Ct);
         var configure = await region.ExpectMsgAsync<ConfigureSite>(cancellationToken: Ct);
         region.Reply(new BudgetCommandAccepted(1));
 
@@ -82,7 +83,7 @@ public sealed class SiteEnergyEndpointsTests(ITestOutputHelper output)
         };
 
         var answer = await SiteEnergyEndpoints.ConfigureAsync(
-            vip, Budgets(region), _clock, Options, Ct);
+            vip, null, Budgets(region), _clock, Options, Ct);
 
         var problem = answer.Result.ShouldBeOfType<ProblemHttpResult>();
         problem.StatusCode.ShouldBe(StatusCodes.Status422UnprocessableEntity);

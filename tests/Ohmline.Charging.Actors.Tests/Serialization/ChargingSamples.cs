@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Ohmline.ActorShell.Deciders;
 using Ohmline.Charging.Actors.ChargePoints;
 using Ohmline.Charging.Actors.Listings;
 using Ohmline.Charging.Actors.Sessions;
@@ -29,6 +30,9 @@ internal static class ChargingSamples
 
     public static readonly CommandId Command =
         new(Guid.Parse("019a4f6e-1c00-7d2a-9b3e-5c0a00000042"));
+
+    public static readonly CommandId Command2 =
+        new(Guid.Parse("019a4f6e-1c00-7d2a-9b3e-5c0a00000043"));
 
     public static readonly SessionId Session =
         new(Guid.Parse("019a4f6e-1c40-7a51-8e2f-3b1d00000001"));
@@ -131,7 +135,10 @@ internal static class ChargingSamples
                 new ConnectorSnapshot.Occupied(3, new Power(150m), Session),
                 new ConnectorSnapshot.Faulted(4, new Power(150m), "GroundFailure"),
                 new ConnectorSnapshot.Unavailable(5, new Power(7.4m)),
-            ]),
+            ])
+        {
+            RecentCommands = [new RecentCommand(Command, 41), new RecentCommand(Command2, 42)],
+        },
         new ChargingSessionSnapshot(
             Session,
             Depot,

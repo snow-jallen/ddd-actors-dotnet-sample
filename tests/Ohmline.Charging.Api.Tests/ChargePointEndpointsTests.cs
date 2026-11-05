@@ -22,7 +22,7 @@ public sealed class ChargePointEndpointsTests(ITestOutputHelper output) : EdgeTe
         var region = CreateTestProbe();
 
         var answer = ChargePointEndpoints.RegisterAsync(
-            Registration, RegionOf<ChargePointRegion>(region), Clock, Options, Ct);
+            Registration, null, RegionOf<ChargePointRegion>(region), Clock, Options, Ct);
         var command = await AnswerAsync<RegisterChargePoint>(region, new CommandAccepted(1));
 
         command.ChargePointId.ShouldBe(Charger);
@@ -40,6 +40,7 @@ public sealed class ChargePointEndpointsTests(ITestOutputHelper output) : EdgeTe
 
         var answer = await ChargePointEndpoints.RegisterAsync(
             new RegisterChargePointRequest("OHM-0042", "Depot!", [22m, -1m]),
+            null,
             RegionOf<ChargePointRegion>(region),
             Clock,
             Options,
@@ -56,6 +57,7 @@ public sealed class ChargePointEndpointsTests(ITestOutputHelper output) : EdgeTe
     {
         var answer = await ChargePointEndpoints.RegisterAsync(
             Registration with { ConnectorMaxPowersKw = [] },
+            null,
             RegionOf<ChargePointRegion>(CreateTestProbe()),
             Clock,
             Options,
@@ -72,7 +74,7 @@ public sealed class ChargePointEndpointsTests(ITestOutputHelper output) : EdgeTe
         var region = CreateTestProbe();
 
         var answer = ChargePointEndpoints.RegisterAsync(
-            Registration, RegionOf<ChargePointRegion>(region), Clock, Options, Ct);
+            Registration, null, RegionOf<ChargePointRegion>(region), Clock, Options, Ct);
         await AnswerAsync<RegisterChargePoint>(
             region,
             new CommandRejected("already-registered", "OHM-SLC-0042 is already registered."));
@@ -86,10 +88,12 @@ public sealed class ChargePointEndpointsTests(ITestOutputHelper output) : EdgeTe
     public async Task Given_no_answer_in_time_then_504_and_the_command_may_still_happen()
     {
         var answer = await ChargePointEndpoints.RegisterAsync(
-            Registration, RegionOf<ChargePointRegion>(CreateTestProbe()), Clock, Options, Ct);
+            Registration, null, RegionOf<ChargePointRegion>(CreateTestProbe()), Clock, Options, Ct);
 
         Problem(answer.Result, StatusCodes.Status504GatewayTimeout).ProblemDetails.Detail
-            .ShouldBe("No answer within 3 s. The command may still have been carried out.");
+            .ShouldBe(
+                "No answer within 3 s. The command may still have been carried out: send " +
+                "it again with the same Idempotency-Key.");
     }
 
     [Fact]
@@ -101,6 +105,7 @@ public sealed class ChargePointEndpointsTests(ITestOutputHelper output) : EdgeTe
             "OHM-SLC-0042",
             1,
             new ReservationRequest("04a2b3c4d5e6f7"),
+            null,
             RegionOf<ChargePointRegion>(region),
             Clock,
             Options,
@@ -120,6 +125,7 @@ public sealed class ChargePointEndpointsTests(ITestOutputHelper output) : EdgeTe
             "slc-depot",
             1,
             new ReservationRequest("04A2B3C4D5E6F7"),
+            null,
             RegionOf<ChargePointRegion>(CreateTestProbe()),
             Clock,
             Options,

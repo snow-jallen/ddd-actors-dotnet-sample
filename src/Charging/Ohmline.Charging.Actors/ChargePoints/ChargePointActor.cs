@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Akka.Actor;
 using Ohmline.ActorShell.Deciders;
 using Ohmline.Charging.Contracts;
@@ -57,10 +58,20 @@ public sealed class ChargePointActor
     protected override object Rejected(string code, string message) =>
         new CommandRejected(code, message);
 
-    protected override object? ToSnapshot(ChargePointState state) => state.ToSnapshot();
+    protected override CommandId CommandIdOf(ChargePointCommand command) => command.CommandId;
 
-    protected override ChargePointState FromSnapshot(object snapshot) =>
-        ((ChargePointSnapshot)snapshot).ToState();
+    protected override CommandId CausationOf(ChargePointEvent @event) => @event.CommandId;
+
+    protected override object? ToSnapshot(
+        ChargePointState state, ImmutableArray<RecentCommand> recent) =>
+        state.ToSnapshot() is { } snapshot ? snapshot with { RecentCommands = recent } : null;
+
+    protected override (ChargePointState State, ImmutableArray<RecentCommand> Recent) FromSnapshot(
+        object snapshot)
+    {
+        var stored = (ChargePointSnapshot)snapshot;
+        return (stored.ToState(), stored.RecentCommands);
+    }
 
     /// <summary>Whatever happened to a connector, its timer follows its new state.</summary>
     protected override void OnEventApplied(ChargePointEvent @event)

@@ -24,8 +24,11 @@ internal static class Known
 
     public static readonly SessionId Session = new(Guid.CreateVersion7(Morning));
 
-    /// <summary>One id for every command; the shell's duplicate check is section 12.6.</summary>
-    public static readonly CommandId Command = new(Guid.CreateVersion7(Morning));
+    /// <summary>
+    /// A new id each time it is read, as every sender gives each command its own: the shell
+    /// answers a command whose id it has already accepted with its first answer (section 12.6).
+    /// </summary>
+    public static CommandId Command => new(Guid.CreateVersion7(Morning));
 
     public static RegisterChargePoint Register(ChargePointId? chargePoint = null) =>
         new(Command, chargePoint ?? Charger, Depot, [new Power(22m), new Power(22m)]);
@@ -45,17 +48,25 @@ internal static class Known
         new(chargePoint ?? Charger);
 
     /// <summary>What <see cref="Register"/> records, stamped as the decider stamps it.</summary>
-    public static ChargePointEvent Registered() =>
-        Stamped(new ChargePointRegistered(Charger, Depot, [new Power(22m), new Power(22m)]));
+    public static ChargePointEvent Registered(CommandId? by = null) =>
+        Stamped(
+            new ChargePointRegistered(Charger, Depot, [new Power(22m), new Power(22m)]),
+            by: by);
 
     /// <summary>What <see cref="Reserve"/> records when decided at <paramref name="at"/>.</summary>
     public static ChargePointEvent Reserved(
-        int connector, TokenUid token, DateTimeOffset? at = null) =>
+        int connector, TokenUid token, DateTimeOffset? at = null, CommandId? by = null) =>
         Stamped(
             new ConnectorReserved(
                 Charger, connector, token, (at ?? Morning) + ChargePoint.ReservationHold),
-            at);
+            at,
+            by);
 
-    public static ChargePointEvent Stamped(ChargePointEvent @event, DateTimeOffset? at = null) =>
-        @event with { CommandId = Command, OccurredAt = at ?? Morning };
+    /// <summary>
+    /// Stamped as the decider stamps it: at <paramref name="at"/>, by the command with the id
+    /// <paramref name="by"/>, or, in a history, by an earlier command of its own.
+    /// </summary>
+    public static ChargePointEvent Stamped(
+        ChargePointEvent @event, DateTimeOffset? at = null, CommandId? by = null) =>
+        @event with { CommandId = by ?? Command, OccurredAt = at ?? Morning };
 }

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Ohmline.ActorShell.Deciders;
 using Ohmline.SharedKernel.Identity;
 
 namespace Ohmline.Charging.Actors.ChargePoints;
@@ -13,11 +14,22 @@ namespace Ohmline.Charging.Actors.ChargePoints;
 public sealed record ChargePointSnapshot(
     ChargePointId ChargePointId, SiteId SiteId, ImmutableArray<ConnectorSnapshot> Connectors)
 {
+    /// <summary>
+    /// The commands it accepted most recently, so that a duplicate after a restart still gets
+    /// its first answer (section 12.6). A snapshot stored before there was a window has none.
+    /// </summary>
+    public ImmutableArray<RecentCommand> RecentCommands
+    {
+        get;
+        init => field = value.IsDefault ? [] : value;
+    } = [];
+
     public bool Equals(ChargePointSnapshot? other) =>
         other is not null
         && ChargePointId == other.ChargePointId
         && SiteId == other.SiteId
-        && Connectors.SequenceEqual(other.Connectors);
+        && Connectors.SequenceEqual(other.Connectors)
+        && RecentCommands.SequenceEqual(other.RecentCommands);
 
     public override int GetHashCode() =>
         HashCode.Combine(ChargePointId, SiteId, Connectors.Length);

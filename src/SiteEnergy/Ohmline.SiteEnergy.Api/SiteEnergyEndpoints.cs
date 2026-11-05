@@ -4,6 +4,7 @@ using Akka.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -46,12 +47,14 @@ public static class SiteEnergyEndpoints
     public static async Task<Results<Accepted<CommandAcceptedResponse>, ProblemHttpResult>>
         ConfigureAsync(
             SiteRequest request,
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
             IRequiredActor<SitePowerBudgetRegion> budgets,
             TimeProvider clock,
             IOptions<SiteEnergyApiOptions> options,
             CancellationToken cancellationToken)
     {
         var fields = new RequestFields();
+        var commandId = fields.CommandIdFrom(idempotencyKey, clock);
         var siteId = fields.Read("siteId", SiteId.TryCreate(request.SiteId));
         var gridLimit = fields.Read("gridLimitKw", Power.TryCreate(request.GridLimitKw));
         var margin = fields.Read("safetyMarginKw", Power.TryCreate(request.SafetyMarginKw));
@@ -64,7 +67,7 @@ public static class SiteEnergyEndpoints
         }
 
         var configure = new ConfigureSite(
-            CommandId.New(clock), siteId, gridLimit, margin, request.TimeZoneId ?? "", connectors);
+            commandId, siteId, gridLimit, margin, request.TimeZoneId ?? "", connectors);
         var timeout = options.Value.AskTimeout;
         try
         {

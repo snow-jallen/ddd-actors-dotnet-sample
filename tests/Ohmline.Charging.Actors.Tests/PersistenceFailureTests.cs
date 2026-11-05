@@ -39,14 +39,16 @@ public sealed class PersistenceFailureTests(ITestOutputHelper output)
         var deadLetters = CreateTestProbe();
         Sys.EventStream.Subscribe(deadLetters.Ref, typeof(DeadLetter));
 
+        var waiting = Reserve(2, SomeoneElsesCard);
+
         await WithJournalWrite(write => write.FailWithDelay(Quiet), async () =>
         {
             chargePoint.Tell(Reserve(1, DriversCard), TestActor);
-            chargePoint.Tell(Reserve(2, SomeoneElsesCard), TestActor); // Waits for the write.
+            chargePoint.Tell(waiting, TestActor); // Waits for the write.
 
             var lost = await deadLetters.FishForMessageAsync<DeadLetter>(
                 letter => letter.Message is ReserveConnector, cancellationToken: Ct);
-            lost.Message.ShouldBe(Reserve(2, SomeoneElsesCard));
+            lost.Message.ShouldBe(waiting);
         });
     }
 

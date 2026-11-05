@@ -8,6 +8,7 @@ using Ohmline.ActorShell.Serialization;
 using Ohmline.ActorShell.Sharding;
 using Ohmline.SharedKernel;
 using Ohmline.SharedKernel.Deciders;
+using Ohmline.SharedKernel.Identity;
 
 namespace Ohmline.ActorShell.Deciders;
 
@@ -32,6 +33,7 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
 {
     private readonly TimeProvider _clock;
     private readonly ILoggingAdapter _log = Context.GetLogger();
+    private readonly RecentCommands _recent = new();
     private readonly long _startedAt = Stopwatch.GetTimestamp();
     private int _eventsReplayed;
     private long _snapshotSequenceNr;
@@ -49,7 +51,8 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
         // only. Never Decide, never a reply, never a side effect.
         Recover<SnapshotOffer>(offer =>
         {
-            State = FromSnapshot(offer.Snapshot);
+            (State, var recent) = FromSnapshot(offer.Snapshot);
+            _recent.Restore(recent);
             _snapshotSequenceNr = offer.Metadata.SequenceNr;
         });
         Recover<TEvent>(Replay);
@@ -99,14 +102,22 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     /// </summary>
     protected virtual int SnapshotEvery => 100;
 
+    /// <summary>The id its sender gave the command (section 8.1).</summary>
+    protected abstract CommandId CommandIdOf(TCommand command);
+
+    /// <summary>The id of the command that caused the event, which every event records.</summary>
+    protected abstract CommandId CausationOf(TEvent @event);
+
     /// <summary>
     /// The state as the aggregate's snapshot DTO, which has a manifest of its own and is never
-    /// the state union itself; or null when the state has nothing worth keeping.
+    /// the state union itself, with the window of recent commands in it; or null when the state
+    /// has nothing worth keeping.
     /// </summary>
-    protected abstract object? ToSnapshot(TState state);
+    protected abstract object? ToSnapshot(TState state, ImmutableArray<RecentCommand> recent);
 
-    /// <summary>The state back from the DTO that <see cref="ToSnapshot"/> made.</summary>
-    protected abstract TState FromSnapshot(object snapshot);
+    /// <summary>The state and the recent commands back from the DTO that ToSnapshot made.</summary>
+    protected abstract (TState State, ImmutableArray<RecentCommand> Recent) FromSnapshot(
+        object snapshot);
 
     /// <summary>
     /// A snapshot is stored, which makes the older ones useless: they are deleted, so that one
@@ -169,9 +180,14 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
         }
     }
 
+    /// <summary>
+    /// Every event also says which command caused it, so the window of recent commands comes
+    /// back with the state; its version is the sequence number of the command's last event.
+    /// </summary>
     private void Replay(TEvent @event)
     {
         State = TDecider.Evolve(State, @event);
+        _recent.Record(CausationOf(@event), LastSequenceNr);
         _eventsReplayed++;
     }
 
@@ -199,6 +215,14 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     /// </summary>
     protected void Handle(TCommand command, IActorRef replyTo)
     {
+        if (_recent.TryGetVersion(CommandIdOf(command), out var version))
+        {
+            // Sent again: a retry after a timeout, or a duplicate delivery. It gets the answer
+            // it got the first time, and nothing is decided or stored again (section 12.6).
+            replyTo.Tell(Accepted(version));
+            return;
+        }
+
         switch (TDecider.Decide(State, command, DecisionContext.From(_clock)))
         {
             case Ok<ImmutableArray<TEvent>> { Value.IsEmpty: true }:
@@ -264,8 +288,9 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     private void Apply(TEvent @event)
     {
         State = TDecider.Evolve(State, @event);
+        _recent.Record(CausationOf(@event), LastSequenceNr);
         if (SnapshotEvery > 0 && LastSequenceNr % SnapshotEvery == 0
-            && ToSnapshot(State) is { } snapshot)
+            && ToSnapshot(State, _recent.ToSnapshot()) is { } snapshot)
         {
             // Asynchronous: the next command does not wait for the snapshot store.
             SaveSnapshot(snapshot);

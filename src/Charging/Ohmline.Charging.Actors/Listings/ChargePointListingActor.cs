@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Akka.Actor;
 using Ohmline.ActorShell.Deciders;
 using Ohmline.Charging.Contracts;
@@ -42,8 +43,19 @@ public sealed class ChargePointListingActor
     protected override object Rejected(string code, string message) =>
         new CommandRejected(code, message);
 
-    protected override object? ToSnapshot(ListingState state) => state.ToSnapshot();
+    protected override CommandId CommandIdOf(ChargePointListingCommand command) =>
+        command.CommandId;
 
-    protected override ListingState FromSnapshot(object snapshot) =>
-        ((ChargePointListingSnapshot)snapshot).ToState();
+    protected override CommandId CausationOf(ChargePointListingEvent @event) => @event.CommandId;
+
+    protected override object? ToSnapshot(
+        ListingState state, ImmutableArray<RecentCommand> recent) =>
+        state.ToSnapshot() is { } snapshot ? snapshot with { RecentCommands = recent } : null;
+
+    protected override (ListingState State, ImmutableArray<RecentCommand> Recent) FromSnapshot(
+        object snapshot)
+    {
+        var stored = (ChargePointListingSnapshot)snapshot;
+        return (stored.ToState(), stored.RecentCommands);
+    }
 }

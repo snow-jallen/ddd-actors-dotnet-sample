@@ -1,6 +1,7 @@
 using Akka.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Ohmline.Charging.Api.Requests;
 using Ohmline.Charging.Api.Responses;
@@ -47,6 +48,7 @@ public static class ListingEndpoints
         ReviseAsync(
             string id,
             ListingRequest request,
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
             IRequiredActor<ChargePointListingRegion> listings,
             TimeProvider clock,
             IOptions<ChargingApiOptions> options,
@@ -57,8 +59,15 @@ public static class ListingEndpoints
             return Problems.NotFound($"'{id}' is not a charge point id.");
         }
 
+        var fields = new RequestFields();
+        var commandId = fields.CommandIdFrom(idempotencyKey, clock);
+        if (!fields.AreValid)
+        {
+            return fields.Problem();
+        }
+
         var revision = new ReviseChargePointListing(
-            CommandId.New(clock),
+            commandId,
             chargePointId,
             request.DisplayName ?? "",
             request.AccessInstructions ?? "",

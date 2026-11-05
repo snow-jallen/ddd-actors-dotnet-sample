@@ -28,9 +28,9 @@ public sealed class JournalTourTests(ITestOutputHelper output)
         await using var node = await SqliteNode.StartAsync(database, clock, Ct);
         var before = DateTimeOffset.UtcNow;
 
-        (await node.AskAsync<CommandReply>(Register(), Ct)).ShouldBe(new CommandAccepted(1));
-        (await node.AskAsync<CommandReply>(Reserve(1, DriversCard), Ct))
-            .ShouldBe(new CommandAccepted(2));
+        var (register, reserve) = (Register(), Reserve(1, DriversCard));
+        (await node.AskAsync<CommandReply>(register, Ct)).ShouldBe(new CommandAccepted(1));
+        (await node.AskAsync<CommandReply>(reserve, Ct)).ShouldBe(new CommandAccepted(2));
         (await node.AskAsync<CommandReply>(Occupy(1, SomeoneElsesCard), Ct))
             .ShouldBeOfType<CommandRejected>().Code.ShouldBe("reserved-for-another-token");
 
@@ -49,8 +49,8 @@ public sealed class JournalTourTests(ITestOutputHelper output)
                 row.Message, row.Identifier, row.Manifest))
             .ShouldBe(
             [
-                Stamped(new ChargePointRegistered(Charger, Depot, [new(22m), new(22m)])),
-                Stamped(new ConnectorReserved(Charger, 1, DriversCard, Morning.AddMinutes(15))),
+                Registered(by: register.CommandId),
+                Reserved(1, DriversCard, by: reserve.CommandId),
             ]);
         (await Lines(connection, JournalTourQueries.Tags)).ShouldBeEmpty();
         (await Lines(connection, JournalTourQueries.Snapshots)).ShouldBeEmpty();

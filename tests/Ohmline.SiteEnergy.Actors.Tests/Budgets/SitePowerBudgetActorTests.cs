@@ -35,13 +35,15 @@ public sealed class SitePowerBudgetActorTests(ITestOutputHelper output)
             .When(new ApplyCurtailment(Command, Site, new Power(120m)))
             .ThenAsync(
                 new BudgetCommandAccepted(5),
-                Stamped(new CurtailmentApplied(Site, new Power(120m))),
-                Stamped(new AllocationsRebalanced(
-                    Site,
-                    [
-                        new PowerAllocation(Fleet1, new Power(50m)),
-                        new PowerAllocation(Public2, new Power(20m)),
-                    ])));
+                Stamped(new CurtailmentApplied(Site, new Power(120m)), by: Command),
+                Stamped(
+                    new AllocationsRebalanced(
+                        Site,
+                        [
+                            new PowerAllocation(Fleet1, new Power(50m)),
+                            new PowerAllocation(Public2, new Power(20m)),
+                        ]),
+                    by: Command));
 
     [Fact]
     public async Task Given_an_open_request_when_another_session_asks_then_it_is_rejected() =>
@@ -61,7 +63,7 @@ public sealed class SitePowerBudgetActorTests(ITestOutputHelper output)
     public async Task Given_a_configured_site_when_power_is_requested_then_it_is_granted() =>
         await Budget.Given(Configured())
             .When(Request(Fleet1, BusSession))
-            .ThenAsync(new BudgetCommandAccepted(2), Granted(Fleet1, BusSession));
+            .ThenAsync(new BudgetCommandAccepted(2), Granted(Fleet1, BusSession, by: Command));
 
     [Fact]
     public async Task Given_a_configured_site_in_the_journal_then_the_new_incarnation_remembers() =>
@@ -103,9 +105,16 @@ public sealed class SitePowerBudgetActorTests(ITestOutputHelper output)
     private static SitePowerBudgetEvent Configured() =>
         Stamped(new SiteConfigured(Site, SiteEnergySamples.Depot));
 
-    private static SitePowerBudgetEvent Granted(ConnectorId connector, SessionId session) =>
-        Stamped(new AllocationGranted(Site, connector, session, new Power(50m), new Power(50m)));
+    private static SitePowerBudgetEvent Granted(
+        ConnectorId connector, SessionId session, CommandId? by = null) =>
+        Stamped(
+            new AllocationGranted(Site, connector, session, new Power(50m), new Power(50m)), by);
 
-    private static SitePowerBudgetEvent Stamped(SitePowerBudgetEvent @event) =>
-        @event with { CommandId = Command, OccurredAt = Morning };
+    /// <summary>
+    /// Stamped by the command with the id <paramref name="by"/>, or, in a history, by an earlier
+    /// command of its own: the shell answers a command whose id it has seen without deciding it.
+    /// </summary>
+    private static SitePowerBudgetEvent Stamped(
+        SitePowerBudgetEvent @event, CommandId? by = null) =>
+        @event with { CommandId = by ?? new(Guid.CreateVersion7(Morning)), OccurredAt = Morning };
 }

@@ -4,6 +4,7 @@ using Ohmline.Charging.Actors.Tests.Serialization;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.Sessions;
+using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Units;
 using Ohmline.Testing;
 using static Ohmline.Charging.Actors.Tests.Known;
@@ -30,30 +31,40 @@ public sealed class ChargingSessionActorTests(ITestOutputHelper output)
         ChargingSessionActor.PersistenceIdOf(Session).ShouldBe($"charging-session-{Session}");
 
     [Fact]
-    public async Task Given_no_session_when_it_starts_then_its_terms_are_recorded_at_version_1() =>
+    public async Task Given_no_session_when_it_starts_then_its_terms_are_recorded_at_version_1()
+    {
+        var begin = Begin();
+
         await ChargingSession.Given()
-            .When(Begin())
-            .ThenAsync(new CommandAccepted(1), Started());
+            .When(begin)
+            .ThenAsync(new CommandAccepted(1), Started(by: begin.CommandId));
+    }
 
     [Fact]
-    public async Task Given_a_started_session_when_metered_then_the_reading_is_recorded() =>
+    public async Task Given_a_started_session_when_metered_then_the_reading_is_recorded()
+    {
+        var meter = new RecordMeterValue(Command, Session, 1_207_400, Later);
+
         await ChargingSession.Given(Started())
-            .When(new RecordMeterValue(Command, Session, 1_207_400, Later))
-            .ThenAsync(new CommandAccepted(2), Metered());
+            .When(meter)
+            .ThenAsync(new CommandAccepted(2), Metered(by: meter.CommandId));
+    }
 
     [Fact]
     public async Task Given_a_metered_session_when_stopped_then_it_ends_with_the_energy_delivered()
     {
         _clock.SetUtcNow(Later);
 
+        var stop = new StopSession(Command, Session);
         await ChargingSession.Given(Started(), Metered())
-            .When(new StopSession(Command, Session))
+            .When(stop)
             .ThenAsync(
                 new CommandAccepted(3),
                 Stamped(
                     new SessionEnded(
                         Session, Depot, ChargingSamples.Connector, DriversCard, new Energy(7.4m)),
-                    Later));
+                    Later,
+                    stop.CommandId));
     }
 
     [Fact]
@@ -87,18 +98,20 @@ public sealed class ChargingSessionActorTests(ITestOutputHelper output)
         ChargingSamples.SpendCap,
         MeterStartWh: 1_200_000);
 
-    private static SessionEvent Started() => Stamped(new SessionStarted(
+    private static SessionEvent Started(CommandId? by = null) => Stamped(new SessionStarted(
         Session,
         Depot,
         ChargingSamples.Connector,
         DriversCard,
         ChargingSamples.Tariff,
         ChargingSamples.SpendCap,
-        MeterStartWh: 1_200_000));
+        MeterStartWh: 1_200_000),
+        by: by);
 
-    private static SessionEvent Metered() =>
-        Stamped(new MeterValueRecorded(Session, 1_207_400, Later));
+    private static SessionEvent Metered(CommandId? by = null) =>
+        Stamped(new MeterValueRecorded(Session, 1_207_400, Later), by: by);
 
-    private static SessionEvent Stamped(SessionEvent @event, DateTimeOffset? at = null) =>
-        @event with { CommandId = Command, OccurredAt = at ?? Morning };
+    private static SessionEvent Stamped(
+        SessionEvent @event, DateTimeOffset? at = null, CommandId? by = null) =>
+        @event with { CommandId = by ?? Command, OccurredAt = at ?? Morning };
 }

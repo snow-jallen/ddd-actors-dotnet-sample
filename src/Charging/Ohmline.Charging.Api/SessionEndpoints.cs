@@ -22,6 +22,7 @@ public static class SessionEndpoints
     public static async Task<Results<Accepted<CommandAcceptedResponse>, ProblemHttpResult>>
         StartAsync(
             StartSessionRequest request,
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
             IRequiredActor<ChargingSessionRegion> sessions,
             [FromServices] ITariffCatalog tariffs,
             TimeProvider clock,
@@ -29,6 +30,7 @@ public static class SessionEndpoints
             CancellationToken cancellationToken)
     {
         var fields = new RequestFields();
+        var commandId = fields.CommandIdFrom(idempotencyKey, clock);
         var sessionId = fields.Read("sessionId", SessionId.TryCreate(request.SessionId));
         var siteId = fields.Read("siteId", SiteId.TryCreate(request.SiteId));
         var connectorId = fields.Read("connectorId", ConnectorId.TryCreate(request.ConnectorId));
@@ -48,7 +50,7 @@ public static class SessionEndpoints
         }
 
         var start = new StartSession(
-            CommandId.New(clock),
+            commandId,
             sessionId,
             siteId,
             connectorId,
@@ -68,6 +70,7 @@ public static class SessionEndpoints
         RecordMeterValueAsync(
             Guid id,
             MeterValueRequest request,
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
             IRequiredActor<ChargingSessionRegion> sessions,
             TimeProvider clock,
             IOptions<ChargingApiOptions> options,
@@ -78,10 +81,16 @@ public static class SessionEndpoints
             return Problems.NotFound($"'{id}' is not a session id.");
         }
 
+        var fields = new RequestFields();
+        var commandId = fields.CommandIdFrom(idempotencyKey, clock);
+        if (!fields.AreValid)
+        {
+            return fields.Problem();
+        }
+
         return await Edge.SendAsync(
             sessions.ActorRef,
-            new RecordMeterValue(
-                CommandId.New(clock), sessionId, request.RegisterWh, request.MeasuredAt),
+            new RecordMeterValue(commandId, sessionId, request.RegisterWh, request.MeasuredAt),
             $"/sessions/{sessionId}",
             options.Value.AskTimeout,
             cancellationToken);
@@ -90,6 +99,7 @@ public static class SessionEndpoints
     public static async Task<Results<Accepted<CommandAcceptedResponse>, ProblemHttpResult>>
         StopAsync(
             Guid id,
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
             IRequiredActor<ChargingSessionRegion> sessions,
             TimeProvider clock,
             IOptions<ChargingApiOptions> options,
@@ -100,9 +110,16 @@ public static class SessionEndpoints
             return Problems.NotFound($"'{id}' is not a session id.");
         }
 
+        var fields = new RequestFields();
+        var commandId = fields.CommandIdFrom(idempotencyKey, clock);
+        if (!fields.AreValid)
+        {
+            return fields.Problem();
+        }
+
         return await Edge.SendAsync(
             sessions.ActorRef,
-            new StopSession(CommandId.New(clock), sessionId),
+            new StopSession(commandId, sessionId),
             $"/sessions/{sessionId}",
             options.Value.AskTimeout,
             cancellationToken);

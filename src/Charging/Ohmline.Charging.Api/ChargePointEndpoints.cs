@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Akka.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Ohmline.Charging.Api.Requests;
 using Ohmline.Charging.Api.Responses;
@@ -17,12 +18,14 @@ public static class ChargePointEndpoints
     public static async Task<Results<Accepted<CommandAcceptedResponse>, ProblemHttpResult>>
         RegisterAsync(
             RegisterChargePointRequest request,
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
             IRequiredActor<ChargePointRegion> chargePoints,
             TimeProvider clock,
             IOptions<ChargingApiOptions> options,
             CancellationToken cancellationToken)
     {
         var fields = new RequestFields();
+        var commandId = fields.CommandIdFrom(idempotencyKey, clock);
         var chargePointId =
             fields.Read("chargePointId", ChargePointId.TryCreate(request.ChargePointId));
         var siteId = fields.Read("siteId", SiteId.TryCreate(request.SiteId));
@@ -43,7 +46,7 @@ public static class ChargePointEndpoints
 
         return await Edge.SendAsync(
             chargePoints.ActorRef,
-            new RegisterChargePoint(CommandId.New(clock), chargePointId, siteId, maxPowers),
+            new RegisterChargePoint(commandId, chargePointId, siteId, maxPowers),
             $"/charge-points/{chargePointId}",
             options.Value.AskTimeout,
             cancellationToken);
@@ -54,6 +57,7 @@ public static class ChargePointEndpoints
             string id,
             int number,
             ReservationRequest request,
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
             IRequiredActor<ChargePointRegion> chargePoints,
             TimeProvider clock,
             IOptions<ChargingApiOptions> options,
@@ -65,6 +69,7 @@ public static class ChargePointEndpoints
         }
 
         var fields = new RequestFields();
+        var commandId = fields.CommandIdFrom(idempotencyKey, clock);
         var tokenUid = fields.Read("tokenUid", TokenUid.TryCreate(request.TokenUid));
         if (!fields.AreValid)
         {
@@ -73,7 +78,7 @@ public static class ChargePointEndpoints
 
         return await Edge.SendAsync(
             chargePoints.ActorRef,
-            new ReserveConnector(CommandId.New(clock), chargePointId, number, tokenUid),
+            new ReserveConnector(commandId, chargePointId, number, tokenUid),
             $"/charge-points/{chargePointId}",
             options.Value.AskTimeout,
             cancellationToken);

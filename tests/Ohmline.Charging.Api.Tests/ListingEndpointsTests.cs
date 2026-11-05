@@ -20,6 +20,7 @@ public sealed class ListingEndpointsTests(ITestOutputHelper output) : EdgeTestKi
         var answer = ListingEndpoints.ReviseAsync(
             "OHM-SLC-0042",
             new ListingRequest("Salt Lake bus depot, public bays", "Level -2, bays 14-19", "24/7"),
+            null,
             RegionOf<ChargePointListingRegion>(region),
             Clock,
             Options,

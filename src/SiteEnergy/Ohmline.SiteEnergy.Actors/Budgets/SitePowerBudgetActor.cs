@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Akka.Actor;
 using Ohmline.ActorShell.Deciders;
 using Ohmline.SharedKernel.Identity;
@@ -39,8 +40,18 @@ public sealed class SitePowerBudgetActor
     protected override object Rejected(string code, string message) =>
         new BudgetCommandRejected(code, message);
 
-    protected override object? ToSnapshot(SitePowerBudgetState state) => state.ToSnapshot();
+    protected override CommandId CommandIdOf(SitePowerBudgetCommand command) => command.CommandId;
 
-    protected override SitePowerBudgetState FromSnapshot(object snapshot) =>
-        ((SitePowerBudgetSnapshot)snapshot).ToState();
+    protected override CommandId CausationOf(SitePowerBudgetEvent @event) => @event.CommandId;
+
+    protected override object? ToSnapshot(
+        SitePowerBudgetState state, ImmutableArray<RecentCommand> recent) =>
+        state.ToSnapshot() is { } snapshot ? snapshot with { RecentCommands = recent } : null;
+
+    protected override (SitePowerBudgetState State, ImmutableArray<RecentCommand> Recent)
+        FromSnapshot(object snapshot)
+    {
+        var stored = (SitePowerBudgetSnapshot)snapshot;
+        return (stored.ToState(), stored.RecentCommands);
+    }
 }

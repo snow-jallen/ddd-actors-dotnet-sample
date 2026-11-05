@@ -17,7 +17,7 @@ public sealed class DevScaffoldingEndpointsTests(ITestOutputHelper output) : Edg
 
         var answer = DevScaffoldingEndpoints.PlugInAsync(
             new DevScaffoldingEndpoints.Charger(
-                "OHM-SLC-0042", 1, RegionOf<ChargePointRegion>(region), Clock, Options, Ct),
+                "OHM-SLC-0042", 1, null, RegionOf<ChargePointRegion>(region), Clock, Options, Ct),
             new DevScaffoldingEndpoints.PlugIn(session, "04A2B3C4D5E6F7"));
         var occupy = await AnswerAsync<OccupyConnector>(region, new CommandAccepted(3));
 

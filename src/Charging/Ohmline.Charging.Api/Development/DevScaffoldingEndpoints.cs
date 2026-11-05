@@ -2,6 +2,7 @@ using Akka.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -78,10 +79,11 @@ public static class DevScaffoldingEndpoints
         charger.ReportAsync((command, chargePoint) =>
             new ClearConnectorFault(command, chargePoint, charger.Number));
 
-    /// <summary>The connector in the route, and the services every report needs.</summary>
+    /// <summary>The connector in the route, and what every report needs.</summary>
     public readonly record struct Charger(
         string Id,
         int Number,
+        [FromHeader(Name = "Idempotency-Key")] string? IdempotencyKey,
         IRequiredActor<ChargePointRegion> ChargePoints,
         TimeProvider Clock,
         IOptions<ChargingApiOptions> Options,
@@ -95,9 +97,16 @@ public static class DevScaffoldingEndpoints
                 return Problems.NotFound($"'{Id}' is not a charge point id.");
             }
 
+            var fields = new RequestFields();
+            var commandId = fields.CommandIdFrom(IdempotencyKey, Clock);
+            if (!fields.AreValid)
+            {
+                return fields.Problem();
+            }
+
             return await Edge.SendAsync(
                 ChargePoints.ActorRef,
-                report(CommandId.New(Clock), chargePointId),
+                report(commandId, chargePointId),
                 $"/charge-points/{chargePointId}",
                 Options.Value.AskTimeout,
                 Aborted);

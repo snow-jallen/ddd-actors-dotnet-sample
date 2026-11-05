@@ -39,6 +39,25 @@ public sealed class ChargePointSnapshotTests(ITestOutputHelper output)
         read.ShouldBeOfType<ChargePointSnapshot>().ToState().ShouldBe(state);
     }
 
+    /// <summary>
+    /// The window of recent commands was added to the snapshot in section 12.6 as an optional
+    /// field, under the same manifest: a snapshot stored before it reads with an empty window.
+    /// </summary>
+    [Fact]
+    public void Given_a_snapshot_stored_before_the_window_existed_then_it_reads_with_none()
+    {
+        var before = """
+            {"chargePointId":"OHM-SLC-0042","siteId":"slc-depot","connectors":[
+              {"$kind":"available","number":1,"maxPower":22}]}
+            """u8.ToArray();
+
+        var read = Sys.Serialization.Deserialize(before, 9101, "charging.charge-point-snapshot.v1");
+
+        var snapshot = read.ShouldBeOfType<ChargePointSnapshot>();
+        snapshot.Connectors.ShouldHaveSingleItem();
+        snapshot.RecentCommands.ShouldBeEmpty();
+    }
+
     private static KeyValuePair<int, Connector> Connector(int number, ConnectorState state) =>
         new(number, new Connector(new ConnectorId(Charger, number), new Power(22m), state));
 }
