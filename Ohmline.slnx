@@ -45,6 +45,7 @@
     <Project Path="src/Tariffs/Ohmline.Tariffs.Domain/Ohmline.Tariffs.Domain.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Ohmline.ArchitectureTests/Ohmline.ArchitectureTests.csproj" />
     <Project Path="tests/Ohmline.SharedKernel.Tests/Ohmline.SharedKernel.Tests.csproj" />
   </Folder>
 </Solution>

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Checks the dependency rules of the solution layout on the compiled assemblies (section 5.3).
+    The wildcards pick up every bounded context's Domain and Contracts projects, including
+    ones that do not exist yet, so a new context is checked from its first commit.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/**/Ohmline.*.Domain.csproj" />
+    <ProjectReference Include="../../src/**/Ohmline.*.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

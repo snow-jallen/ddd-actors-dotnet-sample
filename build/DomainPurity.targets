@@ -1,0 +1,44 @@
+<Project>
+
+  <!--
+    A *.Domain project is the pure core of its bounded context (ADR 0002). It may reference the
+    shared kernel and Contracts projects, and nothing that runs actors, telemetry, databases or
+    HTTP. This target fails the build before the compiler runs if a domain project asks for one
+    of those, so the mistake never reaches a pull request. tests/Ohmline.ArchitectureTests
+    checks the compiled assemblies as well.
+  -->
+
+  <PropertyGroup>
+    <IsOhmlineDomainProject>$(MSBuildProjectName.EndsWith('.Domain'))</IsOhmlineDomainProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ForbiddenDomainPackagePrefix Include="Akka" />
+    <ForbiddenDomainPackagePrefix Include="OpenTelemetry" />
+    <ForbiddenDomainPackagePrefix Include="Npgsql" />
+    <ForbiddenDomainPackagePrefix Include="Microsoft.AspNetCore" />
+  </ItemGroup>
+
+  <Target Name="CheckDomainPurity"
+          BeforeTargets="CoreCompile"
+          Condition="'$(IsOhmlineDomainProject)' == 'true'">
+    <PropertyGroup>
+      <_Forbidden>(?i)^(@(ForbiddenDomainPackagePrefix->'%(Identity)', '|'))</_Forbidden>
+      <_Rule>A domain project must stay pure (section 5.3).</_Rule>
+      <_Advice>Move the code that needs it to an Actors, ReadModels or Api project.</_Advice>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_ImpureReference Include="@(PackageReference)"
+          Condition="$([System.Text.RegularExpressions.Regex]::IsMatch(
+                        '%(Identity)', '$(_Forbidden)'))" />
+      <_ImpureReference Include="@(FrameworkReference)"
+          Condition="'%(Identity)' == 'Microsoft.AspNetCore.App'" />
+    </ItemGroup>
+
+    <Error Condition="'@(_ImpureReference)' != ''"
+           Code="OHM0001"
+           Text="$(MSBuildProjectName) references @(_ImpureReference, ', '). $(_Rule) $(_Advice)" />
+  </Target>
+
+</Project>
