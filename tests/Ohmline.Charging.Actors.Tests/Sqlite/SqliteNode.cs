@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Ohmline.ActorShell.Clustering;
+using Ohmline.Charging.Actors.Diagnostics;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.Testing;
 
@@ -41,6 +42,7 @@ internal sealed class SqliteNode : IAsyncDisposable
         var builder = Host.CreateApplicationBuilder();
         builder.Logging.ClearProviders();
         builder.Services.AddSingleton(clock); // The container gives it to every entity.
+        builder.Services.AddSingleton<ChargingMetrics>();
         builder.Services.AddAkka("ohmline", akka => akka
             .WithRemoting("localhost", 0) // Any free port: tests run in parallel.
             .WithClustering(new ClusterOptions { Roles = [ClusterRoles.Charging] })

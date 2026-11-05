@@ -1,6 +1,7 @@
 using Akka.Hosting;
 using Ohmline.ActorShell.Clustering;
 using Ohmline.Charging.Actors;
+using Ohmline.Charging.Actors.Diagnostics;
 using Ohmline.Charging.Api;
 using Ohmline.Charging.Api.Live;
 using Ohmline.DriverAccounts.Actors;
@@ -8,6 +9,7 @@ using Ohmline.DriverAccounts.Api;
 using Ohmline.Node;
 using Ohmline.ServiceDefaults;
 using Ohmline.SiteEnergy.Actors;
+using Ohmline.SiteEnergy.Actors.Diagnostics;
 using Ohmline.SiteEnergy.Api;
 using Ohmline.Tariffs.Actors;
 
@@ -16,6 +18,11 @@ var builder = WebApplication.CreateBuilder(args);
 // The one clock of the node. The container passes it to every entity it makes for a shard
 // region, and the entity reads it once per command into a DecisionContext.
 builder.Services.AddSingleton(TimeProvider.System);
+
+// Each context's instruments, on a meter the host's IMeterFactory makes (section 18.1). The
+// container passes them to the entities too, as it passes the clock.
+builder.Services.AddSingleton<ChargingMetrics>();
+builder.Services.AddSingleton<SiteEnergyMetrics>();
 
 builder.AddServiceDefaults();
 builder.Services.AddOhmlineReadModels(builder.Configuration);

@@ -1,9 +1,11 @@
 using System.Collections.Immutable;
 using Akka.Actor;
 using Ohmline.ActorShell.Deciders;
+using Ohmline.Charging.Actors.Diagnostics;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.SharedKernel;
 using Ohmline.SharedKernel.Identity;
 
 namespace Ohmline.Charging.Actors.ChargePoints;
@@ -23,11 +25,14 @@ public sealed class ChargePointActor
     public const string TypeName = "charge-point";
 
     private readonly TimeProvider _clock;
+    private readonly ChargingMetrics _metrics;
 
-    public ChargePointActor(ChargePointId chargePointId, TimeProvider clock)
+    public ChargePointActor(
+        ChargePointId chargePointId, TimeProvider clock, ChargingMetrics metrics)
         : base(TypeName, chargePointId.Value, clock)
     {
         _clock = clock;
+        _metrics = metrics;
         Command<GetChargePointStatus>(_ =>
             Sender.Tell(State.ToStatus(chargePointId, LastSequenceNr)));
 
@@ -45,11 +50,17 @@ public sealed class ChargePointActor
         $"{TypeName}-{chargePointId}";
 
     /// <summary>
-    /// For a test that starts the actor itself, with a clock of its choosing. In a node, the
-    /// shard region has the container make it (section 12.3).
+    /// For a test that starts the actor itself, with a clock of its choosing, and instruments
+    /// of its choosing or none a host collects. In a node, the shard region has the container
+    /// make it (section 12.3).
     /// </summary>
-    public static Props Props(ChargePointId chargePointId, TimeProvider clock) =>
-        Akka.Actor.Props.Create(() => new ChargePointActor(chargePointId, clock));
+    public static Props Props(
+        ChargePointId chargePointId, TimeProvider clock, ChargingMetrics? metrics = null)
+    {
+        var instruments = metrics ?? ChargingMetrics.Unhosted;
+        return Akka.Actor.Props.Create(() =>
+            new ChargePointActor(chargePointId, clock, instruments));
+    }
 
     protected override object Accepted(long version) => new CommandAccepted(version);
 
@@ -72,6 +83,11 @@ public sealed class ChargePointActor
         var stored = (ChargePointSnapshot)snapshot;
         return (stored.ToState(), stored.RecentCommands);
     }
+
+    protected override void OnDecided(
+        ChargePointCommand command,
+        Result<ImmutableArray<ChargePointEvent>, ChargePointError> decision) =>
+        _metrics.Decided(TypeName, command, decision);
 
     /// <summary>Whatever happened to a connector, its timer follows its new state.</summary>
     protected override void OnEventApplied(ChargePointEvent @event)

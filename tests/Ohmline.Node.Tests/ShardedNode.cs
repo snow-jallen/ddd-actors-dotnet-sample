@@ -8,9 +8,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Time.Testing;
 using Ohmline.ActorShell.Clustering;
 using Ohmline.Charging.Actors;
+using Ohmline.Charging.Actors.Diagnostics;
 using Ohmline.Charging.Actors.Journeys.Ports;
 using Ohmline.DriverAccounts.Actors;
 using Ohmline.SiteEnergy.Actors;
+using Ohmline.SiteEnergy.Actors.Diagnostics;
 using Ohmline.Tariffs.Actors;
 using HostingPersistenceTestKit = Akka.Hosting.TestKit.PersistenceTestKit;
 
@@ -39,6 +41,8 @@ public abstract class ShardedNode(ITestOutputHelper output)
     {
         base.ConfigureServices(context, services);
         services.AddSingleton<TimeProvider>(Clock);
+        services.AddSingleton<ChargingMetrics>();
+        services.AddSingleton<SiteEnergyMetrics>();
         // Neither Billing nor the gateway is in the test: payments in memory, and chargers that
         // agree to everything, behind the journey's ports.
         services.AddSingleton<IPaymentPort, InMemoryPaymentPort>();

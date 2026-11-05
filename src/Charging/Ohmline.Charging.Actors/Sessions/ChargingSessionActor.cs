@@ -1,9 +1,11 @@
 using System.Collections.Immutable;
 using Akka.Actor;
 using Ohmline.ActorShell.Deciders;
+using Ohmline.Charging.Actors.Diagnostics;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.Sessions;
+using Ohmline.SharedKernel;
 using Ohmline.SharedKernel.Identity;
 
 namespace Ohmline.Charging.Actors.Sessions;
@@ -18,19 +20,26 @@ public sealed class ChargingSessionActor
     /// <summary>Durable vocabulary: the shard type name and the persistence id prefix.</summary>
     public const string TypeName = "charging-session";
 
-    public ChargingSessionActor(SessionId sessionId, TimeProvider clock)
-        : base(TypeName, sessionId.ToString(), clock)
-    {
-    }
+    private readonly ChargingMetrics _metrics;
+
+    public ChargingSessionActor(SessionId sessionId, TimeProvider clock, ChargingMetrics metrics)
+        : base(TypeName, sessionId.ToString(), clock) =>
+        _metrics = metrics;
 
     public static string PersistenceIdOf(SessionId sessionId) => $"{TypeName}-{sessionId}";
 
     /// <summary>
-    /// For a test that starts the actor itself, with a clock of its choosing. In a node, the
-    /// shard region has the container make it (section 12.3).
+    /// For a test that starts the actor itself, with a clock of its choosing, and instruments
+    /// of its choosing or none a host collects. In a node, the shard region has the container
+    /// make it (section 12.3).
     /// </summary>
-    public static Props Props(SessionId sessionId, TimeProvider clock) =>
-        Akka.Actor.Props.Create(() => new ChargingSessionActor(sessionId, clock));
+    public static Props Props(
+        SessionId sessionId, TimeProvider clock, ChargingMetrics? metrics = null)
+    {
+        var instruments = metrics ?? ChargingMetrics.Unhosted;
+        return Akka.Actor.Props.Create(() =>
+            new ChargingSessionActor(sessionId, clock, instruments));
+    }
 
     protected override object Accepted(long version) => new CommandAccepted(version);
 
@@ -54,15 +63,26 @@ public sealed class ChargingSessionActor
         return (stored.ToState(), stored.RecentCommands);
     }
 
+    protected override void OnDecided(
+        SessionCommand command, Result<ImmutableArray<SessionEvent>, SessionError> decision) =>
+        _metrics.Decided(TypeName, command, decision);
+
     /// <summary>
-    /// An ended session changes no more: it leaves memory now, instead of after two idle
+    /// Counted as it is stored, never as it is replayed: a session that recovers did not start
+    /// again. An ended session changes no more: it leaves memory now, instead of after two idle
     /// minutes. A late command starts it again from the journal and is refused as usual.
     /// </summary>
     protected override void OnEventApplied(SessionEvent @event)
     {
-        if (@event is SessionEnded)
+        switch (@event)
         {
-            Passivate();
+            case SessionStarted:
+                _metrics.SessionStarted();
+                break;
+            case SessionEnded ended:
+                _metrics.SessionEnded(ended.EnergyDelivered);
+                Passivate();
+                break;
         }
     }
 }

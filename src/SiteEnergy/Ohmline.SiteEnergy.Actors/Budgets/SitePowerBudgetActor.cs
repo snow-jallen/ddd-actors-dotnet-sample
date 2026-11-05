@@ -3,6 +3,7 @@ using Akka.Actor;
 using Ohmline.ActorShell.Deciders;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Units;
+using Ohmline.SiteEnergy.Actors.Diagnostics;
 using Ohmline.SiteEnergy.Contracts;
 using Ohmline.SiteEnergy.Contracts.Budgets;
 using Ohmline.SiteEnergy.Domain.Budgets;
@@ -22,18 +23,30 @@ public sealed class SitePowerBudgetActor
     /// <summary>Durable vocabulary: the shard type name and the persistence id prefix.</summary>
     public const string TypeName = "site-power-budget";
 
-    public SitePowerBudgetActor(SiteId siteId, TimeProvider clock)
-        : base(TypeName, siteId.Value, clock) =>
+    private readonly SiteId _siteId;
+    private readonly SiteEnergyMetrics _metrics;
+
+    public SitePowerBudgetActor(SiteId siteId, TimeProvider clock, SiteEnergyMetrics metrics)
+        : base(TypeName, siteId.Value, clock)
+    {
+        _siteId = siteId;
+        _metrics = metrics;
         Command<GetSitePowerBudget>(_ => Sender.Tell(State.ToView(siteId, LastSequenceNr)));
+    }
 
     public static string PersistenceIdOf(SiteId siteId) => $"{TypeName}-{siteId}";
 
     /// <summary>
-    /// For a test that starts the actor itself, with a clock of its choosing. In a node, the
-    /// shard region has the container make it (section 12.3).
+    /// For a test that starts the actor itself, with a clock of its choosing, and a gauge of
+    /// its choosing or one no host collects. In a node, the shard region has the container
+    /// make it (section 12.3).
     /// </summary>
-    public static Props Props(SiteId siteId, TimeProvider clock) =>
-        Akka.Actor.Props.Create(() => new SitePowerBudgetActor(siteId, clock));
+    public static Props Props(
+        SiteId siteId, TimeProvider clock, SiteEnergyMetrics? metrics = null)
+    {
+        var gauge = metrics ?? SiteEnergyMetrics.Unhosted;
+        return Akka.Actor.Props.Create(() => new SitePowerBudgetActor(siteId, clock, gauge));
+    }
 
     protected override object Accepted(long version) => new BudgetCommandAccepted(version);
 
@@ -81,4 +94,11 @@ public sealed class SitePowerBudgetActor
         var stored = (SitePowerBudgetSnapshot)snapshot;
         return (stored.ToState(), stored.RecentCommands);
     }
+
+    /// <summary>The site's figure for the gauge, from the state it recovered.</summary>
+    protected override void OnRecovered() => _metrics.Budgeted(_siteId, State);
+
+    /// <summary>The site's figure for the gauge, after every change it stores.</summary>
+    protected override void OnEventApplied(SitePowerBudgetEvent @event) =>
+        _metrics.Budgeted(_siteId, State);
 }

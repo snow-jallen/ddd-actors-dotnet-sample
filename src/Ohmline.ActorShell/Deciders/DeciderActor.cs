@@ -153,6 +153,17 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     {
     }
 
+    /// <summary>
+    /// Called once for each command the decider decided, accepted or refused, before anything
+    /// is stored or answered; never during recovery, and not for a command answered as a
+    /// duplicate, which nobody decided again. The place for a context to count its commands
+    /// and its refusals (section 18.1).
+    /// </summary>
+    protected virtual void OnDecided(
+        TCommand command, Result<ImmutableArray<TEvent>, TError> decision)
+    {
+    }
+
     /// <summary>Called once all stored events are replayed, before the first command.</summary>
     protected virtual void OnRecovered()
     {
@@ -242,7 +253,9 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
             return;
         }
 
-        switch (TDecider.Decide(State, command, DecisionContext.From(_clock)))
+        var decision = TDecider.Decide(State, command, DecisionContext.From(_clock));
+        OnDecided(command, decision);
+        switch (decision)
         {
             case Ok<ImmutableArray<TEvent>> { Value.IsEmpty: true }:
                 replyTo.Tell(Accepted(command, LastSequenceNr));
