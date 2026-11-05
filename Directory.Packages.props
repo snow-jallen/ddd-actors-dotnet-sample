@@ -53,6 +53,8 @@
     <PackageVersion Include="CsCheck" Version="5.0.1" />
     <!-- The RC that matches the SDK: WebApplicationFactory for the net11.0 node. -->
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0-rc.3.26522.148" />
+    <!-- The hub's .NET client: the integration tests now, the driver app from Chapter 19. -->
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="11.0.0-rc.3.26522.148" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.11.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <!-- PostgreSQL 17 in a container, for the integration tests; Podman works with DOCKER_HOST. -->

@@ -47,6 +47,7 @@ We will treat these as permanent, never to be changed or reused once released:
 | Sharded daemon process (section 13.6) | `projections`, one instance per projection stream; instance `i` runs `ChargingReadModelsExtensions.Streams[i]`, so the list is append only |
 | Projection ids (sections 13.5, 13.8) | `session-history-v1`, `site-live-board-v1`; a new read-model shape is a new id, never a reused one |
 | DistributedPubSub topics (section 14.4) | `session-summaries` (`LiveTopics`); a subscriber to a renamed topic hears nothing, and nothing says so |
+| SignalR (section 14.5) | hub path `/hubs/charging`; groups `session-{sessionId}` and `token-{tokenUid}`; hub methods `JoinSession`, `JoinToken`; client method `sessionSummaryChanged` (`ChargingHub`). Released apps call them by name |
 
 We will keep each name in one place: the type name and the persistence id format in the
 entity's actor (`ChargePointActor.TypeName`, `PersistenceIdOf`), the shard count in

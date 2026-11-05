@@ -2,6 +2,7 @@ using Akka.Hosting;
 using Ohmline.Charging.Actors;
 using Ohmline.Charging.Api;
 using Ohmline.Charging.Api.Development;
+using Ohmline.Charging.Api.Live;
 using Ohmline.DriverAccounts.Actors;
 using Ohmline.DriverAccounts.Api;
 using Ohmline.Node;
@@ -35,12 +36,14 @@ builder.Services.AddAkka("ohmline", akka => akka
     .AddSiteEnergyContext()
     .AddDriverAccountsContext()
     .AddTariffsContext()
-    .WithOhmlineReadModels(builder.Configuration));
+    .WithOhmlineReadModels(builder.Configuration)
+    .AddChargingLiveUpdates());
 
 builder.Services.AddProblemDetails();
 builder.Services.AddChargingApi();
 builder.Services.AddSiteEnergyApi();
 builder.Services.AddDriverAccountsApi();
+builder.Services.AddSignalR(); // Live updates for app clients, at /hubs/charging (section 14.5).
 
 var app = builder.Build();
 
@@ -50,6 +53,7 @@ app.MapChargingEndpoints();
 app.MapSiteEnergyEndpoints();
 app.MapDriverAccountsEndpoints();
 app.MapOhmlineReadModels(app.Configuration);
+app.MapChargingHub();
 if (app.Environment.IsDevelopment())
 {
     app.MapDevScaffoldingEndpoints(); // A pretend charger, until section 16.7.
