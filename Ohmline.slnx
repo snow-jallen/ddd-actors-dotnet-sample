@@ -8,4 +8,10 @@
     <Project Path="learn/Ch03.ClosedLib/Ch03.ClosedLib.csproj" />
     <Project Path="learn/Ch03.LanguageLab.Tests/Ch03.LanguageLab.Tests.csproj" />
   </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Ohmline.SharedKernel.Tests/Ohmline.SharedKernel.Tests.csproj" />
+  </Folder>
 </Solution>

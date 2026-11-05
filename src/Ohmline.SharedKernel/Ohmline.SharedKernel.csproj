@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The shared kernel is pure: the base class library only, and no package references. -->
+
+</Project>
