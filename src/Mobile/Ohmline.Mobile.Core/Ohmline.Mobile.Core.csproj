@@ -14,6 +14,8 @@
   <ItemGroup>
     <!-- Observable properties and commands for the view models, generated at compile time. -->
     <PackageReference Include="CommunityToolkit.Mvvm" />
+    <!-- The outbox (section 19.6): ADO.NET and plain SQL, nothing reflected, trim-safe. -->
+    <PackageReference Include="Microsoft.Data.Sqlite" />
   </ItemGroup>
 
   <ItemGroup>

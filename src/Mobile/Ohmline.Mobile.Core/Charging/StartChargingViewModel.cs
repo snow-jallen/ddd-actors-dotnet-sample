@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Ohmline.Charging.Client.Contracts.Requests;
-using Ohmline.Mobile.Core.Api;
+using Ohmline.Mobile.Core.Outbox;
 using Ohmline.Mobile.Core.Platform;
 
 namespace Ohmline.Mobile.Core.Charging;
@@ -9,13 +9,36 @@ namespace Ohmline.Mobile.Core.Charging;
 /// <summary>
 /// The start-charging screen (section 19.5): the driver scans or types a connector's code and
 /// chooses a spend cap. The value objects turn bad input into sentences before any command
-/// exists; a valid tap becomes a <see cref="StartChargingRequest"/> with ids made at once, and
-/// the server's answer becomes a <see cref="CommandStatus"/> in the driver's words.
+/// exists; a valid tap becomes a <see cref="StartChargingRequest"/> with ids made at once.
+/// From section 19.6 the command is written to the outbox before anything is sent, and the
+/// dispatcher's news about it becomes its <see cref="CommandStatus"/>.
 /// </summary>
-public sealed partial class StartChargingViewModel(
-    ChargingApiClient api, DriverToken token, IConnectivity connectivity, TimeProvider clock)
-    : ObservableObject
+public sealed partial class StartChargingViewModel : ObservableObject
 {
+    private readonly SqliteOutbox _outbox;
+    private readonly OutboxDispatcher _dispatcher;
+    private readonly DriverToken _token;
+    private readonly IConnectivity _connectivity;
+    private readonly TimeProvider _clock;
+
+    /// <summary>
+    /// The command the input describes, made at the first tap and kept until the input
+    /// changes or the server refuses it: tapping twice is one command.
+    /// </summary>
+    private StartChargingRequest? _command;
+
+    public StartChargingViewModel(
+        SqliteOutbox outbox,
+        OutboxDispatcher dispatcher,
+        DriverToken token,
+        IConnectivity connectivity,
+        TimeProvider clock)
+    {
+        (_outbox, _dispatcher, _token, _connectivity, _clock) =
+            (outbox, dispatcher, token, connectivity, clock);
+        _dispatcher.StatusChanged += OnStatusChanged;
+    }
+
     /// <summary>What the driver scanned or typed: <c>OHM-SLC-0042/1</c>.</summary>
     [ObservableProperty]
     public partial string ConnectorText { get; set; } = "";
@@ -36,6 +59,10 @@ public sealed partial class StartChargingViewModel(
     [ObservableProperty]
     public partial CommandStatus? Status { get; set; }
 
+    /// <summary>
+    /// Durable first, then try to send: the command is in the outbox before any network call,
+    /// so a dead network or a killed app cannot lose it.
+    /// </summary>
     [RelayCommand]
     private async Task StartChargingAsync(CancellationToken cancellationToken)
     {
@@ -44,26 +71,40 @@ public sealed partial class StartChargingViewModel(
             return;
         }
 
-        Screen = new Loading();
-        Status = new Sending(1);
-        try
+        _command = request;
+        if (await _outbox.EnqueueAsync(
+                OutboxCommand.StartCharging(request), _clock.GetUtcNow(), cancellationToken))
         {
-            Status = await api.StartChargingAsync(request, cancellationToken);
-            Screen = new Ready();
+            Status = new Queued(0);
         }
-        catch (HttpRequestException)
+
+        Screen = _connectivity.IsOnline ? new Ready() : new Offline();
+        _dispatcher.Nudge();
+    }
+
+    partial void OnConnectorTextChanged(string value) => _command = null;
+
+    partial void OnSpendCapTextChanged(string value) => _command = null;
+
+    private void OnStatusChanged(Guid commandId, CommandStatus status)
+    {
+        if (commandId != _command?.CommandId)
         {
-            Status = null;
-            Screen = connectivity.IsOnline
-                ? new Failed("Ohmline did not answer. Try again in a moment.")
-                : new Offline();
+            return;
+        }
+
+        Status = status;
+        if (status.Value is Rejected or FailedToSync)
+        {
+            _command = null; // Final: the next tap is a new command, with new ids.
         }
     }
 
     /// <summary>
-    /// The request, if the input is valid, with both ids made now, at the tap: a version 7 Guid
-    /// sorts by time, in the server's journal and in the phone's logs. Otherwise null, and each
-    /// field that is not valid says why.
+    /// The request, if the input is valid: the one made at the last tap if the input has not
+    /// changed since, or a new one with both ids made now, at the tap. A version 7 Guid sorts
+    /// by time, in the server's journal and in the phone's logs. Otherwise null, and each field
+    /// that is not valid says why.
     /// </summary>
     private StartChargingRequest? Validated()
     {
@@ -77,12 +118,12 @@ public sealed partial class StartChargingViewModel(
             return null;
         }
 
-        var now = clock.GetUtcNow();
-        return new StartChargingRequest(
+        var now = _clock.GetUtcNow();
+        return _command ?? new StartChargingRequest(
             CommandId: Guid.CreateVersion7(now),
             JourneyId: Guid.CreateVersion7(now),
             ConnectorId: code.Value.ToString(),
-            TokenUid: token.Uid,
+            TokenUid: _token.Uid,
             SpendCapAmount: cap.Value.Amount,
             Currency: SpendCap.Currency);
     }

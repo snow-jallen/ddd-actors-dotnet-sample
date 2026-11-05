@@ -2,8 +2,6 @@ using System.Net;
 using System.Net.Http.Json;
 using Ohmline.Charging.Client.Contracts;
 using Ohmline.Charging.Client.Contracts.ReadModels;
-using Ohmline.Charging.Client.Contracts.Requests;
-using Ohmline.Mobile.Core.Charging;
 
 namespace Ohmline.Mobile.Core.Api;
 
@@ -39,33 +37,5 @@ public sealed class ChargingApiClient(HttpClient http)
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync(
             Json.ChargePointListingDto, cancellationToken);
-    }
-
-    /// <summary>
-    /// <c>POST /app/v1/journeys</c>: the server's answer as the app's own status, accepted at
-    /// a version or rejected in the driver's words. No answer, or a 5xx, throws
-    /// <see cref="HttpRequestException"/>: the command may or may not have been carried out.
-    /// </summary>
-    public async Task<CommandStatus> StartChargingAsync(
-        StartChargingRequest request, CancellationToken cancellationToken)
-    {
-        using var response = await http.PostAsJsonAsync(
-            "/app/v1/journeys", request, Json.StartChargingRequest, cancellationToken);
-        if (response.StatusCode == HttpStatusCode.Accepted)
-        {
-            var accepted = await response.Content.ReadFromJsonAsync(
-                Json.CommandAcceptedDto, cancellationToken);
-            return new Accepted(accepted!.Version);
-        }
-
-        if ((int)response.StatusCode is >= 400 and < 500)
-        {
-            var problem = await response.Content.ReadFromJsonAsync(
-                Json.ProblemDto, cancellationToken);
-            return new Rejected(problem?.Code ?? "", RejectionText.For(problem?.Code));
-        }
-
-        response.EnsureSuccessStatusCode();
-        throw new HttpRequestException($"Unexpected answer {(int)response.StatusCode}.");
     }
 }

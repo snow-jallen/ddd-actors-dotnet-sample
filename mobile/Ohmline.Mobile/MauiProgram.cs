@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Ohmline.Mobile.Core.Api;
 using Ohmline.Mobile.Core.Charging;
 using Ohmline.Mobile.Core.Listings;
+using Ohmline.Mobile.Core.Outbox;
 using Ohmline.Mobile.Core.Platform;
 using Ohmline.Mobile.Pages;
 using Ohmline.Mobile.Platform;
@@ -37,9 +38,17 @@ public static class MauiProgram
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<IConnectivity, MauiConnectivity>();
         builder.Services.AddSingleton<IAppDispatcher, MauiDispatcher>();
+
+        // The phone's durable intent: one SQLite file in the app's own data folder, which the
+        // operating system keeps across restarts and app upgrades (section 19.6).
+        var database = Path.Combine(FileSystem.AppDataDirectory, "ohmline-driver.db3");
+        builder.Services.AddSingleton(new SqliteOutbox($"Data Source={database}"));
+        builder.Services.AddSingleton<ICommandSender, HttpCommandSender>();
+        builder.Services.AddSingleton<OutboxDispatcher>();
+
         builder.Services.AddTransient<ChargePointListingViewModel>();
         builder.Services.AddTransient<ListingPage>();
-        builder.Services.AddTransient<StartChargingViewModel>();
+        builder.Services.AddSingleton<StartChargingViewModel>();
         builder.Services.AddTransient<StartChargingPage>();
 
 #if DEBUG
