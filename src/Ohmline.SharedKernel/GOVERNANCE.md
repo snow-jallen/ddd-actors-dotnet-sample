@@ -71,6 +71,7 @@ and this version becomes the package version.
 | 2.2.0 | Identifiers: `SiteId`, `ChargePointId`, `ConnectorId`, `SessionId`, `JourneyId`, `TokenUid`; `GuidV7.Check` | 6.4 |
 | 2.3.0 | `DecisionContext` in `Deciders`: the time a decider is given | 7.4 |
 | 2.4.0 | `IDecider<TState, TCommand, TEvent, TError>` and `Decider.Fold` | 7.6 |
+| 2.5.0 | `CommandId` in `Identity`: the id a sender gives a command, recorded by its events | 8.1 |
 
 ## How a change gets in
 

@@ -6,9 +6,18 @@ namespace Ohmline.Charging.Domain.Sessions;
 
 /// <summary>
 /// Everything that can happen to a charging session, named as on the design-level EventStorming
-/// board. Written to the journal, so plain data only: no union, no domain state.
+/// board. Written to the journal, so plain data only: no union, no domain state. Every event
+/// records the command that caused it and when it happened; <see cref="ChargingSession"/> stamps
+/// both on every event of a decision.
 /// </summary>
-public closed record SessionEvent(SessionId SessionId);
+public closed record SessionEvent(SessionId SessionId)
+{
+    /// <summary>The command that caused this event: its causation.</summary>
+    public CommandId CommandId { get; init; }
+
+    /// <summary>When it happened: the time of the decision, from its context.</summary>
+    public DateTimeOffset OccurredAt { get; init; }
+}
 
 /// <summary>
 /// The session started, and its terms were locked: the tariff (by id and version, with its
@@ -23,11 +32,13 @@ public sealed record SessionStarted(
     int TariffVersion,
     Money PricePerKwh,
     Money SpendCap,
-    long MeterStartWh,
-    DateTimeOffset StartedAt)
+    long MeterStartWh)
     : SessionEvent(SessionId);
 
-/// <summary>A meter reading that follows the rules, in Wh as the charge point sent it.</summary>
+/// <summary>
+/// A meter reading that follows the rules, in Wh as the charge point sent it. It has two times:
+/// when the charge point measured it, and when Ohmline recorded it (<c>OccurredAt</c>).
+/// </summary>
 public sealed record MeterValueRecorded(
     SessionId SessionId, long RegisterWh, DateTimeOffset MeasuredAt)
     : SessionEvent(SessionId);
@@ -45,11 +56,9 @@ public sealed record MeterAnomalyDetected(
     DateTimeOffset LastMeasuredAt)
     : SessionEvent(SessionId);
 
-public sealed record ChargingSuspended(SessionId SessionId, DateTimeOffset SuspendedAt)
-    : SessionEvent(SessionId);
+public sealed record ChargingSuspended(SessionId SessionId) : SessionEvent(SessionId);
 
-public sealed record ChargingResumed(SessionId SessionId, DateTimeOffset ResumedAt)
-    : SessionEvent(SessionId);
+public sealed record ChargingResumed(SessionId SessionId) : SessionEvent(SessionId);
 
 /// <summary>A meter value pushed the cost to the spend cap. Recorded once, never refused.</summary>
 public sealed record SpendCapReached(SessionId SessionId, Money Cost, Money SpendCap)
@@ -64,6 +73,5 @@ public sealed record SessionEnded(
     SiteId SiteId,
     ConnectorId ConnectorId,
     TokenUid TokenUid,
-    Energy EnergyDelivered,
-    DateTimeOffset EndedAt)
+    Energy EnergyDelivered)
     : SessionEvent(SessionId);

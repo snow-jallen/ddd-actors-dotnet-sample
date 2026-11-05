@@ -21,7 +21,8 @@ public sealed class SitePowerBudgetTests
     [Fact]
     public void Given_an_unconfigured_site_when_configured_then_the_checked_values_are_recorded()
     {
-        When(Given(), Configure()).ShouldAccept(new SiteConfigured(Site, DepotConfiguration()));
+        When(Given(), Configure())
+            .ShouldAccept(new SiteConfigured(Site, DepotConfiguration()).At(Morning));
     }
 
     [Fact]
@@ -59,8 +60,8 @@ public sealed class SitePowerBudgetTests
         {
             "request" => Request(0),
             "release" => Release(0),
-            "curtail" => new ApplyCurtailment(Site, new Power(40m)),
-            "end curtailment" => new EndCurtailment(Site),
+            "curtail" => new ApplyCurtailment(Command, Site, new Power(40m)),
+            "end curtailment" => new EndCurtailment(Command, Site),
             _ => throw new ArgumentOutOfRangeException(nameof(command)),
         };
 
@@ -80,7 +81,7 @@ public sealed class SitePowerBudgetTests
     public void Given_a_site_with_room_when_a_session_asks_for_power_then_it_is_granted_in_full()
     {
         When(Given(Configure()), Request(0))
-            .ShouldAccept(Granted(0, requested: 50m, granted: 50m));
+            .ShouldAccept(Granted(0, requested: 50m, granted: 50m).At(Morning));
     }
 
     [Fact]
@@ -88,15 +89,15 @@ public sealed class SitePowerBudgetTests
     {
         When(Given(Configure(), Request(0), Request(1), Request(2), Request(3)), Request(4))
             .ShouldAccept(
-                Granted(4, requested: 50m, granted: 38m),
-                Rebalanced(38m, 38m, 38m, 38m, 38m));
+                Granted(4, requested: 50m, granted: 38m).At(Morning),
+                Rebalanced(38m, 38m, 38m, 38m, 38m).At(Morning));
     }
 
     [Fact]
     public void Given_a_request_below_the_connectors_minimum_then_it_is_granted_the_minimum()
     {
         When(Given(Configure()), Request(0, kilowatts: 3m))
-            .ShouldAccept(Granted(0, requested: 3m, granted: 5m));
+            .ShouldAccept(Granted(0, requested: 3m, granted: 5m).At(Morning));
     }
 
     [Fact]
@@ -104,7 +105,8 @@ public sealed class SitePowerBudgetTests
     {
         When(Given(Configure(), Curtail(170m), Request(0), Request(1), Request(2), Request(3)),
                 Request(4))
-            .ShouldAccept(new AllocationQueued(Site, Connectors[4], Sessions[4], new Power(50m)));
+            .ShouldAccept(
+                new AllocationQueued(Site, Connectors[4], Sessions[4], new Power(50m)).At(Morning));
     }
 
     [Fact]
@@ -114,8 +116,9 @@ public sealed class SitePowerBudgetTests
             Request(4));
 
         When(full, Request(0)).ShouldAccept(
-            Granted(0, requested: 50m, granted: 5m),
-            new AllocationsRebalanced(Site, [.. Allocations(1..4, 5m), Allocation(0, 5m)]));
+            Granted(0, requested: 50m, granted: 5m).At(Morning),
+            new AllocationsRebalanced(Site, [.. Allocations(1..4, 5m), Allocation(0, 5m)])
+                .At(Morning));
     }
 
     [Fact]
@@ -149,8 +152,8 @@ public sealed class SitePowerBudgetTests
         When(Given(Configure(), Request(0), Request(1), Request(2), Request(3), Request(4)),
                 Release(0))
             .ShouldAccept(
-                new AllocationReleased(Site, Connectors[0], Sessions[0]),
-                new AllocationsRebalanced(Site, Allocations(1..5, 47.5m)));
+                new AllocationReleased(Site, Connectors[0], Sessions[0]).At(Morning),
+                new AllocationsRebalanced(Site, Allocations(1..5, 47.5m)).At(Morning));
     }
 
     [Fact]
@@ -160,8 +163,8 @@ public sealed class SitePowerBudgetTests
             Request(3), Request(4));
 
         When(full, Release(0)).ShouldAccept(
-            new AllocationReleased(Site, Connectors[0], Sessions[0]),
-            new AllocationsRebalanced(Site, Allocations(1..5, 5m)));
+            new AllocationReleased(Site, Connectors[0], Sessions[0]).At(Morning),
+            new AllocationsRebalanced(Site, Allocations(1..5, 5m)).At(Morning));
     }
 
     [Fact]
@@ -180,8 +183,8 @@ public sealed class SitePowerBudgetTests
         When(Given(Configure(), Request(0), Request(1), Request(2), Request(3), Request(4)),
                 Curtail(40m))
             .ShouldAccept(
-                new CurtailmentApplied(Site, new Power(40m)),
-                Rebalanced(30m, 30m, 30m, 30m, 30m));
+                new CurtailmentApplied(Site, new Power(40m)).At(Morning),
+                Rebalanced(30m, 30m, 30m, 30m, 30m).At(Morning));
     }
 
     [Fact]
@@ -196,22 +199,43 @@ public sealed class SitePowerBudgetTests
         When(Given(Configure(), Request(0), Request(1), Request(2), Request(3), Request(4)),
                 Curtail(170m))
             .ShouldAccept(
-                new CurtailmentApplied(Site, new Power(170m)),
-                new AllocationsRebalanced(Site, Allocations(0..4, 5m)));
+                new CurtailmentApplied(Site, new Power(170m)).At(Morning),
+                new AllocationsRebalanced(Site, Allocations(0..4, 5m)).At(Morning));
     }
 
     [Fact]
     public void Given_a_curtailment_when_it_ends_then_the_allocations_rise_again()
     {
         When(Given(Configure(), Request(0), Request(1), Request(2), Request(3), Request(4),
-                Curtail(40m)), new EndCurtailment(Site))
-            .ShouldAccept(new CurtailmentEnded(Site), Rebalanced(38m, 38m, 38m, 38m, 38m));
+                Curtail(40m)), new EndCurtailment(Command, Site))
+            .ShouldAccept(
+                new CurtailmentEnded(Site).At(Morning),
+                Rebalanced(38m, 38m, 38m, 38m, 38m).At(Morning));
     }
 
     [Fact]
     public void Given_no_curtailment_when_one_ends_then_nothing_changes()
     {
-        When(Given(Configure()), new EndCurtailment(Site)).ShouldAccept();
+        When(Given(Configure()), new EndCurtailment(Command, Site)).ShouldAccept();
+    }
+
+    // Causation
+
+    [Fact]
+    public void Given_a_request_that_moves_the_others_then_every_event_names_it_as_the_cause()
+    {
+        var request = Request(4) with { CommandId = new CommandId(Guid.CreateVersion7(Morning)) };
+        var nine = Morning.AddHours(1);
+
+        var events = SitePowerBudget.Decide(
+                Given(Configure(), Request(0), Request(1), Request(2), Request(3)),
+                request,
+                new DecisionContext(nine))
+            .Value.ShouldBeOfType<Ok<ImmutableArray<SitePowerBudgetEvent>>>().Value;
+
+        events.Length.ShouldBe(2);
+        events.ShouldAllBe(@event =>
+            @event.CommandId == request.CommandId && @event.OccurredAt == nine);
     }
 
     // The invariant, Evolve and Fold
@@ -223,8 +247,8 @@ public sealed class SitePowerBudgetTests
         [
             Configure(fleet: 2), Request(2), Request(3), Request(0, 22m), Curtail(60m),
             Request(4), Request(1), Request(5, 11m), Curtail(150m), Release(2), Request(2),
-            new EndCurtailment(Site), Release(0), Curtail(185m), Release(4), Release(3),
-            new EndCurtailment(Site),
+            new EndCurtailment(Command, Site), Release(0), Curtail(185m), Release(4), Release(3),
+            new EndCurtailment(Command, Site),
         ];
         var state = SitePowerBudget.Initial;
 
@@ -309,7 +333,8 @@ public sealed class SitePowerBudgetTests
         SitePowerBudgetState state, SitePowerBudgetCommand command) =>
         SitePowerBudget.Decide(state, command, new DecisionContext(Morning));
 
-    private static ApplyCurtailment Curtail(decimal kilowatts) => new(Site, new Power(kilowatts));
+    private static ApplyCurtailment Curtail(decimal kilowatts) =>
+        new(Command, Site, new Power(kilowatts));
 
     private static AllocationGranted Granted(int index, decimal requested, decimal granted) =>
         new(Site, Connectors[index], Sessions[index], new Power(requested), new Power(granted));

@@ -60,6 +60,28 @@ public sealed class GuidIdTests
     }
 
     [Fact]
+    public void Given_a_clock_when_a_command_id_is_created_then_it_is_ordered_by_its_time()
+    {
+        var clock = new FakeTimeProvider(PluggedInAt);
+        var first = CommandId.New(clock);
+        clock.Advance(TimeSpan.FromMilliseconds(1));
+        var retried = first with { };
+
+        first.Value.Version.ShouldBe(7);
+        first.Value.CompareTo(CommandId.New(clock).Value).ShouldBeLessThan(0);
+        retried.ShouldBe(first);
+    }
+
+    [Fact]
+    public void Given_a_random_version_4_guid_when_trying_to_create_a_command_id_it_is_malformed()
+    {
+        var raw = Guid.Parse("3f2b8c4e-9d1a-4e6b-8f0c-2a7d5e9b1c34");
+
+        CommandId.TryCreate(raw).ShouldBe(Result.Fail<ValidationError>(
+            new Malformed("CommandId", raw.ToString(), "a version 7 Guid")));
+    }
+
+    [Fact]
     public void Given_one_guid_then_a_session_id_and_a_journey_id_are_different_types()
     {
         var raw = Guid.CreateVersion7(PluggedInAt);

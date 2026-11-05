@@ -23,8 +23,16 @@ public sealed class SitePowerBudget
 
     public static SitePowerBudgetState Initial => SitePowerBudgetState.Initial;
 
+    /// <summary>
+    /// Decides, then stamps every event of the decision with the command that caused it and
+    /// the context's time.
+    /// </summary>
     public static Result<ImmutableArray<SitePowerBudgetEvent>, SitePowerBudgetError> Decide(
         SitePowerBudgetState state, SitePowerBudgetCommand command, DecisionContext context) =>
+        DecisionTable(state, command).Map(events => Stamp(events, command, context));
+
+    private static Result<ImmutableArray<SitePowerBudgetEvent>, SitePowerBudgetError>
+        DecisionTable(SitePowerBudgetState state, SitePowerBudgetCommand command) =>
         (state, command) switch
         {
             (Unconfigured, ConfigureSite configure) => Validate(configure).Match(
@@ -154,6 +162,13 @@ public sealed class SitePowerBudget
                 .. Rebalance(site.Close(release.ConnectorId)),
             ]);
     }
+
+    private static ImmutableArray<SitePowerBudgetEvent> Stamp(
+        ImmutableArray<SitePowerBudgetEvent> events,
+        SitePowerBudgetCommand command,
+        DecisionContext context) =>
+        [.. events.Select(@event =>
+            @event with { CommandId = command.CommandId, OccurredAt = context.Now })];
 
     private static AllocationGranted Granted(RequestAllocation request, Power power) =>
         new(request.SiteId, request.ConnectorId, request.SessionId, request.Requested, power);

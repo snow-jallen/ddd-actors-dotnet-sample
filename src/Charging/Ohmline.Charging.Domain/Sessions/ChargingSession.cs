@@ -22,11 +22,19 @@ public sealed class ChargingSession
 
     public static SessionState Initial => SessionState.Initial;
 
+    /// <summary>
+    /// Decides, then stamps every event of the decision with the command that caused it and
+    /// the context's time.
+    /// </summary>
     public static Result<ImmutableArray<SessionEvent>, SessionError> Decide(
+        SessionState state, SessionCommand command, DecisionContext context) =>
+        DecisionTable(state, command, context).Map(events => Stamp(events, command, context));
+
+    private static Result<ImmutableArray<SessionEvent>, SessionError> DecisionTable(
         SessionState state, SessionCommand command, DecisionContext context) =>
         (state, command) switch
         {
-            (NoSession, StartSession start) => Start(start, context),
+            (NoSession, StartSession start) => Start(start),
             (NoSession, RecordMeterValue or SuspendCharging or ResumeCharging or StopSession) =>
                 Reject(new SessionError.NotStarted(command.SessionId)),
             (Active or Suspended or Ended, StartSession) =>
@@ -36,17 +44,15 @@ public sealed class ChargingSession
             (Suspended paused, RecordMeterValue value) => Record(paused.Terms, paused.Meter, value),
             (Ended, RecordMeterValue) => NoChange,
 
-            (Active, SuspendCharging suspend) =>
-                Accept(new ChargingSuspended(suspend.SessionId, context.Now)),
+            (Active, SuspendCharging suspend) => Accept(new ChargingSuspended(suspend.SessionId)),
             (Suspended, SuspendCharging) => NoChange,
-            (Suspended, ResumeCharging resume) =>
-                Accept(new ChargingResumed(resume.SessionId, context.Now)),
+            (Suspended, ResumeCharging resume) => Accept(new ChargingResumed(resume.SessionId)),
             (Active, ResumeCharging) => NoChange,
             (Ended, SuspendCharging or ResumeCharging) =>
                 Reject(new SessionError.AlreadyEnded(command.SessionId)),
 
-            (Active active, StopSession) => Accept(End(active.Terms, active.Meter, context)),
-            (Suspended paused, StopSession) => Accept(End(paused.Terms, paused.Meter, context)),
+            (Active active, StopSession) => Accept(End(active.Terms, active.Meter)),
+            (Suspended paused, StopSession) => Accept(End(paused.Terms, paused.Meter)),
             (Ended, StopSession) => NoChange,
 
             (null, _) => throw DefaultState(),
@@ -58,18 +64,18 @@ public sealed class ChargingSession
             (NoSession, SessionStarted started) => new Active(
                 Terms(started),
                 SessionMeter.StartingAt(
-                    MeterReading.FromWattHours(started.MeterStartWh, started.StartedAt))),
+                    MeterReading.FromWattHours(started.MeterStartWh, started.OccurredAt))),
             (Active active, MeterValueRecorded recorded) =>
                 active with { Meter = active.Meter.Advance(Reading(recorded)) },
             (Suspended paused, MeterValueRecorded recorded) =>
                 paused with { Meter = paused.Meter.Advance(Reading(recorded)) },
             (Active active, ChargingSuspended suspended) =>
-                new Suspended(active.Terms, active.Meter, suspended.SuspendedAt),
+                new Suspended(active.Terms, active.Meter, suspended.OccurredAt),
             (Suspended paused, ChargingResumed) => new Active(paused.Terms, paused.Meter),
             (Active active, SessionEnded ended) =>
-                new Ended(active.Terms, ended.EnergyDelivered, ended.EndedAt),
+                new Ended(active.Terms, ended.EnergyDelivered, ended.OccurredAt),
             (Suspended paused, SessionEnded ended) =>
-                new Ended(paused.Terms, ended.EnergyDelivered, ended.EndedAt),
+                new Ended(paused.Terms, ended.EnergyDelivered, ended.OccurredAt),
 
             // Anomalies and the spend cap are facts to remember in the journal, not in memory,
             // and an event that meets a state Decide would not have produced it in changes
@@ -83,8 +89,8 @@ public sealed class ChargingSession
             events);
 
     /// <summary>The factory: the terms are checked once, here, and locked in the event.</summary>
-    private static Result<ImmutableArray<SessionEvent>, SessionError> Start(
-        StartSession start, DecisionContext context) => start switch
+    private static Result<ImmutableArray<SessionEvent>, SessionError> Start(StartSession start) =>
+        start switch
         {
             { SpendCap.Amount: <= 0m } =>
                 Reject(new SessionError.SpendCapNotPositive(start.SpendCap)),
@@ -99,8 +105,7 @@ public sealed class ChargingSession
                 start.TariffVersion,
                 start.PricePerKwh,
                 start.SpendCap,
-                start.MeterStartWh,
-                context.Now)),
+                start.MeterStartWh)),
         };
 
     private static Result<ImmutableArray<SessionEvent>, SessionError> Record(
@@ -137,10 +142,13 @@ public sealed class ChargingSession
             : null;
     }
 
-    private static SessionEnded End(
-        SessionTerms terms, SessionMeter meter, DecisionContext context) =>
-        new(terms.SessionId, terms.SiteId, terms.ConnectorId, terms.TokenUid, meter.Delivered,
-            context.Now);
+    private static SessionEnded End(SessionTerms terms, SessionMeter meter) =>
+        new(terms.SessionId, terms.SiteId, terms.ConnectorId, terms.TokenUid, meter.Delivered);
+
+    private static ImmutableArray<SessionEvent> Stamp(
+        ImmutableArray<SessionEvent> events, SessionCommand command, DecisionContext context) =>
+        [.. events.Select(@event =>
+            @event with { CommandId = command.CommandId, OccurredAt = context.Now })];
 
     private static MeterValueRecorded Recorded(RecordMeterValue value) =>
         new(value.SessionId, value.RegisterWh, value.MeasuredAt);

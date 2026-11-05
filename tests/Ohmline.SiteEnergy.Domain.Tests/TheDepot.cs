@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Units;
 using Ohmline.SiteEnergy.Contracts.Budgets;
+using Ohmline.SiteEnergy.Domain.Budgets;
 
 namespace Ohmline.SiteEnergy.Domain.Tests;
 
@@ -31,8 +32,12 @@ internal static class TheDepot
 
     public static readonly SessionId Latecomer = new(Guid.CreateVersion7(Morning.AddHours(1)));
 
+    /// <summary>The id every command in these tests carries; a decision is about one.</summary>
+    public static readonly CommandId Command = new(Guid.CreateVersion7(Morning));
+
     /// <summary>The depot's configuration; the first <paramref name="fleet"/> are fleet.</summary>
     public static ConfigureSite Configure(int fleet = 0) => new(
+        Command,
         Site,
         new Power(200m),
         new Power(10m),
@@ -47,8 +52,15 @@ internal static class TheDepot
 
     /// <summary>The session on connector <paramref name="index"/> asks for power.</summary>
     public static RequestAllocation Request(int index, decimal kilowatts = 50m) =>
-        new(Site, Connectors[index], Sessions[index], new Power(kilowatts));
+        new(Command, Site, Connectors[index], Sessions[index], new Power(kilowatts));
 
     public static ReleaseAllocation Release(int index) =>
-        new(Site, Connectors[index], Sessions[index]);
+        new(Command, Site, Connectors[index], Sessions[index]);
+
+    extension(SitePowerBudgetEvent @event)
+    {
+        /// <summary>The event as a decision records it: caused by <see cref="Command"/>.</summary>
+        public SitePowerBudgetEvent At(DateTimeOffset time) =>
+            @event with { CommandId = Command, OccurredAt = time };
+    }
 }

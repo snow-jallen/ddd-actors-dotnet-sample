@@ -22,7 +22,11 @@ public sealed class ChargingSessionTests
     private static readonly DateTimeOffset Later = Morning.AddMinutes(30);
 
     private static readonly SessionStarted Started = new(
-        Session, Depot, Connector, DriversCard, "slc-standard", 3, Price, Cap, 1_200_000, Morning);
+        Session, Depot, Connector, DriversCard, "slc-standard", 3, Price, Cap, 1_200_000)
+    {
+        CommandId = Command,
+        OccurredAt = Morning,
+    };
 
     /// <summary>One event of every type, as one session could record them.</summary>
     private static readonly ImmutableArray<SessionEvent> OneOfEach =
@@ -30,10 +34,10 @@ public sealed class ChargingSessionTests
         Started,
         Recorded(1_205_000),
         Anomaly(1_000),
-        new ChargingSuspended(Session, Morning.AddMinutes(12)),
-        new ChargingResumed(Session, Morning.AddMinutes(15)),
-        new SpendCapReached(Session, new Money(10.50m, Currency.Usd), Cap),
-        new SessionEnded(Session, Depot, Connector, DriversCard, new Energy(21m), Later),
+        new ChargingSuspended(Session).At(Morning.AddMinutes(12)),
+        new ChargingResumed(Session).At(Morning.AddMinutes(15)),
+        new SpendCapReached(Session, new Money(10.50m, Currency.Usd), Cap).At(Morning),
+        new SessionEnded(Session, Depot, Connector, DriversCard, new Energy(21m)).At(Later),
     ];
 
     // StartSession: the factory
@@ -80,10 +84,10 @@ public sealed class ChargingSessionTests
     {
         SessionCommand early = command switch
         {
-            "meter value" => new RecordMeterValue(Session, 1_200_100, Morning),
-            "suspend" => new SuspendCharging(Session),
-            "resume" => new ResumeCharging(Session),
-            "stop" => new StopSession(Session),
+            "meter value" => new RecordMeterValue(Command, Session, 1_200_100, Morning),
+            "suspend" => new SuspendCharging(Command, Session),
+            "resume" => new ResumeCharging(Command, Session),
+            "stop" => new StopSession(Command, Session),
             _ => throw new ArgumentOutOfRangeException(nameof(command)),
         };
 
@@ -98,16 +102,16 @@ public sealed class ChargingSessionTests
     public void Given_a_running_session_when_a_higher_register_arrives_then_it_is_recorded(
         string state)
     {
-        Decide(History(state), new RecordMeterValue(Session, 1_205_000, Later))
-            .ShouldAccept(new MeterValueRecorded(Session, 1_205_000, Later));
+        Decide(History(state), new RecordMeterValue(Command, Session, 1_205_000, Later))
+            .ShouldAccept(new MeterValueRecorded(Session, 1_205_000, Later).At(Morning));
     }
 
     [Fact]
     public void Given_a_running_session_when_the_register_goes_backwards_then_it_is_an_anomaly()
     {
-        Decide([Started, Recorded(1_210_000)], new RecordMeterValue(Session, 50, Later))
+        Decide([Started, Recorded(1_210_000)], new RecordMeterValue(Command, Session, 50, Later))
             .ShouldAccept(new MeterAnomalyDetected(
-                Session, 50, Later, 1_210_000, Morning.AddMinutes(10)));
+                Session, 50, Later, 1_210_000, Morning.AddMinutes(10)).At(Morning));
     }
 
     [Fact]
@@ -115,9 +119,9 @@ public sealed class ChargingSessionTests
     {
         var early = Morning.AddMinutes(5);
 
-        Decide([Started, Recorded(1_210_000)], new RecordMeterValue(Session, 1_211_000, early))
+        Decide([Started, Recorded(1_210_000)], Value(1_211_000, minutes: 5))
             .ShouldAccept(new MeterAnomalyDetected(
-                Session, 1_211_000, early, 1_210_000, Morning.AddMinutes(10)));
+                Session, 1_211_000, early, 1_210_000, Morning.AddMinutes(10)).At(Morning));
     }
 
     [Fact]
@@ -129,7 +133,8 @@ public sealed class ChargingSessionTests
     [Fact]
     public void Given_an_ended_session_when_a_late_reading_arrives_then_nothing_changes()
     {
-        Decide(History("ended"), new RecordMeterValue(Session, 1_230_000, Later)).ShouldAccept();
+        Decide(History("ended"), new RecordMeterValue(Command, Session, 1_230_000, Later))
+            .ShouldAccept();
     }
 
     [Fact]
@@ -137,15 +142,16 @@ public sealed class ChargingSessionTests
     {
         // 20 kWh at USD 0.50 is the cap of USD 10.00.
         Decide([Started, Recorded(1_210_000)], Value(1_220_000, minutes: 40)).ShouldAccept(
-            new MeterValueRecorded(Session, 1_220_000, Morning.AddMinutes(40)),
-            new SpendCapReached(Session, new Money(10.00m, Currency.Usd), Cap));
+            new MeterValueRecorded(Session, 1_220_000, Morning.AddMinutes(40)).At(Morning),
+            new SpendCapReached(Session, new Money(10.00m, Currency.Usd), Cap).At(Morning));
     }
 
     [Fact]
     public void Given_a_spend_cap_reached_before_when_energy_flows_on_then_it_is_not_reached_again()
     {
         Decide([Started, Recorded(1_220_000, minutes: 40)], Value(1_220_500, minutes: 41))
-            .ShouldAccept(new MeterValueRecorded(Session, 1_220_500, Morning.AddMinutes(41)));
+            .ShouldAccept(
+                new MeterValueRecorded(Session, 1_220_500, Morning.AddMinutes(41)).At(Morning));
     }
 
     // SuspendCharging and ResumeCharging
@@ -153,35 +159,35 @@ public sealed class ChargingSessionTests
     [Fact]
     public void Given_an_active_session_when_suspended_then_it_is_suspended_at_the_contexts_time()
     {
-        Decide(History("active"), new SuspendCharging(Session), at: Later)
-            .ShouldAccept(new ChargingSuspended(Session, Later));
+        Decide(History("active"), new SuspendCharging(Command, Session), at: Later)
+            .ShouldAccept(new ChargingSuspended(Session).At(Later));
     }
 
     [Fact]
     public void Given_a_suspended_session_when_suspended_again_then_nothing_changes()
     {
-        Decide(History("suspended"), new SuspendCharging(Session)).ShouldAccept();
+        Decide(History("suspended"), new SuspendCharging(Command, Session)).ShouldAccept();
     }
 
     [Fact]
     public void Given_a_suspended_session_when_resumed_then_charging_continues()
     {
-        Decide(History("suspended"), new ResumeCharging(Session), at: Later)
-            .ShouldAccept(new ChargingResumed(Session, Later));
+        Decide(History("suspended"), new ResumeCharging(Command, Session), at: Later)
+            .ShouldAccept(new ChargingResumed(Session).At(Later));
     }
 
     [Fact]
     public void Given_an_active_session_when_resumed_then_nothing_changes()
     {
-        Decide(History("active"), new ResumeCharging(Session)).ShouldAccept();
+        Decide(History("active"), new ResumeCharging(Command, Session)).ShouldAccept();
     }
 
     [Fact]
     public void Given_an_ended_session_when_suspended_or_resumed_then_it_has_already_ended()
     {
-        Decide(History("ended"), new SuspendCharging(Session))
+        Decide(History("ended"), new SuspendCharging(Command, Session))
             .ShouldReject(new SessionError.AlreadyEnded(Session));
-        Decide(History("ended"), new ResumeCharging(Session))
+        Decide(History("ended"), new ResumeCharging(Command, Session))
             .ShouldReject(new SessionError.AlreadyEnded(Session));
     }
 
@@ -193,15 +199,17 @@ public sealed class ChargingSessionTests
     public void Given_a_running_session_when_stopped_then_it_ends_with_the_energy_delivered(
         string state)
     {
-        Decide([.. History(state), Recorded(1_227_600)], new StopSession(Session), at: Later)
+        var stop = new StopSession(Command, Session);
+
+        Decide([.. History(state), Recorded(1_227_600)], stop, at: Later)
             .ShouldAccept(new SessionEnded(
-                Session, Depot, Connector, DriversCard, new Energy(27.6m), Later));
+                Session, Depot, Connector, DriversCard, new Energy(27.6m)).At(Later));
     }
 
     [Fact]
     public void Given_an_ended_session_when_stopped_again_then_nothing_changes()
     {
-        Decide(History("ended"), new StopSession(Session)).ShouldAccept();
+        Decide(History("ended"), new StopSession(Command, Session)).ShouldAccept();
     }
 
     // Evolve and Fold
@@ -247,9 +255,9 @@ public sealed class ChargingSessionTests
             [
                 primer,
                 Recorded(1_215_000, minutes: 20),
-                new ChargingSuspended(Session, Morning.AddMinutes(48)),
+                new ChargingSuspended(Session).At(Morning.AddMinutes(48)),
                 Recorded(1_227_600, minutes: 60),
-                new SessionEnded(Session, Depot, Connector, DriversCard, new(27.6m), ended),
+                new SessionEnded(Session, Depot, Connector, DriversCard, new(27.6m)).At(ended),
             ])
             .Value.ShouldBeOfType<Ended>().EnergyDelivered.ShouldBe(new Energy(27.6m));
     }
@@ -258,7 +266,7 @@ public sealed class ChargingSessionTests
     public void Given_a_default_state_when_deciding_then_the_null_arm_reports_the_bug()
     {
         Should.Throw<InvalidOperationException>(() => ChargingSession.Decide(
-            default, new StopSession(Session), new DecisionContext(Morning)));
+            default, new StopSession(Command, Session), new DecisionContext(Morning)));
     }
 
     private static Result<ImmutableArray<SessionEvent>, SessionError> Decide(
@@ -269,26 +277,29 @@ public sealed class ChargingSessionTests
     private static SessionEvent[] History(string state) => state switch
     {
         "active" => [Started],
-        "suspended" => [Started, new ChargingSuspended(Session, Morning.AddMinutes(5))],
+        "suspended" => [Started, new ChargingSuspended(Session).At(Morning.AddMinutes(5))],
         "ended" =>
         [
             Started,
             Recorded(1_220_000),
-            new SessionEnded(Session, Depot, Connector, DriversCard, new Energy(20m), Later),
+            new SessionEnded(Session, Depot, Connector, DriversCard, new Energy(20m)).At(Later),
         ],
         _ => throw new ArgumentOutOfRangeException(nameof(state)),
     };
 
     private static StartSession Start(Money? spendCap = null) => new(
-        Session, Depot, Connector, DriversCard, "slc-standard", 3, Price, spendCap ?? Cap,
+        Command, Session, Depot, Connector, DriversCard, "slc-standard", 3, Price, spendCap ?? Cap,
         1_200_000);
 
-    private static MeterValueRecorded Recorded(long registerWh, int minutes = 10) =>
-        new(Session, registerWh, Morning.AddMinutes(minutes));
+    private static SessionEvent Recorded(long registerWh, int minutes = 10) =>
+        new MeterValueRecorded(Session, registerWh, Morning.AddMinutes(minutes))
+            .At(Morning.AddMinutes(minutes));
 
     private static RecordMeterValue Value(long registerWh, int minutes = 10) =>
-        new(Session, registerWh, Morning.AddMinutes(minutes));
+        new(Command, Session, registerWh, Morning.AddMinutes(minutes));
 
-    private static MeterAnomalyDetected Anomaly(long registerWh) =>
-        new(Session, registerWh, Morning.AddMinutes(11), 1_210_000, Morning.AddMinutes(10));
+    private static SessionEvent Anomaly(long registerWh) =>
+        new MeterAnomalyDetected(
+                Session, registerWh, Morning.AddMinutes(11), 1_210_000, Morning.AddMinutes(10))
+            .At(Morning.AddMinutes(11));
 }

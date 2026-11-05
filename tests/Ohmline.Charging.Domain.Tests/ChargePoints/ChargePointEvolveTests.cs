@@ -117,7 +117,7 @@ public sealed class ChargePointEvolveTests
     {
         var decided = ChargePoint.Decide(
             ChargePoint.Fold([Registration]),
-            new ReserveConnector(Charger, 1, DriversCard),
+            new ReserveConnector(Command, Charger, 1, DriversCard),
             new DecisionContext(Morning));
         var events = decided.Value.ShouldBeOfType<Ok<ImmutableArray<ChargePointEvent>>>().Value;
 
@@ -131,12 +131,12 @@ public sealed class ChargePointEvolveTests
     {
         ChargePointCommand[] commands =
         [
-            new RegisterChargePoint(Charger, Depot, [new(50m), new(22m)]),
-            new ReserveConnector(Charger, 1, DriversCard),
-            new OccupyConnector(Charger, 1, Session, DriversCard),
-            new ReportConnectorFault(Charger, 2, "GroundFailure"),
-            new OccupyConnector(Charger, 2, NextSession, SomeoneElsesCard),
-            new ReleaseConnector(Charger, 1),
+            new RegisterChargePoint(Command, Charger, Depot, [new(50m), new(22m)]),
+            new ReserveConnector(Command, Charger, 1, DriversCard),
+            new OccupyConnector(Command, Charger, 1, Session, DriversCard),
+            new ReportConnectorFault(Command, Charger, 2, "GroundFailure"),
+            new OccupyConnector(Command, Charger, 2, NextSession, SomeoneElsesCard),
+            new ReleaseConnector(Command, Charger, 1),
         ];
         var live = ChargePointState.Initial;
         var journal = new List<ChargePointEvent>();

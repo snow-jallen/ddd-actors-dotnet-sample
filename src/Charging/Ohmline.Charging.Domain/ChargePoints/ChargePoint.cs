@@ -24,10 +24,18 @@ public sealed class ChargePoint
     public static TimeSpan ReservationHold { get; } = TimeSpan.FromMinutes(15);
 
     /// <summary>
+    /// Decides, then stamps every event of the decision with the command that caused it and
+    /// the context's time. The table says what happened; the stamp says why and when.
+    /// </summary>
+    public static Result<ImmutableArray<ChargePointEvent>, ChargePointError> Decide(
+        ChargePointState state, ChargePointCommand command, DecisionContext context) =>
+        DecisionTable(state, command, context).Map(events => Stamp(events, command, context));
+
+    /// <summary>
     /// The charge point's rules as a decision table: one row per (state, command) pair. The
     /// first row is the factory: the only way a charge point comes into being.
     /// </summary>
-    public static Result<ImmutableArray<ChargePointEvent>, ChargePointError> Decide(
+    private static Result<ImmutableArray<ChargePointEvent>, ChargePointError> DecisionTable(
         ChargePointState state, ChargePointCommand command, DecisionContext context) =>
         (state, command) switch
         {
@@ -134,6 +142,13 @@ public sealed class ChargePoint
     public static ChargePointState Fold(IEnumerable<ChargePointEvent> events) =>
         Decider.Fold<ChargePoint, ChargePointState, ChargePointCommand, ChargePointEvent,
             ChargePointError>(events);
+
+    private static ImmutableArray<ChargePointEvent> Stamp(
+        ImmutableArray<ChargePointEvent> events,
+        ChargePointCommand command,
+        DecisionContext context) =>
+        [.. events.Select(@event =>
+            @event with { CommandId = command.CommandId, OccurredAt = context.Now })];
 
     private static Registered Register(ChargePointRegistered registered) =>
         new(registered.ChargePointId, registered.SiteId, registered.ConnectorMaxPowers

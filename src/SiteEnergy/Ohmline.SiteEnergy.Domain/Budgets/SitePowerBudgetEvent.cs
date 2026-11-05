@@ -8,9 +8,17 @@ namespace Ohmline.SiteEnergy.Domain.Budgets;
 /// <summary>
 /// Everything that can happen to a site's power budget. Every allocation a decision produced is
 /// recorded, never recomputed on replay: a new version of the allocator must not change what
-/// the chargers were already told.
+/// the chargers were already told. Every event records the command that caused it and when it
+/// happened; <see cref="SitePowerBudget"/> stamps both on every event of a decision.
 /// </summary>
-public closed record SitePowerBudgetEvent(SiteId SiteId);
+public closed record SitePowerBudgetEvent(SiteId SiteId)
+{
+    /// <summary>The command that caused this event: its causation.</summary>
+    public CommandId CommandId { get; init; }
+
+    /// <summary>When it happened: the time of the decision, from its context.</summary>
+    public DateTimeOffset OccurredAt { get; init; }
+}
 
 /// <summary>The site's configuration, checked and accepted.</summary>
 public sealed record SiteConfigured(SiteId SiteId, SiteConfiguration Configuration)

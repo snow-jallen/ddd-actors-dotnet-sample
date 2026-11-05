@@ -8,9 +8,18 @@ namespace Ohmline.Charging.Domain.ChargePoints;
 /// Everything that can happen to a charge point, named as on the design-level EventStorming
 /// board (<c>docs/eventstorming/design-level.md</c>). These are the charge point's own memory:
 /// they stay inside Charging, and other contexts never reference them. They are written to the
-/// journal, so they hold plain data: value objects and closed records, never a union.
+/// journal, so they hold plain data: value objects and closed records, never a union. Every
+/// event records the command that caused it and when it happened; <see cref="ChargePoint"/>
+/// stamps both on every event of a decision.
 /// </summary>
-public closed record ChargePointEvent(ChargePointId ChargePointId);
+public closed record ChargePointEvent(ChargePointId ChargePointId)
+{
+    /// <summary>The command that caused this event: its causation.</summary>
+    public CommandId CommandId { get; init; }
+
+    /// <summary>When it happened: the time of the decision, from its context.</summary>
+    public DateTimeOffset OccurredAt { get; init; }
+}
 
 /// <summary>
 /// The charge point joined the network with its connectors, numbered from 1 in order. Equal

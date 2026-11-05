@@ -32,7 +32,7 @@ public sealed class ChargePointProtocolTests
     [Fact]
     public void Given_a_connector_command_then_it_names_its_charge_point_on_the_base()
     {
-        ChargePointCommand command = new OccupyConnector(Charger, 1, Session, DriversCard);
+        ChargePointCommand command = new OccupyConnector(Command, Charger, 1, Session, DriversCard);
 
         command.ChargePointId.ShouldBe(Charger);
         command.ShouldBeAssignableTo<ConnectorCommand>().ConnectorNumber.ShouldBe(1);

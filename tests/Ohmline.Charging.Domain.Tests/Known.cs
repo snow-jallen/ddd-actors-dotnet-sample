@@ -21,4 +21,10 @@ internal static class Known
     public static readonly SessionId Session = new(Guid.CreateVersion7(Morning));
 
     public static readonly SessionId NextSession = new(Guid.CreateVersion7(Morning.AddHours(2)));
+
+    /// <summary>
+    /// The id every command in these tests carries. A decision is about one command, so one id
+    /// is enough; the shell's duplicate check (section 12.6) has tests of its own.
+    /// </summary>
+    public static readonly CommandId Command = new(Guid.CreateVersion7(Morning));
 }
