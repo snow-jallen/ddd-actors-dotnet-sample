@@ -57,6 +57,10 @@ dotnet build mobile/Ohmline.Mobile.slnx -warnaserror   # from ch19-s04; see mobi
 tools/verify-tags.sh                    # build and test every tag in a temporary worktree
 ```
 
+From `ch20-s08`, a PostgreSQL database gets its schema from the migrator, never from the node:
+`dotnet run --project src/Ohmline.Migrator` with `ConnectionStrings__ohmline` (and
+`ConnectionStrings__billing`) set. The AppHost runs it before anything else.
+
 `global.json` pins the SDK and selects the Microsoft.Testing.Platform runner, which is why
 `dotnet test` takes `--solution`. Until section 2.1 adds the first project, `Ohmline.slnx` is
 empty and the two `dotnet` commands fail with "Unable to find a project to restore!";
@@ -234,6 +238,16 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch19-s06` | 19.6 Offline first: a durable outbox drained by a mailbox | `SqliteOutbox`, `OutboxDispatcher` (a single-reader `Channel`), `SendOutcome`, `HttpCommandSender`; the window lifecycle in the head |
 | `ch19-s07` | 19.7 Read models on the device: a cache, live updates and optimistic UI | `SqliteReadModelCache`, `FeedCatchUp`, `LiveUpdatesClient`, `SessionCardViewModel` with its pending overlay; the session page |
 | `ch19-s08` | 19.8 One trace from tap to journal | `MobileDiagnostics` (`Ohmline.Mobile`); the tap's traceparent in the outbox; the projection's in `DriverCardChanged`; OpenTelemetry in the head; `TapToJournalTraceTests` |
+| `ch20-s01` | 20.1 What is really in your journal, and the contracts that never die | `tools/Ohmline.JournalInspect` (PostgreSQL or SQLite), `docs/contracts-that-never-die.md` |
+| `ch20-s02` | 20.2 Tolerant readers and expand/contract | An optional `PhaseCount` on `SessionStarted`, the old shape frozen in `tests/golden/corpus/`, ADR 0015 |
+| `ch20-s03` | 20.3 Upcasting inside the serializer | `MeterValueRecorded` v2 (kWh, phase), an `Upcaster` from v1's Wh in `ChargingSerializer` |
+| `ch20-s04` | 20.4 Upcasting with read event adapters | `LegacyEventsReadAdapter` (one event split into two, one dropped); branch `alt/ch20-s04-adapter-only` |
+| `ch20-s05` | 20.5 The golden corpus | `tests/golden/corpus/` for every manifest ever written, `CorpusTests` |
+| `ch20-s06` | 20.6 Snapshots are a cache | `ChargePointSnapshot` v2, `snapshot-is-optional` on, `DeciderActor`'s whole-history check |
+| `ch20-s07` | 20.7 Renaming a concept when events are forever | "Out of order" instead of "fault": `ConnectorOutOfOrder` under a new manifest, the old one an alias |
+| `ch20-s08` | 20.8 Owning the journal schema: migrations | `src/Ohmline.Migrator` (DbUp), least-privilege roles, `WaitForCompletion(migrator)` |
+| `ch20-s09` | 20.9 Rebuilding read models and versioning the Published Language | `session-history-v2` beside v1, `SessionHistoryVersion`, `SessionCompletedV2` beside v1 |
+| `ch20-s10` | 20.10 Retention, privacy and backups | `docs/runbooks/retention.md`, `docs/runbooks/backup-restore.md`, `PersonalDataTests` |
 
 ## Licence and disclaimers
 
