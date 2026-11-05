@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Npgsql;
 using Ohmline.SharedKernel.Identity;
 
@@ -19,6 +20,7 @@ public static class TokenSessionsEndpoint
         GetAsync(
             string uid,
             [FromServices] NpgsqlDataSource readModels,
+            [FromServices] IOptions<ReadModelOptions> options,
             CancellationToken cancellationToken)
     {
         if (!TokenUid.TryCreate(uid).TryGet(out var tokenUid))
@@ -26,10 +28,11 @@ public static class TokenSessionsEndpoint
             return Problems.NotFound($"'{uid}' is not a token uid.");
         }
 
-        await using var select = readModels.CreateCommand("""
+        var history = SessionHistorySource.Of(options.Value.SessionHistoryVersion);
+        await using var select = readModels.CreateCommand($"""
             SELECT session_id, connector_id, status, energy_kwh, started_at, ended_at,
-                   last_sequence_nr
-            FROM read_models.session_history
+                   last_sequence_nr, {history.SiteColumn}
+            FROM {history.Table}
             WHERE token_uid = @token_uid
             ORDER BY started_at DESC
             LIMIT @newest
@@ -47,7 +50,8 @@ public static class TokenSessionsEndpoint
                 EnergyKwh: reader.GetDecimal(3),
                 StartedAt: reader.GetFieldValue<DateTimeOffset>(4),
                 EndedAt: reader.IsDBNull(5) ? null : reader.GetFieldValue<DateTimeOffset>(5),
-                Version: reader.GetInt64(6)));
+                Version: reader.GetInt64(6),
+                SiteId: reader.IsDBNull(7) ? null : reader.GetString(7)));
         }
 
         return TypedResults.Ok<IReadOnlyList<TokenSessionResponse>>(sessions);

@@ -8,6 +8,7 @@ using Akka.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Npgsql;
 using Ohmline.Charging.Api.App;
 using Ohmline.Charging.Api.Queries;
@@ -46,8 +47,10 @@ public static class SessionEventsEndpoint
             ActorSystem system,
             IRequiredActor<DistributedPubSub> mediator,
             [FromServices] NpgsqlDataSource readModels,
+            [FromServices] IOptions<ReadModelOptions> options,
             CancellationToken cancellationToken)
     {
+        var history = SessionHistorySource.Of(options.Value.SessionHistoryVersion);
         if (!SessionId.TryCreate(id).TryGet(out var sessionId))
         {
             return Problems.NotFound($"'{id}' is not a session id.");
@@ -56,14 +59,14 @@ public static class SessionEventsEndpoint
         var seen = long.TryParse(lastEventId, CultureInfo.InvariantCulture, out var version)
             ? version
             : 0;
-        if (await SessionEndpoint.FindAsync(readModels, sessionId, cancellationToken) is
+        if (await SessionEndpoint.FindAsync(readModels, history, sessionId, cancellationToken) is
             { Status: Ended } ended && ended.Version <= seen)
         {
             return TypedResults.NoContent(); // It has seen the end: nothing more will come.
         }
 
         return TypedResults.ServerSentEvents(SummariesAsync(
-            sessionId, seen, system, mediator.ActorRef, readModels, cancellationToken));
+            sessionId, seen, system, mediator.ActorRef, readModels, history, cancellationToken));
     }
 
     private static async IAsyncEnumerable<SseItem<SessionSummaryChanged>> SummariesAsync(
@@ -72,6 +75,7 @@ public static class SessionEventsEndpoint
         ActorSystem system,
         IActorRef mediator,
         NpgsqlDataSource readModels,
+        SessionHistorySource history,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var changes = Channel.CreateBounded<Internal.SessionSummaryChanged>(Newest);
@@ -83,7 +87,8 @@ public static class SessionEventsEndpoint
         {
             // Subscribed first, then read: a change committed in between arrives on the channel.
             await subscribed.Task.WaitAsync(cancellationToken);
-            var current = await SessionEndpoint.FindAsync(readModels, sessionId, cancellationToken);
+            var current = await SessionEndpoint.FindAsync(
+                readModels, history, sessionId, cancellationToken);
             var summaries = changes.Reader.ReadAllAsync(cancellationToken)
                 .Select(changed => changed.ToClient());
             if (current is not null)

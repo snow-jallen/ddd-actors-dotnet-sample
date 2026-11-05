@@ -50,9 +50,15 @@ public sealed class IntegrationEventRelay : IProjectionHandler
                     transaction, ended.SessionId.Value, cancellationToken)
                     ?? throw new InvalidOperationException(
                         $"Session {ended.SessionId} ended, but the relay never saw it start.");
+                // Both versions while any consumer reads the first (section 20.9): v1, then v2,
+                // at the next position, in the same transaction.
                 await OutboxTables.AppendAsync(
                     transaction,
                     SessionCompletedTranslation.Translate(session, ended),
+                    cancellationToken);
+                await OutboxTables.AppendAsync(
+                    transaction,
+                    SessionCompletedTranslation.TranslateV2(session, ended),
                     cancellationToken);
                 await OutboxTables.ForgetSessionAsync(
                     transaction, ended.SessionId.Value, cancellationToken);

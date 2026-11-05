@@ -38,6 +38,20 @@ internal static class Samples
         Started,
         Ended);
 
+    /// <summary>The same session in the second version (section 20.9), under its own id.</summary>
+    public static SessionCompletedV2 SessionCompletedV2 { get; } = new(
+        Guid.Parse("019a4f6e-1c40-7f3e-9c2a-5d1b00000b02"),
+        Ended,
+        Session,
+        "slc-depot",
+        "04A2B3C4D5E6F7",
+        "OHM-SLC-0042",
+        1,
+        30m,
+        SessionCompleted.Price,
+        Started,
+        Ended);
+
     /// <summary>Every integration event, by its wire name.</summary>
     public static ImmutableDictionary<string, ChargingIntegrationEvent> IntegrationEvents
     {
@@ -45,6 +59,7 @@ internal static class Samples
     } = new Dictionary<string, ChargingIntegrationEvent>
     {
         [SessionCompleted.WireName] = SessionCompleted,
+        [SessionCompletedV2.WireName] = SessionCompletedV2,
     }.ToImmutableDictionary();
 
     /// <summary>A page of the feed as Charging serves it, the sample at position 41.</summary>

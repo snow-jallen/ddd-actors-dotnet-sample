@@ -33,6 +33,7 @@ public static class ChargingReadModelsExtensions
                     new JourneySessionRelay(),
                     new IntegrationEventRelay(),
                     new ChargingProfileDispatcher(),
+                    new SessionHistoryV2Projection(), // Section 20.9: beside the first version.
                 }
                 .SelectMany(projection => projection.Tags.Select(tag => (projection, tag))),
         ];

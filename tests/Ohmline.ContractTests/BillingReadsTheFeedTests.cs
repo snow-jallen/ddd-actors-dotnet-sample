@@ -1,4 +1,6 @@
+using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Json.Nodes;
 using Ohmline.Billing.Contracts.Receipts;
 using Ohmline.Billing.Feed;
@@ -67,6 +69,45 @@ public sealed class BillingReadsTheFeedTests
 
         item.Value.ShouldBe(new CompletedSession(41, Samples.SessionCompleted));
     }
+
+    /// <summary>
+    /// The consumer's needs, declared by the consumer (section 20.9): every version Billing
+    /// reads is one Charging still publishes. When Charging wants to stop publishing the first
+    /// version, this fails until Billing has moved to the second.
+    /// </summary>
+    [Fact]
+    public void Every_version_Billing_reads_is_one_Charging_publishes()
+    {
+        var published = typeof(ChargingIntegrationEvent)
+            .GetCustomAttributes<JsonDerivedTypeAttribute>()
+            .Select(derived => (string)derived.TypeDiscriminator!);
+
+        ChargingFeedReader.WireNamesRead.ShouldBeSubsetOf(published);
+    }
+
+    /// <summary>
+    /// While Charging publishes both versions, Billing reads each session once: the first
+    /// version, from its golden file, and steps over the second, from its own.
+    /// </summary>
+    [Fact]
+    public void Given_both_versions_of_a_session_then_Billing_invoices_it_once()
+    {
+        var page = new ChargingFeedPage(
+            [
+                new ChargingFeedEntry(41, GoldenEvent(SessionCompleted.WireName)),
+                new ChargingFeedEntry(42, GoldenEvent(SessionCompletedV2.WireName)),
+            ],
+            "/feeds/charging?after=42&limit=100");
+
+        ChargingFeedReader.Read(page).Select(item => item.Value).ShouldBe(
+        [
+            new CompletedSession(41, Samples.SessionCompleted),
+            new SkippedEntry(42, SessionCompletedV2.WireName),
+        ]);
+    }
+
+    private static JsonElement GoldenEvent(string wireName) =>
+        JsonDocument.Parse(Golden.Read($"published-language/{wireName}")).RootElement.Clone();
 
     private static ChargingFeedPage GoldenPage() =>
         Read(Golden.Read("published-language/charging-feed-page"));

@@ -107,5 +107,6 @@ public static class OutboxTables
     private static string WireNameOf(ChargingIntegrationEvent @event) => @event switch
     {
         SessionCompleted => SessionCompleted.WireName,
+        SessionCompletedV2 => SessionCompletedV2.WireName,
     };
 }

@@ -98,6 +98,32 @@ public sealed class SessionCompletedTranslationTests
             .ShouldBe(completed);
     }
 
+    /// <summary>
+    /// The second version (section 20.9): the same session, the same price, its site, and the
+    /// connector as a charge point and a number; under an event id of its own.
+    /// </summary>
+    [Fact]
+    public void Given_a_session_that_ended_then_its_second_version_names_the_site_and_charger()
+    {
+        var session = RelayedSession.From(Started(Tariff));
+
+        var v2 = SessionCompletedTranslation.TranslateV2(session, EndedWith(30m));
+
+        v2.ShouldBe(new SessionCompletedV2(
+            SessionCompletedTranslation.EventIdOf(Session, SessionCompletedV2.WireName),
+            Ended,
+            Session.Value,
+            "slc-depot",
+            "04A2B3C4D5E6F7",
+            "OHM-SLC-0042",
+            1,
+            30m,
+            SessionCompletedTranslation.Translate(session, EndedWith(30m)).Price,
+            Morning,
+            Ended));
+        v2.EventId.ShouldNotBe(SessionCompletedTranslation.EventIdOf(Session));
+    }
+
     private static SessionStarted Started(TariffSnapshot tariff) => new(
         Session,
         Depot,

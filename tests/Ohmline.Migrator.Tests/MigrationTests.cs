@@ -36,6 +36,7 @@ public sealed class MigrationTests(PostgresFixture postgres)
             "read_models.projection_failures",
             "read_models.projection_offsets",
             "read_models.session_history",
+            "read_models.session_history_v2",
             "read_models.site_live_board",
         ]);
         (await ColumnAsync(database, Applied, Ct)).ShouldBe(
@@ -44,6 +45,7 @@ public sealed class MigrationTests(PostgresFixture postgres)
             "Ohmline.Migrator.Scripts.Ohmline.0002_akka_snapshot.sql",
             "Ohmline.Migrator.Scripts.Ohmline.0003_tags.sql",
             "Ohmline.Migrator.Scripts.Ohmline.0004_read_models.sql",
+            "Ohmline.Migrator.Scripts.Ohmline.0006_session_history_v2.sql",
         ]);
     }
 

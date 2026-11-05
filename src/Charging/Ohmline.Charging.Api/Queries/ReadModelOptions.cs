@@ -18,4 +18,12 @@ public sealed class ReadModelOptions
     /// </summary>
     [Range(typeof(TimeSpan), "00:00:00", "00:00:10")]
     public TimeSpan ReadYourWritesTimeout { get; set; } = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// Which version of the session history answers (section 20.9): 1 until
+    /// <c>session-history-v2</c> has caught up with the journal, then 2. Switching back is as
+    /// easy, which is the point of building the new version beside the old.
+    /// </summary>
+    [Range(1, 2)]
+    public int SessionHistoryVersion { get; set; } = 1;
 }

@@ -15,6 +15,7 @@ namespace Ohmline.Charging.Contracts.Integration;
 /// </remarks>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(SessionCompleted), SessionCompleted.WireName)]
+[JsonDerivedType(typeof(SessionCompletedV2), SessionCompletedV2.WireName)]
 public closed record ChargingIntegrationEvent(Guid EventId, DateTimeOffset OccurredAt);
 
 /// <summary>
@@ -35,4 +36,27 @@ public sealed record SessionCompleted(
     : ChargingIntegrationEvent(EventId, OccurredAt)
 {
     public const string WireName = "ohmline.charging.session-completed.v1";
+}
+
+/// <summary>
+/// The second version of <see cref="SessionCompleted"/> (section 20.9): the connector as its
+/// charge point and number instead of a string each consumer had to take apart, and the site.
+/// A shape that changed is a new wire name, never an edit of the old: Charging publishes both
+/// for as long as a consumer still reads the first, and each has an event id of its own.
+/// </summary>
+public sealed record SessionCompletedV2(
+    Guid EventId,
+    DateTimeOffset OccurredAt,
+    Guid SessionId,
+    string SiteId,
+    string TokenUid,
+    string ChargePointId,
+    int ConnectorNumber,
+    decimal EnergyKwh,
+    PriceBreakdown Price,
+    DateTimeOffset StartedAt,
+    DateTimeOffset EndedAt)
+    : ChargingIntegrationEvent(EventId, OccurredAt)
+{
+    public const string WireName = "ohmline.charging.session-completed.v2";
 }

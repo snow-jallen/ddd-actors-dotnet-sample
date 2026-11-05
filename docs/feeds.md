@@ -95,9 +95,20 @@ new has been published. A full page can be served by any HTTP cache in front of 
 | Wire name | Type | Since | Consumers |
 |---|---|---|---|
 | `ohmline.charging.session-completed.v1` | `SessionCompleted` | 16.1 | Billing |
+| `ohmline.charging.session-completed.v2` | `SessionCompletedV2` | 20.9 | none yet |
 
 Golden JSON files for each version are in `tests/golden/published-language/`, checked by
 `tests/Ohmline.ContractTests` (section 16.10).
+
+### Publishing a new version (section 20.9)
+
+A shape that changes is a new wire name, published **beside** the old one: the relay writes a
+completed session as `.v1` and, at the next position, as `.v2`, each with an event id of its
+own, so a consumer that reads both can tell them apart and one that reads one is not confused by
+the other. Consumers move to `.v2` at their own pace. Each consumer says which versions it reads
+(Billing: `ChargingFeedReader.WireNamesRead`), and `BillingReadsTheFeedTests` fails if Charging
+stops publishing one of them; only when no consumer reads `.v1` any more does the relay stop
+writing it. The positions and the rows already written stay, for ever.
 
 ## Why a pull feed and not a broker
 

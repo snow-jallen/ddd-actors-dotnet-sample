@@ -28,23 +28,36 @@ public sealed class IntegrationEventRelayTests(PostgresFixture postgres)
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
+    /// <summary>
+    /// While consumers still read the first version, the relay publishes the session in both
+    /// (section 20.9): the first at one position, the second at the next.
+    /// </summary>
     [Fact]
-    public async Task Given_a_session_that_ended_then_the_outbox_holds_it_as_completed()
+    public async Task Given_a_session_that_ended_then_the_outbox_holds_it_in_both_versions()
     {
         await using var journal = await ChargedSessionAsync();
         await using var database = await ReadModelsAsync();
 
         await RelayAsync(journal, database);
 
-        var (position, type, payload) = (await OutboxAsync(database)).ShouldHaveSingleItem();
-        position.ShouldBe(1);
-        type.ShouldBe("ohmline.charging.session-completed.v1");
+        var outbox = await OutboxAsync(database);
+        outbox.Select(row => (row.Position, row.Type)).ShouldBe(
+        [
+            (1L, "ohmline.charging.session-completed.v1"),
+            (2L, "ohmline.charging.session-completed.v2"),
+        ]);
         var completed = JsonSerializer
-            .Deserialize<ChargingIntegrationEvent>(payload, PublishedLanguage.Json)
+            .Deserialize<ChargingIntegrationEvent>(outbox[0].Payload, PublishedLanguage.Json)
             .ShouldBeOfType<SessionCompleted>();
         completed.SessionId.ShouldBe(Session.Value);
         completed.EnergyKwh.ShouldBe(30m);
         completed.Price.Total.ShouldBe(12.60m);
+        var second = JsonSerializer
+            .Deserialize<ChargingIntegrationEvent>(outbox[1].Payload, PublishedLanguage.Json)
+            .ShouldBeOfType<SessionCompletedV2>();
+        (second.SiteId, second.ChargePointId, second.ConnectorNumber)
+            .ShouldBe(("slc-depot", "OHM-SLC-0042", 1));
+        second.Price.ShouldBe(completed.Price);
         (await CountAsync(database, "integration_relay_sessions")).ShouldBe(0);
     }
 
@@ -58,7 +71,7 @@ public sealed class IntegrationEventRelayTests(PostgresFixture postgres)
         await ResetOffsetAsync(database);
         await RelayAsync(journal, database);
 
-        (await OutboxAsync(database)).ShouldHaveSingleItem();
+        (await OutboxAsync(database)).Count.ShouldBe(2);
         (await CountAsync(database, "integration_relay_sessions")).ShouldBe(0);
     }
 
@@ -111,7 +124,8 @@ public sealed class IntegrationEventRelayTests(PostgresFixture postgres)
         NpgsqlDataSource database)
     {
         await using var select = database.CreateCommand(
-            "SELECT position, type, payload::text FROM read_models.integration_outbox");
+            "SELECT position, type, payload::text FROM read_models.integration_outbox " +
+            "ORDER BY position");
         await using var reader = await select.ExecuteReaderAsync(Ct);
         var rows = new List<(long, string, string)>();
         while (await reader.ReadAsync(Ct))

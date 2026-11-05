@@ -1,0 +1,33 @@
+{
+  "type": "ohmline.charging.session-completed.v2",
+  "sessionId": "019a4f6e-1c40-7a51-8e2f-3b1d00000a01",
+  "siteId": "slc-depot",
+  "tokenUid": "04A2B3C4D5E6F7",
+  "chargePointId": "OHM-SLC-0042",
+  "connectorNumber": 1,
+  "energyKwh": 30,
+  "price": {
+    "currency": "USD",
+    "total": 13.60,
+    "lines": [
+      {
+        "code": "energy",
+        "quantity": 30,
+        "unit": "kWh",
+        "unitPrice": 0.42,
+        "amount": 12.60
+      },
+      {
+        "code": "session-fee",
+        "quantity": 1,
+        "unit": "session",
+        "unitPrice": 1,
+        "amount": 1
+      }
+    ]
+  },
+  "startedAt": "2026-11-04T14:40:00+00:00",
+  "endedAt": "2026-11-04T15:25:00+00:00",
+  "eventId": "019a4f6e-1c40-7f3e-9c2a-5d1b00000b02",
+  "occurredAt": "2026-11-04T15:25:00+00:00"
+}

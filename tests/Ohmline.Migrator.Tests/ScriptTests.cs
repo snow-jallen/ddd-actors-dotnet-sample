@@ -19,6 +19,7 @@ public sealed class ScriptTests
                 "0003_tags",
                 "0004_read_models",
                 "0005_billing",
+                "0006_session_history_v2",
             ]);
     }
 

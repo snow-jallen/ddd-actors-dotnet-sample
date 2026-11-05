@@ -12,6 +12,13 @@ namespace Ohmline.Billing.Feed;
 /// </summary>
 public static class ChargingFeedReader
 {
+    /// <summary>
+    /// The versions of Charging's events Billing reads: its side of a consumer-driven contract
+    /// (section 20.9). Charging's contract tests check that it still publishes every one, so
+    /// Charging can stop publishing a version only after Billing has stopped reading it.
+    /// </summary>
+    public static IReadOnlyList<string> WireNamesRead { get; } = [SessionCompleted.WireName];
+
     public static ImmutableArray<FeedItem> Read(ChargingFeedPage page) =>
         [.. page.Entries.Select(Read)];
 
