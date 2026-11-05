@@ -16,11 +16,23 @@ internal static class Edge
     /// 202 Accepted with the aggregate's new version and where to read it, or 409 with the
     /// rejection's code, or 504 when no answer came in time.
     /// </summary>
+    public static Task<Results<Accepted<CommandAcceptedResponse>, ProblemHttpResult>> SendAsync(
+        IActorRef region,
+        object command,
+        string location,
+        TimeSpan timeout,
+        CancellationToken cancellationToken) =>
+        SendAsync(region, command, _ => location, timeout, cancellationToken);
+
+    /// <summary>
+    /// The same, for a resource read from a read model: where to read it depends on the new
+    /// version, such as <c>/sessions/{id}?minVersion=7</c> (section 14.1).
+    /// </summary>
     public static async Task<Results<Accepted<CommandAcceptedResponse>, ProblemHttpResult>>
         SendAsync(
             IActorRef region,
             object command,
-            string location,
+            Func<long, string> locationAt,
             TimeSpan timeout,
             CancellationToken cancellationToken)
     {
@@ -29,8 +41,8 @@ internal static class Edge
             var reply = await region.Ask<CommandReply>(command, timeout, cancellationToken);
             return reply switch
             {
-                CommandAccepted accepted =>
-                    TypedResults.Accepted(location, new CommandAcceptedResponse(accepted.Version)),
+                CommandAccepted accepted => TypedResults.Accepted(
+                    locationAt(accepted.Version), new CommandAcceptedResponse(accepted.Version)),
                 CommandRejected rejected => Problems.Rejected(rejected),
             };
         }

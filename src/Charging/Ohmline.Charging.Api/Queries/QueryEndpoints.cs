@@ -14,6 +14,7 @@ public static class QueryEndpoints
         public IEndpointRouteBuilder MapChargingQueryEndpoints()
         {
             endpoints.MapGet("/projections/status", ProjectionStatusEndpoint.GetAsync);
+            endpoints.MapGet("/sessions/{id:guid}", SessionEndpoint.GetAsync);
             endpoints.MapGet("/sites/{id}/live-board", SiteLiveBoardEndpoint.GetAsync);
             endpoints.MapGet("/tokens/{uid}/sessions", TokenSessionsEndpoint.GetAsync);
             return endpoints;

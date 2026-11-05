@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Ohmline.Charging.Api.Queries;
 using Ohmline.Charging.Api.Tariffs;
 
 namespace Ohmline.Charging.Api;
@@ -16,8 +17,9 @@ public static class ChargingEndpoints
     extension(IServiceCollection services)
     {
         /// <summary>
-        /// The edge's settings, from <c>Ohmline:Charging</c>, checked at start, and the tariff
-        /// book as the catalog a starting session copies its tariff from.
+        /// The edge's settings, from <c>Ohmline:Charging</c> and <c>Ohmline:ReadModels</c>,
+        /// checked at start, read-your-writes for the query endpoints, and the tariff book as
+        /// the catalog a starting session copies its tariff from.
         /// </summary>
         public IServiceCollection AddChargingApi()
         {
@@ -25,6 +27,11 @@ public static class ChargingEndpoints
                 .BindConfiguration(ChargingApiOptions.Section)
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
+            services.AddOptions<ReadModelOptions>()
+                .BindConfiguration(ReadModelOptions.Section)
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+            services.AddSingleton<ReadYourWrites>();
             services.AddSingleton<ITariffCatalog, TariffBookCatalog>();
             return services;
         }

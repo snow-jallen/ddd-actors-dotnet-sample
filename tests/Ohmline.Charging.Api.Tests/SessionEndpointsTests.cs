@@ -48,7 +48,7 @@ public sealed class SessionEndpointsTests(ITestOutputHelper output) : EdgeTestKi
         start.SpendCap.ShouldBe(new Money(40m, Currency.Usd)); // In the tariff's currency.
         start.MeterStartWh.ShouldBe(1_200_000);
         (await answer).Result.ShouldBeOfType<Accepted<CommandAcceptedResponse>>()
-            .Location.ShouldBe($"/sessions/{Session}");
+            .Location.ShouldBe($"/sessions/{Session}?minVersion=1");
     }
 
     [Fact]
@@ -118,6 +118,19 @@ public sealed class SessionEndpointsTests(ITestOutputHelper output) : EdgeTestKi
         stop.SessionId.ShouldBe(new SessionId(Session));
         (await answer).Result.ShouldBeOfType<Accepted<CommandAcceptedResponse>>()
             .Value.ShouldBe(new CommandAcceptedResponse(3));
+    }
+
+    [Fact]
+    public async Task Given_a_stop_then_its_location_asks_for_at_least_the_new_version()
+    {
+        var region = CreateTestProbe();
+
+        var answer = SessionEndpoints.StopAsync(
+            Session, null, RegionOf<ChargingSessionRegion>(region), Clock, Options, Ct);
+        await AnswerAsync<StopSession>(region, new CommandAccepted(7));
+
+        (await answer).Result.ShouldBeOfType<Accepted<CommandAcceptedResponse>>()
+            .Location.ShouldBe($"/sessions/{Session}?minVersion=7");
     }
 
     /// <summary>The tariff book as the edge sees it: one tariff, at version 3.</summary>

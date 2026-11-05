@@ -12,7 +12,10 @@ using Ohmline.Tariffs.Contracts;
 
 namespace Ohmline.Charging.Api;
 
-/// <summary>Starting a session, recording its meter values, and stopping it.</summary>
+/// <summary>
+/// Starting a session, recording its meter values, and stopping it. Each 202 points at the
+/// session history, at least at the version the command produced (section 14.1).
+/// </summary>
 public static class SessionEndpoints
 {
     /// <summary>
@@ -61,7 +64,7 @@ public static class SessionEndpoints
         return await Edge.SendAsync(
             sessions.ActorRef,
             start,
-            $"/sessions/{sessionId}",
+            version => SessionLocation(sessionId, version),
             options.Value.AskTimeout,
             cancellationToken);
     }
@@ -91,7 +94,7 @@ public static class SessionEndpoints
         return await Edge.SendAsync(
             sessions.ActorRef,
             new RecordMeterValue(commandId, sessionId, request.RegisterWh, request.MeasuredAt),
-            $"/sessions/{sessionId}",
+            version => SessionLocation(sessionId, version),
             options.Value.AskTimeout,
             cancellationToken);
     }
@@ -120,8 +123,15 @@ public static class SessionEndpoints
         return await Edge.SendAsync(
             sessions.ActorRef,
             new StopSession(commandId, sessionId),
-            $"/sessions/{sessionId}",
+            version => SessionLocation(sessionId, version),
             options.Value.AskTimeout,
             cancellationToken);
     }
+
+    /// <summary>
+    /// Where to read the session after a command: its history row, at least at
+    /// <paramref name="version"/>, so a client that follows it reads its own write.
+    /// </summary>
+    public static string SessionLocation(SessionId sessionId, long version) =>
+        $"/sessions/{sessionId}?minVersion={version}";
 }
