@@ -197,6 +197,16 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch15-s05` | 15.5 Timeouts and compensation | The energy-flow timeout gives everything back; capture retries with backoff, then `DebtRecorded` |
 | `ch15-s06` | 15.6 Delivery guarantees and idempotency keys | `IdempotencyKey` on every request, reply timers, idempotent ports and receivers, ADR 0011 |
 | `ch15-s07` | 15.7 Testing time-driven processes | `JourneyTransitionTableTests`, `ChargingJourneyActorTests` on the `TestScheduler` with autopilots |
+| `ch16-s01` | 16.1 Domain events versus integration events: the journal is the outbox | `ChargingIntegrationEvent`/`SessionCompleted` (`ohmline.charging.session-completed.v1`), `IntegrationEventRelay` (`integration-relay-v1`) into `read_models.integration_outbox`; branch `wrong/ch16-s01-dual-write` |
+| `ch16-s02` | 16.2 Open Host Service: a notification feed | `GET /feeds/charging?after=&limit=` with next link and ETag, `docs/feeds.md` |
+| `ch16-s03` | 16.3 Billing, deliberately simple | `Ohmline.Billing`: hold endpoints, `ChargingFeedConsumer` with an inbox position, invoices and receipts with a transactional outbox; `Ohmline.Billing.Contracts` |
+| `ch16-s04` | 16.4 The payment provider ACL | `tools/Ohmline.FakePsp` (TallyPay, `FLAKY_RATE`), `TallyPayClient` with its own resilience handler, `TallyPayTranslator` to `PaymentOutcome` |
+| `ch16-s05` | 16.5 Charging to Billing: Customer/Supplier | `BillingPaymentPort` behind the journey's payment port; the AppHost adds Billing and the TallyPay stand-in |
+| `ch16-s06` | 16.6 The Device Gateway: OCPP frames to domain commands | `OcppFrameParser`, the `OcppFrame` and `Translation` unions, `OcppTranslator`, recorded frames from two vendors |
+| `ch16-s07` | 16.7 Connection actors and the charger simulator | `ChargerConnectionActor` at `/ocpp/{chargePointId}`, shard-region proxies, `GatewayChargerCommandPort` on `charger-commands-{id}` topics, `tools/Ohmline.Simulator`; development scaffolding deleted |
+| `ch16-s08` | 16.8 The grid operator ACL and a projection-fed dispatcher | `tools/Ohmline.FakeGridOperator`, `GridSignalTranslator` and the `grid-signal-poller` singleton, `ChargingProfileDispatcher` (`charging-profile-dispatcher-v1`) |
+| `ch16-s09` | 16.9 System tests with Aspire | `Ohmline.SystemTests`: the AppHost under Aspire.Hosting.Testing, plug in, charge, get a receipt; launch profiles for Billing and the gateway |
+| `ch16-s10` | 16.10 Contract tests for the Published Language | `Ohmline.ContractTests`: golden JSON in `tests/golden/published-language/` and `tests/golden/billing/`, Billing's reader over Charging's feed |
 
 ## Licence and disclaimers
 

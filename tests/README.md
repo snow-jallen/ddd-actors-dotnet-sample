@@ -29,6 +29,7 @@ someone about to write a test: where the helpers are, and the smells to avoid.
 | An actor's timers | `ActorTestConfig.VirtualTime` (Akka's `TestScheduler`) and a `FakeTimeProvider`, moved on together; ask the actor something first, as a barrier, so the timer exists before time moves. Never with clustering | `ChargingJourneyActorTests`, `ReservationExpiryTests` |
 | A charger's connection: frames in, commands to Charging, calls to the charger | `ChargerConnectionActor` with probes as the regions, the tariff book and the mediator, and a `RecordingLink` as the WebSocket | `ChargerConnectionActorTests` in `Ohmline.DeviceGateway.Tests` |
 | The whole system: plug in, charge, get a receipt | `DistributedApplicationTestingBuilder` over `Ohmline.AppHost` (Aspire.Hosting.Testing), a scenario of `tools/Ohmline.Simulator` against the gateway's and the node's endpoints; `[Trait("Category", "System")]` | `ChargeToReceiptTests` in `Ohmline.SystemTests` |
+| A contract between contexts: the Published Language, another context's API | Golden JSON per version in `tests/golden/published-language/` and `tests/golden/billing/`, and the consumer's own reader run over the producer's golden files | `PublishedLanguageTests`, `BillingReadsTheFeedTests` in `Ohmline.ContractTests` |
 
 Fixtures are named for the domain: `Known` (Charging), `TheDepot` (Site Energy) and
 `TheDepotTariff` (Tariffs) hold the people, places, tariffs and fixed instants the tests talk

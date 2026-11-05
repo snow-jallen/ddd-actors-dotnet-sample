@@ -1,0 +1,5 @@
+{
+  "status": 409,
+  "code": "exceeds-hold",
+  "detail": "50.01 USD is not within the 50 USD held."
+}
