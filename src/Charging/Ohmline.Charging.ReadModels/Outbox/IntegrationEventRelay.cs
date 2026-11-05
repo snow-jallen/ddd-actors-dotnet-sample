@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Akka.Persistence.Query;
 using Npgsql;
 using Ohmline.Charging.Contracts;
+using Ohmline.Charging.Contracts.Integration;
 using Ohmline.Charging.Contracts.Live;
 using Ohmline.Charging.Domain.Sessions;
 using Ohmline.Charging.ReadModels.Projections;
@@ -21,8 +22,16 @@ namespace Ohmline.Charging.ReadModels.Outbox;
 /// numbered in the order they are written, and one relay writes them, one event at a time, so
 /// a reader that has read up to a position never finds an earlier one appear later.
 /// </remarks>
-public sealed class IntegrationEventRelay : IProjectionHandler
+public sealed class IntegrationEventRelay(Func<ChargingIntegrationEvent, Task>? publish = null)
+    : IProjectionHandler
 {
+    /// <summary>
+    /// On branch <c>wrong/ch16-s01-dual-write</c> only: the event goes straight to a broker,
+    /// outside the database transaction that stores the offset. Two writes, two systems.
+    /// </summary>
+    private readonly Func<ChargingIntegrationEvent, Task> _publish =
+        publish ?? (@event => Console.Out.WriteLineAsync($"Published {@event}"));
+
     /// <summary>Durable: its offsets are kept under it.</summary>
     public const string Id = "integration-relay-v1";
 
@@ -50,10 +59,8 @@ public sealed class IntegrationEventRelay : IProjectionHandler
                     transaction, ended.SessionId.Value, cancellationToken)
                     ?? throw new InvalidOperationException(
                         $"Session {ended.SessionId} ended, but the relay never saw it start.");
-                await OutboxTables.AppendAsync(
-                    transaction,
-                    SessionCompletedTranslation.Translate(session, ended),
-                    cancellationToken);
+                // Wrong on purpose: published now, while the offset is not stored yet.
+                await _publish(SessionCompletedTranslation.Translate(session, ended));
                 await OutboxTables.ForgetSessionAsync(
                     transaction, ended.SessionId.Value, cancellationToken);
                 break;
