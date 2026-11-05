@@ -1,0 +1,12 @@
+{
+  "tokenUid": "04A2B3C4D5E6F7",
+  "sessionId": "019a4f6e-1c40-7a51-8e2f-3b1d00000001",
+  "version": 4,
+  "position": 1207,
+  "status": "charging",
+  "connectorId": "OHM-SLC-0042/1",
+  "chargePointDisplayName": "Salt Lake bus depot, public bays",
+  "energyKwh": 6.35,
+  "startedAt": "2026-11-04T07:40:00-07:00",
+  "endedAt": null
+}

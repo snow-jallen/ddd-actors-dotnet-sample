@@ -104,6 +104,7 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         [typeof(ChargePointListingSnapshot)] = "charging.charge-point-listing-snapshot.v1",
 
         [typeof(SessionSummaryChanged)] = "charging.session-summary-changed.v1",
+        [typeof(DriverCardChanged)] = "charging.driver-card-changed.v1",
     }.ToFrozenDictionary();
 
     /// <summary>Permanent: Ohmline's serializer ids are listed in ADR 0007.</summary>

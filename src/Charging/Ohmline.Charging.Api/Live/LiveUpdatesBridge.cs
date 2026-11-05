@@ -1,6 +1,7 @@
 using Akka.Actor;
 using Akka.Cluster.Tools.PublishSubscribe;
 using Microsoft.AspNetCore.SignalR;
+using Ohmline.Charging.Api.App.Dtos;
 using Ohmline.Charging.Contracts.Live;
 
 namespace Ohmline.Charging.Api.Live;
@@ -26,10 +27,16 @@ public sealed class LiveUpdatesBridge : ReceiveActor
         ReceiveAsync<SessionSummaryChanged>(changed => hub.Clients
             .Group(ChargingHub.SessionGroup(changed.SessionId))
             .SendAsync(ChargingHub.SessionSummaryChanged, SessionSummaryDto.From(changed)));
+        ReceiveAsync<DriverCardChanged>(changed => hub.Clients
+            .Group(ChargingHub.TokenGroup(changed.TokenUid))
+            .SendAsync(ChargingHub.DriverCardChanged, DriverAppFeedEntryDto.From(changed)));
         Receive<SubscribeAck>(_ => { });
     }
 
-    protected override void PreStart() =>
-        DistributedPubSub.Get(Context.System).Mediator
-            .Tell(new Subscribe(LiveTopics.SessionSummaries, Self));
+    protected override void PreStart()
+    {
+        var mediator = DistributedPubSub.Get(Context.System).Mediator;
+        mediator.Tell(new Subscribe(LiveTopics.SessionSummaries, Self));
+        mediator.Tell(new Subscribe(LiveTopics.DriverAppCards, Self));
+    }
 }

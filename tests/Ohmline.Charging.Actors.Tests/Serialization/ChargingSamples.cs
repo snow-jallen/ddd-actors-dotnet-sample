@@ -163,6 +163,17 @@ internal static class ChargingSamples
             ChargePoint, DisplayName, AccessInstructions, OpeningHours, Revision: 3),
 
         new SessionSummaryChanged(Session, Version: 4, Status: "charging", EnergyKwh: 6.35m),
+        new DriverCardChanged(
+            Token,
+            Session,
+            Version: 4,
+            Position: 1207,
+            Status: "charging",
+            ConnectorId: "OHM-SLC-0042/1",
+            ChargePointDisplayName: DisplayName,
+            EnergyKwh: 6.35m,
+            StartedAt: At,
+            EndedAt: null),
     ];
 
     private static ChargePointEvent Stamped(ChargePointEvent @event) =>

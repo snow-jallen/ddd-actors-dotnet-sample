@@ -15,5 +15,6 @@ public sealed class ChargingReadModelsExtensionsTests
                 "session-history-v1/charging-session",
                 "site-live-board-v1/charging",
                 "site-live-board-v1/site-energy",
+                "driver-app-v1/charging-session",
             ]);
 }

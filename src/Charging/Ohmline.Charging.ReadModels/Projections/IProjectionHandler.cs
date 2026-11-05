@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Akka.Actor;
 using Akka.Persistence.Query;
 using Npgsql;
 using Ohmline.Charging.Contracts.Live;
@@ -23,6 +24,12 @@ public interface IProjectionHandler
 
     /// <summary>What to do about an event it keeps failing on (section 13.7).</summary>
     ProjectionFailurePolicy FailurePolicy { get; }
+
+    /// <summary>
+    /// The projection as it runs in <paramref name="system"/>: one that needs to ask an actor
+    /// gets what it needs here (section 14.6). Most need nothing and run as they are.
+    /// </summary>
+    IProjectionHandler RunningIn(ActorSystem system) => this;
 
     /// <summary>
     /// Applies one event to the read model, inside <paramref name="transaction"/>, which the

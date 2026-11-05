@@ -18,3 +18,20 @@ public closed record LiveUpdate;
 /// </summary>
 public sealed record SessionSummaryChanged(
     SessionId SessionId, long Version, string Status, decimal EnergyKwh) : LiveUpdate;
+
+/// <summary>
+/// A session's card in the driver app changed (section 14.6): the whole card, as the app shows
+/// it, and the <paramref name="Position"/> of its entry in the token's change feed, so an app
+/// that applies it can carry on reading the feed after it.
+/// </summary>
+public sealed record DriverCardChanged(
+    TokenUid TokenUid,
+    SessionId SessionId,
+    long Version,
+    long Position,
+    string Status,
+    string ConnectorId,
+    string? ChargePointDisplayName,
+    decimal EnergyKwh,
+    DateTimeOffset StartedAt,
+    DateTimeOffset? EndedAt) : LiveUpdate;

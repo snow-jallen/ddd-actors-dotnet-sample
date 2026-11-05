@@ -20,6 +20,9 @@ public sealed class ChargingHub : Hub
     /// <summary>The client method a session's new summary is sent to.</summary>
     public const string SessionSummaryChanged = "sessionSummaryChanged";
 
+    /// <summary>The client method a token's changed driver app card is sent to (14.6).</summary>
+    public const string DriverCardChanged = "driverCardChanged";
+
     public static string SessionGroup(SessionId sessionId) => $"session-{sessionId}";
 
     public static string TokenGroup(TokenUid tokenUid) => $"token-{tokenUid}";

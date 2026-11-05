@@ -62,6 +62,37 @@ public static class ReadModelSchema
 
         CREATE INDEX IF NOT EXISTS site_live_board_by_site
             ON read_models.site_live_board (site_id);
+
+        CREATE TABLE IF NOT EXISTS read_models.driver_app_cards (
+            token_uid                 text        NOT NULL,
+            session_id                uuid        NOT NULL,
+            status                    text        NOT NULL,
+            connector_id              text        NOT NULL,
+            charge_point_display_name text        NULL,
+            energy_kwh                numeric     NOT NULL,
+            meter_start_wh            bigint      NOT NULL,
+            started_at                timestamptz NOT NULL,
+            ended_at                  timestamptz NULL,
+            version                   bigint      NOT NULL,
+            PRIMARY KEY (token_uid, session_id)
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS driver_app_cards_by_session
+            ON read_models.driver_app_cards (session_id);
+
+        CREATE INDEX IF NOT EXISTS driver_app_cards_by_token
+            ON read_models.driver_app_cards (token_uid, started_at DESC);
+
+        CREATE TABLE IF NOT EXISTS read_models.driver_app_feed (
+            position   bigserial PRIMARY KEY,
+            token_uid  text      NOT NULL,
+            session_id uuid      NOT NULL,
+            version    bigint    NOT NULL,
+            payload    jsonb     NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS driver_app_feed_by_token
+            ON read_models.driver_app_feed (token_uid, position);
         """;
 
     /// <summary>

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using Ohmline.Charging.Api.App;
 using Ohmline.Charging.Api.Live;
 
 namespace Ohmline.Charging.Api.Queries;
@@ -19,6 +20,7 @@ public static class QueryEndpoints
             endpoints.MapGet("/sessions/{id:guid}/events", SessionEventsEndpoint.GetAsync);
             endpoints.MapGet("/sites/{id}/live-board", SiteLiveBoardEndpoint.GetAsync);
             endpoints.MapGet("/tokens/{uid}/sessions", TokenSessionsEndpoint.GetAsync);
+            endpoints.MapDriverAppEndpoints();
             return endpoints;
         }
     }

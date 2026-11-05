@@ -50,7 +50,7 @@ public sealed class ProjectionDaemon : ReceiveActor, IWithTimers
             Context.System.ReadJournal,
             dataSource,
             new NpgsqlOffsetStore(dataSource),
-            projection,
+            projection.RunningIn(Context.System),
             tag,
             backoff,
             change => mediator.Tell(new Publish(LiveTopics.Of(change), change)),
