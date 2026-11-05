@@ -51,7 +51,10 @@ public sealed class ChargingSessionActor
     {
         if (@event is SessionEnded)
         {
-            Passivate();
+            // WRONG ON PURPOSE (branch wrong/ch12-s04-context-stop): the session stops itself.
+            // The commands waiting in its stash die with it, and the shard, which was not
+            // asked, keeps routing to an actor that is gone. Use Passivate() instead.
+            Context.Stop(Self);
         }
     }
 }
