@@ -102,6 +102,14 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch03-s07` | 3.7 Extension members and extension indexers | Extension blocks on `decimal`, `Kilowatts` and a meter history |
 | `ch03-s08` | 3.8 Patterns that read like rules; time and identity | List and property patterns, labeled `break`, `FakeTimeProvider`, `GuidV7` |
 | `ch03-s09` | 3.9 Serialization reality check: unions and closed records on the wire and in the mailbox | System.Text.Json and Akka.NET tests, `docs/house-style.md` |
+| `ch04-s01` | 4.1 Domain Storytelling with Ohmline's people | Three domain stories in `docs/domain-stories/` |
+| `ch04-s02` | 4.2 Big Picture EventStorming | `docs/eventstorming/big-picture.md`: timeline, pivotal events, hotspots |
+| `ch04-s03` | 4.3 Process-Level EventStorming | Process boards for starting charging and settling a session |
+| `ch04-s04` | 4.4 Design-Level EventStorming and the sticky-to-code map | Aggregates and the sticky-to-code map in `docs/eventstorming/design-level.md` |
+| `ch04-s05` | 4.5 Ubiquitous language: glossary, naming rules and durable vocabulary | The glossary per context, `docs/naming-rules.md` |
+| `ch04-s06` | 4.6 From stickies to types: the vocabulary compiles | `Ohmline.Charging.Contracts` and `.Domain` with empty `ChargePointCommand` and `ChargePointEvent` hierarchies |
+| `ch04-s07` | 4.7 Subdomains: core, supporting, generic | `docs/subdomains.md` |
+| `ch04-s08` | 4.8 Choosing a business-logic pattern per subdomain | ADR 0004: an implementation style per subdomain |
 
 ## Licence and disclaimers
 
