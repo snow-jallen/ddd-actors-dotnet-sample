@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../Ch02.ActorsByHand/Ch02.ActorsByHand.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,2 +1,6 @@
 <Solution>
+  <Folder Name="/learn/">
+    <Project Path="learn/Ch02.ActorsByHand.Tests/Ch02.ActorsByHand.Tests.csproj" />
+    <Project Path="learn/Ch02.ActorsByHand/Ch02.ActorsByHand.csproj" />
+  </Folder>
 </Solution>
