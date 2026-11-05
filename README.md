@@ -207,6 +207,15 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch16-s08` | 16.8 The grid operator ACL and a projection-fed dispatcher | `tools/Ohmline.FakeGridOperator`, `GridSignalTranslator` and the `grid-signal-poller` singleton, `ChargingProfileDispatcher` (`charging-profile-dispatcher-v1`) |
 | `ch16-s09` | 16.9 System tests with Aspire | `Ohmline.SystemTests`: the AppHost under Aspire.Hosting.Testing, plug in, charge, get a receipt; launch profiles for Billing and the gateway |
 | `ch16-s10` | 16.10 Contract tests for the Published Language | `Ohmline.ContractTests`: golden JSON in `tests/golden/published-language/` and `tests/golden/billing/`, Billing's reader over Charging's feed |
+| `ch17-s01` | 17.1 Signals in .NET and observability as a port | `ChargingDiagnostics` and one diagnostics class per context (`Ohmline.{Context}` ActivitySource and meter name, `CreateMeter` over `IMeterFactory`), `ActorShellDiagnostics` |
+| `ch17-s02` | 17.2 Wiring OpenTelemetry into ServiceDefaults and the Aspire dashboard | OpenTelemetry 1.20.1 in `Ohmline.ServiceDefaults` only: `Ohmline.*` sources and meters, ASP.NET Core, HttpClient and runtime instrumentation, `service.version`, `deployment.environment.name`, `UseOtlpExporter` when `OTEL_EXPORTER_OTLP_ENDPOINT` is set |
+| `ch17-s03` | 17.3 Why traces stop at the mailbox | `tests/Ohmline.Telemetry.Tests`, `SpanRecorder`, `MailboxLosesTraceTests` |
+| `ch17-s04` | 17.4 A W3C trace envelope | `TraceEnvelope`, `TraceEnvelopeSerializer` (9100, `ohmline.trace-envelope.v1`), `TellTraced`/`AskTraced`; the shard extractor looks through envelopes; the edge, the ports and the projections send traced |
+| `ch17-s05` | 17.5 Consumer spans in AroundReceive | `TracedPersistentActor` and `TracedReceiveActor`: `process {ActorType}` CONSUMER spans; `DeciderActor`, `ChargingJourneyActor` and `ChargerConnectionActor` adopt them |
+| `ch17-s06` | 17.6 Stash, persist and the double count | `stash` spans and `OnMessageHandled` once per handled message; `PersistTraced`/`PersistAllTraced` with `persist`, `apply` and `persisted` spans |
+| `ch17-s07` | 17.7 Parents versus links | Traced events stored in envelopes and tagged by `TracedEventTagger`; projection, OCPP frame and journey timer spans linked to their origin; `messaging.message.conversation_id` |
+| `ch17-s08` | 17.8 Testing traces | OpenTelemetry.Exporter.InMemory; `TraceShapeTests` on the node as it runs: HTTP to actor to journal in one trace, a projection's link, a journey's Tell |
+| `ch17-s09` | 17.9 Buy versus build: Phobos | ADR 0012: manual tracing, its known gaps, and the criteria for buying Phobos |
 
 ## Licence and disclaimers
 
