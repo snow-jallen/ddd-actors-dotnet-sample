@@ -69,6 +69,7 @@ and this version becomes the package version.
 | 2.0.0 | `ValidationError` becomes a union of `OutOfRange`, `Malformed` and `Missing` (major: its constructor is gone; it was never written to the wire); the units implement `IValueObject` | 6.2 |
 | 2.1.0 | `Currency`, `Money`, `CurrencyMismatch` and `RoundingPolicy` in `Monetary` | 6.3 |
 | 2.2.0 | Identifiers: `SiteId`, `ChargePointId`, `ConnectorId`, `SessionId`, `JourneyId`, `TokenUid`; `GuidV7.Check` | 6.4 |
+| 2.3.0 | `DecisionContext` in `Deciders`: the time a decider is given | 7.4 |
 
 ## How a change gets in
 

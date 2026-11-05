@@ -12,7 +12,7 @@ internal static class Known
 
     public static readonly SiteId Depot = new("slc-depot");
 
-    public static readonly ChargePointId ChargePoint = new("OHM-SLC-0042");
+    public static readonly ChargePointId Charger = new("OHM-SLC-0042");
 
     public static readonly TokenUid DriversCard = new("04A2B3C4D5E6F7");
 

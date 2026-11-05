@@ -68,10 +68,10 @@ public sealed class ChargePointStateTests
     }
 
     private static Registered Registered(params Connector[] connectors) =>
-        new(ChargePoint, Depot, connectors.ToImmutableDictionary(connector => connector.Id.Number));
+        new(Charger, Depot, connectors.ToImmutableDictionary(connector => connector.Id.Number));
 
     private static Connector Connector(int number, ConnectorState state) =>
-        new(new ConnectorId(ChargePoint, number), new Power(50m), state);
+        new(new ConnectorId(Charger, number), new Power(50m), state);
 
     private static string Describe(ChargePointState state) => state switch
     {
