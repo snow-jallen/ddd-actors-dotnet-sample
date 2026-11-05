@@ -6,6 +6,9 @@
   -->
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <!-- Section 3.9: what happens to unions and closed records in an Akka.NET mailbox. -->
+    <PackageReference Include="Akka" />
+    <PackageReference Include="Akka.TestKit.Xunit" />
   </ItemGroup>
 
   <ItemGroup>

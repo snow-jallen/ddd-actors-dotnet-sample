@@ -93,6 +93,15 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch02-s07` | 2.7 Time inside actors | The `ChargerTwin` heartbeat watchdog on `IWithTimers` |
 | `ch02-s08` | 2.8 Supervision, backoff and the async question | `FirmwareLookupActor` (`PipeTo`), `ReceiveAsync` contrast, `BackoffSupervisor` |
 | `ch02-s09` | 2.9 Actors in the Generic Host | `Ch02.Hosted`: Akka.Hosting, `IRequiredActor<T>`, coordinated shutdown |
+| `ch03-s01` | 3.1 Learning tests: pinning down a language | `Ch03.LanguageLab.Tests`, record equality and with-expressions |
+| `ch03-s02` | 3.2 Records, with, and validation with the field keyword | `Kilowatts` with a `field`-validated `init` |
+| `ch03-s03` | 3.3 Union types: closed sets of existing types | `ConnectorStatus` union; CS8509 and CS8655 as build errors |
+| `ch03-s04` | 3.4 Closed hierarchies and the union-versus-closed decision | `Ch03.ClosedLib`, `ChargerCommand` closed hierarchy, ADR 0003 |
+| `ch03-s05` | 3.5 Errors as values: a Result union | `Ohmline.SharedKernel` with `Result<T, E>` and `Unit`; `tests/` |
+| `ch03-s06` | 3.6 Static abstract members and generic math | `IValueObject<TSelf, TValue>`, `ValidationError`, operator interfaces |
+| `ch03-s07` | 3.7 Extension members and extension indexers | Extension blocks on `decimal`, `Kilowatts` and a meter history |
+| `ch03-s08` | 3.8 Patterns that read like rules; time and identity | List and property patterns, labeled `break`, `FakeTimeProvider`, `GuidV7` |
+| `ch03-s09` | 3.9 Serialization reality check: unions and closed records on the wire and in the mailbox | System.Text.Json and Akka.NET tests, `docs/house-style.md` |
 
 ## Licence and disclaimers
 
