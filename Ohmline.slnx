@@ -3,5 +3,7 @@
     <Project Path="learn/Ch02.ActorsByHand.Tests/Ch02.ActorsByHand.Tests.csproj" />
     <Project Path="learn/Ch02.ActorsByHand/Ch02.ActorsByHand.csproj" />
     <Project Path="learn/Ch02.AkkaBasics.Tests/Ch02.AkkaBasics.Tests.csproj" />
+    <Project Path="learn/Ch02.Hosted.Tests/Ch02.Hosted.Tests.csproj" />
+    <Project Path="learn/Ch02.Hosted/Ch02.Hosted.csproj" />
   </Folder>
 </Solution>

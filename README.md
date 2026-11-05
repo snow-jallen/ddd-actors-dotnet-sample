@@ -84,6 +84,15 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch01-s04` | 1.4 Consistency without distributed transactions | ADR 0001: one writer per aggregate |
 | `ch01-s06` | 1.6 Functional core, actor shell | ADR 0002, a first-draft `docs/vision.md` |
 | `ch01-s07` | 1.7 Setting up the workbench | `global.json`, `Directory.*.props`, `NuGet.config`, `.editorconfig`, an empty `Ohmline.slnx`, `tools/verify-tags.sh` |
+| `ch02-s01` | 2.1 Shared mutable state: double-booking a connector | `learn/`, `RacyConnector`, `LockedConnector`, the first xUnit v3 tests |
+| `ch02-s02` | 2.2 A mailbox in sixty lines | `Mailbox<TMessage>` on a single-reader `Channel`, `ConnectorActor` |
+| `ch02-s03` | 2.3 Tell, don't ask: reply addresses and futures | `ReplyTo<TReply>`, `ICanTell<TMessage>`, `AskAsync` with a mandatory timeout |
+| `ch02-s04` | 2.4 Let it crash: supervision and addresses by hand | `Supervisor`, `ActorDirectory<TActor>` |
+| `ch02-s05` | 2.5 Hello, Akka.NET | Akka.NET 1.5.73, `Ch02.AkkaBasics.Tests`, `AkkaConnectorActor`, the TestKit |
+| `ch02-s06` | 2.6 Behaviour as state: Become and Stash | `ChargerTwin` with `Become` and `IWithStash` |
+| `ch02-s07` | 2.7 Time inside actors | The `ChargerTwin` heartbeat watchdog on `IWithTimers` |
+| `ch02-s08` | 2.8 Supervision, backoff and the async question | `FirmwareLookupActor` (`PipeTo`), `ReceiveAsync` contrast, `BackoffSupervisor` |
+| `ch02-s09` | 2.9 Actors in the Generic Host | `Ch02.Hosted`: Akka.Hosting, `IRequiredActor<T>`, coordinated shutdown |
 
 ## Licence and disclaimers
 

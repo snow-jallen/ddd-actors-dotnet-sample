@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <PackageReference Include="Akka.Hosting" />
+  </ItemGroup>
+
+  <!-- Chapter 2's actors live in its learning tests. This host compiles the same ChargerTwin
+       source files instead of referencing a test project. -->
+  <ItemGroup>
+    <Compile Include="../Ch02.AkkaBasics.Tests/Chargers/*.cs"
+             Exclude="../Ch02.AkkaBasics.Tests/Chargers/*Tests.cs"
+             LinkBase="Chargers" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../Ch02.Hosted/Ch02.Hosted.csproj" />
+  </ItemGroup>
+
+</Project>

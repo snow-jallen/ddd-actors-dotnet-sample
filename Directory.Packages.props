@@ -13,6 +13,7 @@
   <!-- Every Akka.* package uses Version="$(AkkaVersion)", so an upgrade is a one-line change. -->
   <ItemGroup Label="Akka.NET">
     <PackageVersion Include="Akka" Version="$(AkkaVersion)" />
+    <PackageVersion Include="Akka.Hosting" Version="$(AkkaVersion)" />
   </ItemGroup>
 
   <ItemGroup Label="Hosting and Aspire">
