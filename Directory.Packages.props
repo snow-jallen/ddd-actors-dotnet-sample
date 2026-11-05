@@ -15,12 +15,16 @@
     <PackageVersion Include="Akka" Version="$(AkkaVersion)" />
     <PackageVersion Include="Akka.Hosting" Version="$(AkkaVersion)" />
     <PackageVersion Include="Akka.Persistence.Hosting" Version="$(AkkaVersion)" />
+    <!-- Not the deprecated Akka.Persistence.Sqlite/.PostgreSql/.SqlServer plugins. -->
+    <PackageVersion Include="Akka.Persistence.Sql.Hosting" Version="$(AkkaVersion)" />
   </ItemGroup>
 
   <ItemGroup Label="Hosting and Aspire">
   </ItemGroup>
 
   <ItemGroup Label="Data">
+    <!-- 10.0.0 pulls in a vulnerable SQLitePCLRaw; 10.0.14 does not. -->
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.14" />
   </ItemGroup>
 
   <ItemGroup Label="Telemetry and operations">

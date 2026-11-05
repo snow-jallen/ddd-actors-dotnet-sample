@@ -491,3 +491,6 @@ $RECYCLE.BIN/
 .idea/
 .vs/
 TestResults/
+
+# The development node's SQLite journal (section 10.7), with its -wal and -shm files.
+ohmline.db*

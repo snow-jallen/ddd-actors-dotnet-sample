@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="Akka.Persistence.Hosting" />
+    <PackageReference Include="Akka.Persistence.Sql.Hosting" />
+    <PackageReference Include="Microsoft.Data.Sqlite" />
   </ItemGroup>
 
   <ItemGroup>
