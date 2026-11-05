@@ -1,0 +1,71 @@
+<ContentPage
+  x:Class="Ohmline.Mobile.Pages.StartChargingPage"
+  xmlns:charging="clr-namespace:Ohmline.Mobile.Core.Charging;assembly=Ohmline.Mobile.Core"
+  xmlns:views="clr-namespace:Ohmline.Mobile.Views"
+  x:DataType="charging:StartChargingViewModel"
+  Title="Start charging">
+
+  <ContentPage.Resources>
+    <views:ScreenStateTemplates x:Key="ScreenTemplates">
+      <views:ScreenStateTemplates.Loading>
+        <DataTemplate x:DataType="charging:Loading">
+          <ActivityIndicator IsRunning="True" />
+        </DataTemplate>
+      </views:ScreenStateTemplates.Loading>
+      <views:ScreenStateTemplates.Ready>
+        <DataTemplate x:DataType="charging:Ready">
+          <Label Text="Scan or type the code on the connector's label." />
+        </DataTemplate>
+      </views:ScreenStateTemplates.Ready>
+      <views:ScreenStateTemplates.Offline>
+        <DataTemplate x:DataType="charging:Offline">
+          <Label Text="You are offline. Charging can start once the phone has a signal." />
+        </DataTemplate>
+      </views:ScreenStateTemplates.Offline>
+      <views:ScreenStateTemplates.Failed>
+        <DataTemplate x:DataType="charging:Failed">
+          <Label Text="{Binding Message}" TextColor="DarkRed" />
+        </DataTemplate>
+      </views:ScreenStateTemplates.Failed>
+    </views:ScreenStateTemplates>
+
+    <views:CommandStatusTemplates x:Key="StatusTemplates">
+      <views:CommandStatusTemplates.Queued>
+        <DataTemplate x:DataType="charging:Queued">
+          <Label Text="Pending: Ohmline gets it as soon as the phone is online." />
+        </DataTemplate>
+      </views:CommandStatusTemplates.Queued>
+      <views:CommandStatusTemplates.Sending>
+        <DataTemplate x:DataType="charging:Sending">
+          <Label Text="Syncing..." />
+        </DataTemplate>
+      </views:CommandStatusTemplates.Sending>
+      <views:CommandStatusTemplates.Accepted>
+        <DataTemplate x:DataType="charging:Accepted">
+          <Label Text="Charging is starting. Plug in if you have not yet." />
+        </DataTemplate>
+      </views:CommandStatusTemplates.Accepted>
+      <views:CommandStatusTemplates.Rejected>
+        <DataTemplate x:DataType="charging:Rejected">
+          <Label Text="{Binding Text}" TextColor="DarkRed" />
+        </DataTemplate>
+      </views:CommandStatusTemplates.Rejected>
+      <views:CommandStatusTemplates.FailedToSync>
+        <DataTemplate x:DataType="charging:FailedToSync">
+          <Label Text="Failed to sync: the phone was offline for a day. Start again." />
+        </DataTemplate>
+      </views:CommandStatusTemplates.FailedToSync>
+    </views:CommandStatusTemplates>
+  </ContentPage.Resources>
+
+  <VerticalStackLayout Padding="16" Spacing="12">
+    <Entry Text="{Binding ConnectorText}" Placeholder="Connector, such as OHM-SLC-0042/1" />
+    <Label Text="{Binding ConnectorError}" TextColor="DarkRed" />
+    <Entry Text="{Binding SpendCapText}" Placeholder="Spend cap in USD" Keyboard="Numeric" />
+    <Label Text="{Binding SpendCapError}" TextColor="DarkRed" />
+    <Button Text="Start charging" Command="{Binding StartChargingCommand}" />
+    <views:StateView State="{Binding Screen}" Templates="{StaticResource ScreenTemplates}" />
+    <views:StateView State="{Binding Status}" Templates="{StaticResource StatusTemplates}" />
+  </VerticalStackLayout>
+
+</ContentPage>

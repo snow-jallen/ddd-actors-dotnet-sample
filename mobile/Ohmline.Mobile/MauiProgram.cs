@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Ohmline.Mobile.Core.Api;
+using Ohmline.Mobile.Core.Charging;
 using Ohmline.Mobile.Core.Listings;
 using Ohmline.Mobile.Core.Platform;
 using Ohmline.Mobile.Pages;
@@ -32,10 +33,14 @@ public static class MauiProgram
         // One client for the app's life: a phone makes few requests, to one server.
         builder.Services.AddSingleton(new HttpClient { BaseAddress = settings.ApiBaseAddress });
         builder.Services.AddSingleton<ChargingApiClient>();
+        builder.Services.AddSingleton(new DriverToken(settings.TokenUid));
+        builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<IConnectivity, MauiConnectivity>();
         builder.Services.AddSingleton<IAppDispatcher, MauiDispatcher>();
         builder.Services.AddTransient<ChargePointListingViewModel>();
         builder.Services.AddTransient<ListingPage>();
+        builder.Services.AddTransient<StartChargingViewModel>();
+        builder.Services.AddTransient<StartChargingPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

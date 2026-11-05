@@ -7,7 +7,9 @@ namespace Ohmline.Mobile.Settings;
 /// in the package: a phone has no environment variables from the developer's machine. Read with
 /// <see cref="JsonDocument"/>, which needs no reflection, so trimming cannot break it.
 /// </summary>
-public sealed record AppSettings(Uri ApiBaseAddress)
+/// <param name="ApiBaseAddress">The server: the development machine's node, in Debug.</param>
+/// <param name="TokenUid">The driver's id token in the app; a sign-in would provide it.</param>
+public sealed record AppSettings(Uri ApiBaseAddress, string TokenUid)
 {
     private const string Resource = "appsettings.json";
 
@@ -17,6 +19,8 @@ public sealed record AppSettings(Uri ApiBaseAddress)
             ?? throw new InvalidOperationException($"The app package has no {Resource}.");
         using var json = JsonDocument.Parse(stream);
         var ohmline = json.RootElement.GetProperty("Ohmline");
-        return new AppSettings(new Uri(ohmline.GetProperty("ApiBaseAddress").GetString()!));
+        return new AppSettings(
+            new Uri(ohmline.GetProperty("ApiBaseAddress").GetString()!),
+            ohmline.GetProperty("TokenUid").GetString()!);
     }
 }

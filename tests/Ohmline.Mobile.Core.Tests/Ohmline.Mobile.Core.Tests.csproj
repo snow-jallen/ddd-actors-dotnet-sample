@@ -6,6 +6,11 @@
   -->
 
   <ItemGroup>
+    <!-- A clock the tests set: the command ids are made from it. -->
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../../src/Mobile/Ohmline.Mobile.Core/Ohmline.Mobile.Core.csproj" />
   </ItemGroup>
 

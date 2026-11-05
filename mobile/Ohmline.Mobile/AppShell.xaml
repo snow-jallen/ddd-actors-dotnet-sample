@@ -2,8 +2,13 @@
        xmlns:pages="clr-namespace:Ohmline.Mobile.Pages"
        Title="Ohmline">
 
-  <ShellContent Title="Charge point"
-                ContentTemplate="{DataTemplate pages:ListingPage}"
-                Route="listing" />
+  <TabBar>
+    <ShellContent Title="Charge"
+                  ContentTemplate="{DataTemplate pages:StartChargingPage}"
+                  Route="charge" />
+    <ShellContent Title="Charge point"
+                  ContentTemplate="{DataTemplate pages:ListingPage}"
+                  Route="listing" />
+  </TabBar>
 
 </Shell>
