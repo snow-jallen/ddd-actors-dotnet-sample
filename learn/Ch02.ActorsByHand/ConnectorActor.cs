@@ -23,6 +23,9 @@ public sealed class ConnectorActor : ICanTell<ConnectorMessage>, IAsyncDisposabl
 
     public string ConnectorId { get; }
 
+    /// <summary>Completes when the actor stops, and faults if handling a message threw.</summary>
+    public Task Completion => _mailbox.Completion;
+
     public void Tell(ConnectorMessage message) => _mailbox.Tell(message);
 
     public ValueTask DisposeAsync() => _mailbox.DisposeAsync();
