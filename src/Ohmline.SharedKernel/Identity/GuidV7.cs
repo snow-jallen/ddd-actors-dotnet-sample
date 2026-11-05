@@ -7,4 +7,12 @@ namespace Ohmline.SharedKernel.Identity;
 public static class GuidV7
 {
     public static Guid New(TimeProvider clock) => Guid.CreateVersion7(clock.GetUtcNow());
+
+    /// <summary>The check behind the TryCreate of each Guid id; the name says which id.</summary>
+    public static Result<Guid, ValidationError> Check(string name, Guid value) => value switch
+    {
+        { Version: 7 } => Result.Ok(value),
+        _ when value == Guid.Empty => Result.Fail<ValidationError>(new Missing(name)),
+        _ => Result.Fail<ValidationError>(new Malformed(name, $"{value}", "a version 7 Guid")),
+    };
 }

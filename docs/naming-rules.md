@@ -62,7 +62,7 @@ role is named after the process it manages: `ChargingJourney`, not `ChargingProc
 
 | Identifier | Format | Example |
 |---|---|---|
-| `SiteId` | lower-case kebab case | `slc-depot` |
+| `SiteId` | lower-case kebab case, starting with a three-letter area code | `slc-depot` |
 | `ChargePointId` | `OHM-` + three-letter area + `-` + four digits | `OHM-SLC-0042` |
 | `ConnectorId` | charge point id + `/` + connector number, from 1 | `OHM-SLC-0042/1` |
 | `TokenUid` | the card's hexadecimal UID, upper case | `04A2B3C4D5E6F7` |
