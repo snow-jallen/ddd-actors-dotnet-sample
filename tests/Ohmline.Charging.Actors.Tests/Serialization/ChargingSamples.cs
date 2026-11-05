@@ -253,6 +253,11 @@ internal static class ChargingSamples
         Stamped(new ReservationTakenOver(
             ChargePoint, 1, new TokenUid("04FFEEDDCC"), Token, At.AddMinutes(15))),
         Stamped(new ChargePointHeartbeatRecorded(ChargePoint)),
+        new MeterValueRecordedV1(Session, 18_210_350, At.AddMinutes(10))
+        {
+            CommandId = Command,
+            OccurredAt = At,
+        },
     ];
 
     private static ChargePointEvent Stamped(ChargePointEvent @event) =>

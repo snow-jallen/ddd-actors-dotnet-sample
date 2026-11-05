@@ -20,7 +20,8 @@ public sealed class LegacyEventsReadAdapter : IReadEventAdapter
     public const string Name = "charging-legacy-events";
 
     /// <summary>The journal passes events of these types through this adapter.</summary>
-    public static IReadOnlyList<Type> BoundTypes { get; } = [typeof(LegacyChargingEvent)];
+    public static IReadOnlyList<Type> BoundTypes { get; } =
+        [typeof(LegacyChargingEvent), typeof(MeterValueRecordedV1)];
 
     public IEventSequence FromJournal(object evt, string manifest) => evt switch
     {
@@ -34,6 +35,7 @@ public sealed class LegacyEventsReadAdapter : IReadEventAdapter
                     taken.ChargePointId, taken.ConnectorNumber, taken.TokenUid, taken.ExpiresAt),
                 taken)),
         ChargePointHeartbeatRecorded => EventSequence.Empty,
+        MeterValueRecordedV1 v1 => EventSequence.Single(v1.ToV2()),
         _ => EventSequence.Single(evt),
     };
 

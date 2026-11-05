@@ -5,7 +5,6 @@ using Ohmline.ActorShell.Serialization;
 using Ohmline.Charging.Actors.ChargePoints;
 using Ohmline.Charging.Actors.Listings;
 using Ohmline.Charging.Actors.Persistence.Legacy;
-using Ohmline.Charging.Actors.Serialization.Upcasting;
 using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
@@ -63,6 +62,7 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         typeof(ChargerCommand),
         typeof(ChargerCommandReply),
         typeof(LegacyChargingEvent),
+        typeof(MeterValueRecordedV1),
     ];
 
     public static FrozenDictionary<Type, string> Manifests { get; } = new Dictionary<Type, string>
@@ -154,17 +154,15 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         // LegacyEventsReadAdapter (section 20.4).
         [typeof(ReservationTakenOver)] = "charging.reservation-taken-over.v1",
         [typeof(ChargePointHeartbeatRecorded)] = "charging.charge-point-heartbeat-recorded.v1",
+        [typeof(MeterValueRecordedV1)] = "charging.meter-value-recorded.v1",
     }.ToFrozenDictionary();
 
     /// <summary>
-    /// The manifests Charging wrote once and writes no more. The journal still holds them, so
-    /// each is read as the shape it was written in and upcast to the type written today.
+    /// None on this branch: <c>charging.meter-value-recorded.v1</c> is read as its own type,
+    /// <see cref="MeterValueRecordedV1"/>, and upcast by the journal's read adapter instead.
     /// </summary>
     public static FrozenDictionary<string, Upcaster> Upcasters { get; } =
-        new Dictionary<string, Upcaster>
-        {
-            ["charging.meter-value-recorded.v1"] = MeterValueRecordedV1.Upcaster,
-        }.ToFrozenDictionary();
+        FrozenDictionary<string, Upcaster>.Empty;
 
     /// <summary>Permanent: Ohmline's serializer ids are listed in ADR 0007.</summary>
     public override int Identifier => 9101;
