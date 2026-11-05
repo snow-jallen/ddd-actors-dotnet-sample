@@ -5,7 +5,8 @@
     mailbox, the envelope that carries a trace there, and the shape of a whole trace. Most
     tests record spans with an ActivityListener; TraceShapeTests run the node as it runs, on
     PostgreSQL in a container ([Trait("Category", "Integration")]), and read what its
-    OpenTelemetry SDK exports, into memory.
+    OpenTelemetry SDK exports, into memory. And its metrics (Chapter 18), read with
+    MetricCollector<T>.
   -->
 
   <ItemGroup>
@@ -13,6 +14,8 @@
     <!-- A scriptable journal: a write held back on purpose, so commands are stashed (17.6). -->
     <PackageReference Include="Akka.Persistence.TestKit.Xunit" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
     <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="Testcontainers.XunitV3" />
