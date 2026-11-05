@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Billing as it runs: its endpoints over HTTP in memory (WebApplicationFactory), its feed
+    consumer against a stand-in for Charging's feed, its tables in a PostgreSQL 17 container,
+    a database per test. The rules and the feed reader are tested without either.
+  -->
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.XunitV3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Billing/Ohmline.Billing/Ohmline.Billing.csproj" />
+  </ItemGroup>
+
+</Project>

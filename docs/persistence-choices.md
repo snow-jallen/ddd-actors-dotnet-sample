@@ -95,3 +95,21 @@ persistence_id=charge-point-listing-OHM-SLC-0042 | sequence_number=3
 - If anyone ever asks "who changed the access instructions, and when?", the answer is that we
   chose not to know. That question is the signal to switch the listing to event sourcing; the
   decider would not change, only the shell it runs in.
+
+## Billing: the fourth column (section 16.3)
+
+Billing keeps no history of its own and runs no actor. Its state is rows in its own database
+(`billing.holds`, `billing.invoices`), written by transaction scripts with Npgsql:
+
+- **A hold is a row** whose status moves from `placed` to `captured` or `voided`. Each request
+  reads the row, decides with `HoldRules` (plain functions over the row) and writes the new row
+  with `WHERE status = @expected`: a request that lost a race with another for the same hold
+  changes nothing, reads again and decides again. The database is the single writer.
+- **What happened is still recorded where someone asks for it:** an invoice per session, and a
+  receipt message in Billing's outbox, written in the same database transaction.
+- **What Billing reads from Charging** goes through an inbox: the position of the last charging
+  feed entry it handled, stored with whatever the entry changed (an idempotent receiver).
+
+Accountants want rows and an audit trail, not an event stream (ADR 0004); Billing is not where
+Ohmline competes. If disputes ever need "how did this hold get here", that is the signal to
+record payment events, and the rows would become a projection of them.

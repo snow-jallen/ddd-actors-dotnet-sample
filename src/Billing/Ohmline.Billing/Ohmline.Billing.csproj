@@ -6,9 +6,15 @@
   -->
 
   <ItemGroup>
+    <!-- Billing's state is rows in its own database, written with plain SQL (section 16.3). -->
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../Ohmline.Billing.Contracts/Ohmline.Billing.Contracts.csproj" />
     <ProjectReference
       Include="../../Charging/Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
+    <ProjectReference Include="../../Ohmline.ServiceDefaults/Ohmline.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>
