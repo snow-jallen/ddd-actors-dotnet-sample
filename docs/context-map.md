@@ -137,5 +137,20 @@ is not Charging's session: Roaming will speak the hub's language, and translate 
 its own boundary. The accounting package is the same kind of relationship for Billing: it reads
 one import format, and Billing writes that format.
 
-**Separate Ways.** Some integrations cost more than they are worth. Section 5.6 explains the two
-that Ohmline decided not to build.
+**Anticorruption layers.** Where the upstream model is one Ohmline must not let in, the
+downstream context translates at its edge: AssetTrack's export (`docs/acl/assettrack.md`),
+Northgate Grid's demand-response signals, TallyPay's payment API and the charger vendors'
+firmware dialects. Two of these upstreams are Big Balls of Mud: AssetTrack, and the charge points
+taken together. Neither can be fixed from inside Ohmline, so both are quarantined behind a pure
+translator, and their words never appear in Site Energy's or Charging's model.
+
+**Separate Ways.** Some integrations cost more than they are worth:
+
+- **The marketing CRM.** Marketing would like to know who charges where. Driver Accounts would
+  have to send personal data to a system run by an agency, and nothing in charging depends on
+  the answer. Marketing exports anonymous usage figures from the session-history read model by
+  hand once a month instead. If that ever needs an integration, it gets a canvas of its own.
+- **Roaming in the first release.** The roaming hub's protocol is large, and Ohmline's own
+  drivers come first. Until the Roaming context exists, drivers from other operators pay by card
+  at the charge point, like anyone else, and Charging knows nothing of roaming. When Roaming is
+  built, it conforms to the hub and talks to Charging through Charging's own contracts.
