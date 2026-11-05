@@ -1,10 +1,12 @@
 using Akka.Actor;
 using Akka.Cluster.Sharding;
-using Akka.Event;
 using Akka.Hosting;
 using Akka.Persistence;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Ohmline.ActorShell.Sharding;
 using Ohmline.ActorShell.Tracing;
+using Ohmline.Charging.Actors.Diagnostics;
 using Ohmline.Charging.Actors.Journeys.Ports;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.Journeys;
@@ -38,13 +40,13 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
     /// <summary>Durable vocabulary: the shard type name and the persistence id prefix.</summary>
     public const string TypeName = "charging-journey";
 
-    private readonly ILoggingAdapter _log = Context.GetLogger();
     private readonly JourneyId _journeyId;
     private readonly TimeProvider _clock;
     private readonly IRequiredActor<IdTokenRegion> _tokens;
     private readonly IRequiredActor<SitePowerBudgetRegion> _budgets;
     private readonly IPaymentPort _payments;
     private readonly IChargerCommandPort _chargers;
+    private readonly ILogger _log;
     private JourneyState _state = ChargingJourney.Initial;
 
     public ChargingJourneyActor(
@@ -53,7 +55,8 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
         IRequiredActor<IdTokenRegion> tokens,
         IRequiredActor<SitePowerBudgetRegion> budgets,
         IPaymentPort payments,
-        IChargerCommandPort chargers)
+        IChargerCommandPort chargers,
+        ILogger<ChargingJourneyActor> log)
     {
         PersistenceId = PersistenceIdOf(journeyId);
         _journeyId = journeyId;
@@ -62,6 +65,7 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
         _budgets = budgets;
         _payments = payments;
         _chargers = chargers;
+        _log = log;
 
         Recover<JourneyEvent>(@event => _state = ChargingJourney.Evolve(_state, @event));
         Recover<RecoveryCompleted>(_ => Resume());
@@ -121,8 +125,7 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
         // A port whose task failed: no answer, as if the message had been lost. A hold is
         // asked for again when the step's reply timer elapses, under the same key; a charger
         // that never answers runs into the energy-flow timeout (section 15.6).
-        Command<Status.Failure>(failure => _log.Warning(
-            failure.Cause, "{0}: a port failed; the journey waits for its timer", PersistenceId));
+        Command<Status.Failure>(failure => _log.PortFailed(_journeyId, failure.Cause));
 
         // From the shard: passivation, a hand-off or shutdown (section 12.4).
         Command<Stop>(_ => Context.Stop(Self));
@@ -148,8 +151,9 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
     public static string PersistenceIdOf(JourneyId journeyId) => $"{TypeName}-{journeyId}";
 
     /// <summary>
-    /// For a test that starts the actor itself. In a node, the shard region has the container
-    /// make it, with the node's clock, shard regions and ports.
+    /// For a test that starts the actor itself, with a logger of its choosing or none. In a
+    /// node, the shard region has the container make it, with the node's clock, shard regions,
+    /// ports and logging.
     /// </summary>
     public static Props Props(
         JourneyId journeyId,
@@ -157,9 +161,13 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
         IRequiredActor<IdTokenRegion> tokens,
         IRequiredActor<SitePowerBudgetRegion> budgets,
         IPaymentPort payments,
-        IChargerCommandPort chargers) =>
-        Akka.Actor.Props.Create(() =>
-            new ChargingJourneyActor(journeyId, clock, tokens, budgets, payments, chargers));
+        IChargerCommandPort chargers,
+        ILogger<ChargingJourneyActor>? log = null)
+    {
+        var logger = log ?? NullLogger<ChargingJourneyActor>.Instance;
+        return Akka.Actor.Props.Create(() => new ChargingJourneyActor(
+            journeyId, clock, tokens, budgets, payments, chargers, logger));
+    }
 
     /// <summary>
     /// One step: decide with the time read once, store the events, then act, and answer whoever
@@ -186,19 +194,13 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
         switch (@event)
         {
             case JourneyAbandoned abandoned:
-                _log.Info(
-                    "{0} abandoned ({1}): {2}", PersistenceId, abandoned.Reason, abandoned.Detail);
+                _log.JourneyAbandoned(_journeyId, abandoned.Reason, abandoned.Detail);
                 break;
             case CaptureAttemptFailed failed:
-                _log.Warning(
-                    "{0}: capture attempt {1} failed ({2}); it is tried again later",
-                    PersistenceId,
-                    failed.Attempt,
-                    failed.Code);
+                _log.CaptureAttemptFailed(_journeyId, failed.Attempt, failed.Code);
                 break;
             case DebtRecorded debt:
-                _log.Warning(
-                    "{0}: {1} recorded as owed. {2}", PersistenceId, debt.Amount, debt.Reason);
+                _log.DebtRecorded(_journeyId, debt.Amount, debt.Reason);
                 break;
         }
     }

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Ohmline.Charging.Actors.Diagnostics;
 using Ohmline.Charging.Domain.Journeys;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Units;
@@ -21,31 +22,21 @@ public sealed class LoggingChargerCommandPort(ILogger<LoggingChargerCommandPort>
         Power limit,
         CancellationToken cancellationToken)
     {
-        log.LogInformation(
-            "RemoteStart {Key} on {Connector} for {Token}, session {Session}, at most {Limit}",
-            key,
-            connectorId,
-            tokenUid,
-            sessionId,
-            limit);
+        log.RemoteStartLogged(key, connectorId, tokenUid, sessionId, limit);
         return Accepted(connectorId);
     }
 
     public Task<ChargerCommandResult> RemoteStopAsync(
         ConnectorId connectorId, SessionId sessionId, CancellationToken cancellationToken)
     {
-        log.LogInformation("RemoteStop on {Connector}, session {Session}", connectorId, sessionId);
+        log.RemoteStopLogged(connectorId, sessionId);
         return Accepted(connectorId);
     }
 
     public Task<ChargerCommandResult> SetChargingProfileAsync(
         ConnectorId connectorId, Power limit, long version, CancellationToken cancellationToken)
     {
-        log.LogInformation(
-            "SetChargingProfile on {Connector}: at most {Limit} (allocation {Version})",
-            connectorId,
-            limit,
-            version);
+        log.ChargingProfileLogged(connectorId, limit, version);
         return Accepted(connectorId);
     }
 

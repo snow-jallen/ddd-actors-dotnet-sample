@@ -1,12 +1,14 @@
 using System.Collections.Immutable;
 using Akka.Actor;
 using Akka.Cluster.Tools.PublishSubscribe;
-using Akka.Event;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.Charging.Contracts.Chargers;
 using Ohmline.Charging.Contracts.Sessions;
+using Ohmline.DeviceGateway.Diagnostics;
 using Ohmline.DeviceGateway.Ocpp.Frames;
 using Ohmline.DeviceGateway.Ocpp.Messages;
 using Ohmline.DeviceGateway.Ocpp.Translation;
@@ -37,11 +39,11 @@ public sealed class ChargerConnectionActor : TracedReceiveActor, IWithTimers, IW
     private readonly ChargerRegions _regions;
     private readonly GatewayOptions _options;
     private readonly TimeProvider _clock;
-    private readonly ILoggingAdapter _log = Context.GetLogger();
     private readonly Dictionary<string, PendingCall> _calls = [];
     private readonly Dictionary<string, string> _requests = [];
     private readonly Dictionary<string, ChargerCommandReply> _starts = [];
     private readonly Dictionary<int, long> _profiles = [];
+    private readonly ILogger _log;
     private ChargerContext _context;
 
     public ChargerConnectionActor(
@@ -49,9 +51,11 @@ public sealed class ChargerConnectionActor : TracedReceiveActor, IWithTimers, IW
         IChargerLink link,
         ChargerRegions regions,
         GatewayOptions options,
-        TimeProvider clock)
+        TimeProvider clock,
+        ILogger<ChargerConnectionActor> log)
     {
         _link = link;
+        _log = log;
         _regions = regions;
         _options = options;
         _clock = clock;
@@ -63,14 +67,21 @@ public sealed class ChargerConnectionActor : TracedReceiveActor, IWithTimers, IW
 
     public IStash Stash { get; set; } = null!;
 
+    /// <summary>
+    /// The connection's actor; a test may leave the logger out, and its messages go nowhere.
+    /// </summary>
     public static Props Props(
         ChargePointId chargePointId,
         IChargerLink link,
         ChargerRegions regions,
         GatewayOptions options,
-        TimeProvider clock) =>
-        Akka.Actor.Props.Create(() =>
-            new ChargerConnectionActor(chargePointId, link, regions, options, clock));
+        TimeProvider clock,
+        ILogger<ChargerConnectionActor>? log = null)
+    {
+        var logger = log ?? NullLogger<ChargerConnectionActor>.Instance;
+        return Akka.Actor.Props.Create(() => new ChargerConnectionActor(
+            chargePointId, link, regions, options, clock, logger));
+    }
 
     protected override void PreStart() => ExpectFrameWithinSilenceTimeout();
 
@@ -99,8 +110,8 @@ public sealed class ChargerConnectionActor : TracedReceiveActor, IWithTimers, IW
             timedOut.MessageId,
             $"The charger did not answer within {_options.CallTimeout.TotalSeconds:0} s."));
         Receive<TermsKnown>(known => _context = _context with { Terms = known.Terms });
-        Receive<TermsUnknown>(unknown => _log.Warning(
-            unknown.Cause, "{0}: no site or tariff for its sessions yet", _context.ChargePointId));
+        Receive<TermsUnknown>(unknown =>
+            _log.TermsUnknown(_context.ChargePointId, unknown.Cause));
         Receive<Silent>(_ => GiveUp());
         Receive<Disconnected>(_ => Context.Stop(Self));
     }
@@ -112,11 +123,7 @@ public sealed class ChargerConnectionActor : TracedReceiveActor, IWithTimers, IW
         {
             foreach (var rejected in forwarded.Rejected)
             {
-                _log.Warning(
-                    "{0}: Charging refused a report: {1} ({2})",
-                    _context.ChargePointId,
-                    rejected.Message,
-                    rejected.Code);
+                _log.ReportRefused(_context.ChargePointId, rejected.Message, rejected.Code);
             }
 
             Send(forwarded.Reply);
@@ -124,7 +131,7 @@ public sealed class ChargerConnectionActor : TracedReceiveActor, IWithTimers, IW
         });
         Receive<ForwardFailed>(failed =>
         {
-            _log.Warning(failed.Cause, "{0}: Charging did not answer", _context.ChargePointId);
+            _log.ChargingDidNotAnswer(_context.ChargePointId, failed.Cause);
             _context = failed.Before; // Undone: the charger sends the call again.
             Send(new CallError(failed.MessageId, "InternalError", "Charging did not answer."));
             BackToListening();
@@ -156,7 +163,7 @@ public sealed class ChargerConnectionActor : TracedReceiveActor, IWithTimers, IW
                 Answered(error.MessageId, $"{error.ErrorCode}: {error.Description}");
                 break;
             case Err<FrameError> { Error: var error }:
-                _log.Warning("{0} sent a broken frame: {1}", _context.ChargePointId, error);
+                _log.BrokenFrame(_context.ChargePointId, error);
                 if (error.Reply is { } reply)
                 {
                     Send(reply);
@@ -175,16 +182,11 @@ public sealed class ChargerConnectionActor : TracedReceiveActor, IWithTimers, IW
                 Translated(call, translated);
                 break;
             case Ignored ignored:
-                _log.Info(
-                    "{0}: {1} ignored. {2}", _context.ChargePointId, call.Action, ignored.Reason);
+                _log.CallIgnored(_context.ChargePointId, call.Action, ignored.Reason);
                 Send(ignored.Reply);
                 break;
             case Malformed malformed:
-                _log.Warning(
-                    "{0}: {1} malformed. {2}",
-                    _context.ChargePointId,
-                    call.Action,
-                    malformed.Reason);
+                _log.CallMalformed(_context.ChargePointId, call.Action, malformed.Reason);
                 Send(malformed.Reply);
                 break;
             case null:
@@ -253,7 +255,7 @@ public sealed class ChargerConnectionActor : TracedReceiveActor, IWithTimers, IW
     private void Booted()
     {
         _regions.Mediator.Tell(new Subscribe(ChargerTopics.Of(_context.ChargePointId), Self));
-        _log.Info("{0} booted on this gateway node", _context.ChargePointId);
+        _log.Booted(_context.ChargePointId);
         AskForTerms();
     }
 
@@ -371,8 +373,7 @@ public sealed class ChargerConnectionActor : TracedReceiveActor, IWithTimers, IW
     {
         if (!_calls.Remove(messageId, out var pending))
         {
-            _log.Info(
-                "{0} answered {1}, which nobody is waiting for", _context.ChargePointId, messageId);
+            _log.UnexpectedAnswer(_context.ChargePointId, messageId);
             return;
         }
 
@@ -409,10 +410,7 @@ public sealed class ChargerConnectionActor : TracedReceiveActor, IWithTimers, IW
 
     private void GiveUp()
     {
-        _log.Warning(
-            "{0} sent nothing for {1}; its connection is closed",
-            _context.ChargePointId,
-            _options.SilenceTimeout);
+        _log.Silent(_context.ChargePointId, _options.SilenceTimeout);
         Context.Stop(Self);
     }
 

@@ -10,6 +10,8 @@ using Ohmline.Tariffs.Actors;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton(TimeProvider.System);
+// Akka.NET's own logs keep the trace that was current when they were written (section 18.4).
+builder.Logging.AddOpenTelemetry(logging => logging.AddAkkaTraceCorrelation());
 builder.AddServiceDefaults();
 builder.Services.AddOptions<GatewayOptions>()
     .BindConfiguration(GatewayOptions.Section)

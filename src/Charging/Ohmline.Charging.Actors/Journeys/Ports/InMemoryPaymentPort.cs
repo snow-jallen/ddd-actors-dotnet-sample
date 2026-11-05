@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
+using Ohmline.Charging.Actors.Diagnostics;
 using Ohmline.Charging.Domain.Journeys;
 using Ohmline.DriverAccounts.Contracts.Tokens;
 using Ohmline.SharedKernel.Monetary;
@@ -29,8 +30,7 @@ public sealed class InMemoryPaymentPort(ILogger<InMemoryPaymentPort> log) : IPay
         {
             var hold = new HoldPlaced($"hold-{Guid.NewGuid():N}", amount);
             _held[hold.HoldId] = amount;
-            log.LogInformation(
-                "Held {Amount} for {Driver} as {HoldId} ({Key})", amount, driver, hold.HoldId, key);
+            log.HoldPlaced(amount, driver, hold.HoldId, key);
             return hold;
         });
         return Answer(placed);
@@ -45,7 +45,7 @@ public sealed class InMemoryPaymentPort(ILogger<InMemoryPaymentPort> log) : IPay
     {
         if (_holds.TryGetValue(hold, out var placed) && _held.TryRemove(placed.HoldId, out _))
         {
-            log.LogInformation("Voided {HoldId} ({Key})", placed.HoldId, hold);
+            log.HoldVoided(placed.HoldId, hold);
         }
 
         return Answer(new HoldVoided(placed?.HoldId ?? hold.Value));
@@ -65,7 +65,7 @@ public sealed class InMemoryPaymentPort(ILogger<InMemoryPaymentPort> log) : IPay
         }
 
         _held.TryRemove(holdId, out _);
-        log.LogInformation("Captured {Amount} from {HoldId}", amount, holdId);
+        log.Captured(amount, holdId);
         return new PaymentCaptured(holdId, amount);
     }
 

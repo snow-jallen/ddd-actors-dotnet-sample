@@ -4,6 +4,7 @@ using System.Text;
 using Akka.Actor;
 using Akka.Cluster.Tools.PublishSubscribe;
 using Akka.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Ohmline.ActorShell.Tracing;
 using Ohmline.Charging.Contracts.ChargePoints;
@@ -42,7 +43,8 @@ public static class ChargerSockets
         IRequiredActor<ChargingSessionRegion> sessions,
         IRequiredActor<TariffBookProxy> tariffBook,
         IOptions<GatewayOptions> options,
-        TimeProvider clock)
+        TimeProvider clock,
+        ILogger<ChargerConnectionActor> log)
     {
         if (!http.WebSockets.IsWebSocketRequest)
         {
@@ -65,7 +67,7 @@ public static class ChargerSockets
             tariffBook.ActorRef,
             DistributedPubSub.Get(system).Mediator);
         var connection = system.ActorOf(
-            ChargerConnectionActor.Props(id, link, regions, options.Value, clock),
+            ChargerConnectionActor.Props(id, link, regions, options.Value, clock, log),
             $"charger-{id}-{Guid.NewGuid():N}");
 
         var sending = link.SendAllAsync(http.RequestAborted);

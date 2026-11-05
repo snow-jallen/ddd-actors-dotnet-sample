@@ -25,6 +25,10 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<ChargingMetrics>();
 builder.Services.AddSingleton<SiteEnergyMetrics>();
 
+// Akka.NET logs from a logger actor, later and on another thread, so each log keeps the trace
+// that was current when it was written, and this stamps it on the record (section 18.4). Ahead
+// of the service defaults, so it runs before every exporter they add.
+builder.Logging.AddOpenTelemetry(logging => logging.AddAkkaTraceCorrelation());
 builder.AddServiceDefaults();
 builder.Services.AddOhmlineReadModels(builder.Configuration);
 builder.Services.AddJourneyPorts(); // Billing, and the Device Gateway's charge points.
@@ -34,7 +38,9 @@ builder.Services.AddAkka("ohmline", akka => akka
     .ConfigureLoggers(loggers =>
     {
         loggers.ClearLoggers();
-        loggers.AddLoggerFactory(); // Akka.NET logs through Microsoft.Extensions.Logging.
+        // Akka.NET logs through Microsoft.Extensions.Logging, every one under the category
+        // Akka.Actor.ActorSystem, whatever actor wrote it (section 18.4).
+        loggers.AddLoggerFactory();
     })
     .WithOhmlineCluster(builder.Configuration, builder.Environment, ClusterRoles.Charging)
     // Dead letters, actors' lifecycles and the shard regions' size (section 18.2).

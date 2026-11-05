@@ -21,8 +21,8 @@ namespace Ohmline.Charging.Actors.Tests.JournalTour;
 public sealed class StateSourcingTourTests(ITestOutputHelper output)
 {
     /// <summary>
-    /// The first answer waits for the node to start on its SQLite file, which takes seconds
-    /// when every test assembly runs at once.
+    /// A node on a SQLite file creates its tables and forms its cluster before the first answer,
+    /// which takes seconds when every test assembly runs at once (errata, section 18.4).
     /// </summary>
     private static readonly TimeSpan AskTimeout =
         TimeSpan.FromSeconds(20 * ActorTestConfig.TimeFactor);
