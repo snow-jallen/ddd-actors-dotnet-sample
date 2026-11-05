@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Akka.Persistence.Query;
 using Akka.Streams;
 using Akka.Streams.Dsl;
@@ -5,6 +6,7 @@ using Microsoft.Extensions.Time.Testing;
 using Npgsql;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Contracts.Live;
 using Ohmline.Charging.ReadModels.Projections;
 using Ohmline.Charging.ReadModels.Query;
 using static Ohmline.Charging.ReadModels.Tests.Known;
@@ -73,6 +75,31 @@ public sealed class ProjectionRunnerTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task Given_a_crash_before_the_commit_then_the_change_is_published_once_after()
+    {
+        using var journal = new TemporaryDatabase();
+        await using var node = await WithThreeEventsAsync(journal);
+        await using var database = await ReadModelsAsync();
+        var offsets = new CrashingOffsetStore(new NpgsqlOffsetStore(database), crashAt: 2);
+        var published = new ConcurrentQueue<LiveUpdate>();
+
+        await ProjectionRun.UntilOffsetAsync(
+            node,
+            database,
+            offsets,
+            new DeliveryLog(),
+            ChargingTags.Charging,
+            offset: 3,
+            Ct,
+            published.Enqueue);
+
+        // The first try at offset 2 wrote its row, then crashed before the commit: nothing was
+        // published for it, so no client heard of a version the read model never showed.
+        await WaitUntilAsync(() => published.Count == 3);
+        published.Select(change => ((SessionSummaryChanged)change).Version).ShouldBe([1, 2, 3]);
+    }
+
+    [Fact]
     public async Task Given_a_handled_event_then_its_offset_row_says_when_it_was_journaled()
     {
         using var journal = new TemporaryDatabase();
@@ -115,6 +142,16 @@ public sealed class ProjectionRunnerTests(PostgresFixture postgres)
         await ReadModelSchema.EnsureAsync(database, Ct);
         await DeliveryLog.CreateTableAsync(database, Ct);
         return database;
+    }
+
+    /// <summary>A change is published just after its commit, which the run may beat.</summary>
+    private static async Task WaitUntilAsync(Func<bool> condition)
+    {
+        var deadline = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(5);
+        while (!condition() && DateTimeOffset.UtcNow < deadline)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(20), Ct);
+        }
     }
 
     private static Task RunUntilOffsetAsync(

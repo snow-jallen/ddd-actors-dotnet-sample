@@ -1,5 +1,7 @@
+using System.Collections.Immutable;
 using Akka.Persistence.Query;
 using Npgsql;
+using Ohmline.Charging.Contracts.Live;
 
 namespace Ohmline.Charging.ReadModels.Projections;
 
@@ -25,8 +27,10 @@ public interface IProjectionHandler
     /// <summary>
     /// Applies one event to the read model, inside <paramref name="transaction"/>, which the
     /// runner opened and commits together with the offset. It may be called again with the same
-    /// envelope, or an older one, and must then change nothing (section 13.5).
+    /// envelope, or an older one, and must then change nothing (section 13.5). It returns what
+    /// changed, for live clients; the runner publishes that only once the transaction has
+    /// committed, so a pushed version can always be read back (section 14.4).
     /// </summary>
-    Task HandleAsync(
+    Task<ImmutableArray<LiveUpdate>> HandleAsync(
         EventEnvelope envelope, NpgsqlTransaction transaction, CancellationToken cancellationToken);
 }

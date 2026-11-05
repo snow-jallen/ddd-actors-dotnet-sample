@@ -1,6 +1,8 @@
+using System.Collections.Immutable;
 using Akka.Persistence.Query;
 using Npgsql;
 using Ohmline.Charging.Contracts;
+using Ohmline.Charging.Contracts.Live;
 using Ohmline.Charging.Domain.ChargePoints;
 using Ohmline.Charging.ReadModels.Projections;
 using Ohmline.SiteEnergy.Contracts;
@@ -28,7 +30,8 @@ public sealed class SiteLiveBoardProjection : IProjectionHandler
     /// </summary>
     public ProjectionFailurePolicy FailurePolicy { get; } = new RecordAndSkip(MaxRetries: 5);
 
-    public async Task HandleAsync(
+    /// <summary>The board announces nothing yet: the operator console polls it.</summary>
+    public async Task<ImmutableArray<LiveUpdate>> HandleAsync(
         EventEnvelope envelope, NpgsqlTransaction transaction, CancellationToken cancellationToken)
     {
         switch (envelope.Event)
@@ -46,5 +49,7 @@ public sealed class SiteLiveBoardProjection : IProjectionHandler
                     transaction, allocations, envelope.SequenceNr, cancellationToken);
                 break;
         }
+
+        return [];
     }
 }

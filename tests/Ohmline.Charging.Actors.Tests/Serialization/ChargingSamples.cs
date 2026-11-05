@@ -6,6 +6,7 @@ using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.Charging.Contracts.Listings;
+using Ohmline.Charging.Contracts.Live;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.ChargePoints;
 using Ohmline.Charging.Domain.Listings;
@@ -160,6 +161,8 @@ internal static class ChargingSamples
             ChargePoint, Revision: 3, DisplayName, AccessInstructions, OpeningHours),
         new ChargePointListingSnapshot(
             ChargePoint, DisplayName, AccessInstructions, OpeningHours, Revision: 3),
+
+        new SessionSummaryChanged(Session, Version: 4, Status: "charging", EnergyKwh: 6.35m),
     ];
 
     private static ChargePointEvent Stamped(ChargePointEvent @event) =>

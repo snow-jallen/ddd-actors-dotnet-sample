@@ -8,6 +8,7 @@ using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.Charging.Contracts.Listings;
+using Ohmline.Charging.Contracts.Live;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.ChargePoints;
 using Ohmline.Charging.Domain.Listings;
@@ -45,6 +46,7 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         typeof(ChargePointListingQuery),
         typeof(ChargePointListingView),
         typeof(ChargePointListingSnapshot),
+        typeof(LiveUpdate),
     ];
 
     public static FrozenDictionary<Type, string> Manifests { get; } = new Dictionary<Type, string>
@@ -100,6 +102,8 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         [typeof(GetChargePointListing)] = "charging.get-charge-point-listing.v1",
         [typeof(ChargePointListingView)] = "charging.charge-point-listing-view.v1",
         [typeof(ChargePointListingSnapshot)] = "charging.charge-point-listing-snapshot.v1",
+
+        [typeof(SessionSummaryChanged)] = "charging.session-summary-changed.v1",
     }.ToFrozenDictionary();
 
     /// <summary>Permanent: Ohmline's serializer ids are listed in ADR 0007.</summary>

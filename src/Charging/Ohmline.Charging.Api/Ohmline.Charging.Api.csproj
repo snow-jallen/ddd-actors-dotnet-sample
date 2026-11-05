@@ -12,6 +12,8 @@
   <ItemGroup>
     <!-- IRequiredActor<TKey>: the shard regions, from the node's actor registry. -->
     <PackageReference Include="Akka.Hosting" />
+    <!-- DistributedPubSub, which carries the projections' live updates (section 14.4). -->
+    <PackageReference Include="Akka.Cluster.Hosting" />
     <!-- The query endpoints read the read models' tables directly; they never ask an actor. -->
     <PackageReference Include="Npgsql" />
   </ItemGroup>

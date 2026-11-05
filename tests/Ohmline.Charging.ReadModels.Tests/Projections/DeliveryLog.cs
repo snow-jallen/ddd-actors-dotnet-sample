@@ -1,7 +1,10 @@
+using System.Collections.Immutable;
 using Akka.Persistence.Query;
 using Npgsql;
 using Ohmline.Charging.Contracts;
+using Ohmline.Charging.Contracts.Live;
 using Ohmline.Charging.ReadModels.Projections;
+using Ohmline.SharedKernel.Identity;
 
 namespace Ohmline.Charging.ReadModels.Tests.Projections;
 
@@ -9,6 +12,7 @@ namespace Ohmline.Charging.ReadModels.Tests.Projections;
 /// A projection that only writes down what it was given: one row per delivery, in the order of
 /// delivery, so a test can see an event that came twice, or never. It can fail on purpose,
 /// after its write, at one offset: once, every time, or with a lost connection a few times.
+/// Each delivery it commits is announced as a change, with the offset as its version.
 /// </summary>
 internal sealed class DeliveryLog(
     long? failOnceAt = null,
@@ -29,7 +33,11 @@ internal sealed class DeliveryLog(
     /// <summary>How many times the projection was handed the event at the offset.</summary>
     public int AttemptsAt(long offset) => _attempts.GetValueOrDefault(offset);
 
-    public async Task HandleAsync(
+    /// <summary>The session every announcement is about.</summary>
+    public static SessionId Announced { get; } =
+        new(Guid.Parse("019a4f6e-1c40-7a51-8e2f-3b1d000000ff"));
+
+    public async Task<ImmutableArray<LiveUpdate>> HandleAsync(
         EventEnvelope envelope, NpgsqlTransaction transaction, CancellationToken cancellationToken)
     {
         var offset = ((Sequence)envelope.Offset).Value;
@@ -53,6 +61,8 @@ internal sealed class DeliveryLog(
         {
             throw new NpgsqlException("The connection was lost.", new IOException("Reset."));
         }
+
+        return [new SessionSummaryChanged(Announced, offset, "delivered", 0m)];
     }
 
     public static async Task CreateTableAsync(

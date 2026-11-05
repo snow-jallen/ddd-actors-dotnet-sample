@@ -7,7 +7,10 @@ using Ohmline.ActorShell.Clustering;
 
 namespace Ohmline.Node;
 
-/// <summary>How a node joins Ohmline's cluster: remoting, role, seed nodes and downing.</summary>
+/// <summary>
+/// How a node joins Ohmline's cluster: remoting, role, seed nodes, downing, and the
+/// DistributedPubSub mediator the live updates travel on.
+/// </summary>
 public static class ClusterExtensions
 {
     extension(AkkaConfigurationBuilder akka)
@@ -46,6 +49,8 @@ public static class ClusterExtensions
                 })
                 // /health is Healthy only once this node is an Up member of the cluster.
                 .WithAkkaClusterReadinessCheck()
+                // Live updates from projections reach every charging node (section 14.4).
+                .WithDistributedPubSub(ClusterRoles.Charging)
                 .AddHocon(
                     "akka.cluster.split-brain-resolver.stable-after = 20s",
                     HoconAddMode.Prepend);

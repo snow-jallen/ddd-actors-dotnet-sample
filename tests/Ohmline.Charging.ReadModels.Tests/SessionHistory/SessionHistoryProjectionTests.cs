@@ -1,7 +1,9 @@
+using System.Collections.Immutable;
 using Akka.Persistence.Query;
 using Microsoft.Extensions.Time.Testing;
 using Npgsql;
 using Ohmline.Charging.Contracts;
+using Ohmline.Charging.Contracts.Live;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.Sessions;
 using Ohmline.Charging.ReadModels.Projections;
@@ -53,6 +55,34 @@ public sealed class SessionHistoryProjectionTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task Given_the_same_envelope_twice_then_each_version_is_announced_once()
+    {
+        await using var database = await ReadModelsAsync();
+        var projection = new SessionHistoryProjection();
+        var started = Envelope(1, new SessionStarted(
+            Session,
+            Depot,
+            new ConnectorId(Charger, 1),
+            DriversCard,
+            Tariff,
+            new Money(40m, Currency.Usd),
+            MeterStartWh: 1_200_000) { OccurredAt = Morning });
+        var recorded = Envelope(2, new MeterValueRecorded(Session, 1_207_350, Morning.AddHours(1)));
+
+        var announced = new List<LiveUpdate>();
+        foreach (var envelope in new[] { started, recorded, recorded, started })
+        {
+            announced.AddRange(await DeliverAsync(database, projection, envelope));
+        }
+
+        announced.ShouldBe(
+        [
+            new SessionSummaryChanged(Session, 1, "charging", 0m),
+            new SessionSummaryChanged(Session, 2, "charging", 7.35m),
+        ]);
+    }
+
+    [Fact]
     public async Task Given_a_session_in_the_journal_then_the_runner_keeps_its_row_up_to_date()
     {
         using var journal = new TemporaryDatabase();
@@ -95,13 +125,14 @@ public sealed class SessionHistoryProjectionTests(PostgresFixture postgres)
             [ChargingTags.ChargingSession]);
 
     /// <summary>What the runner does with one envelope, without the offset.</summary>
-    private static async Task DeliverAsync(
+    private static async Task<ImmutableArray<LiveUpdate>> DeliverAsync(
         NpgsqlDataSource database, IProjectionHandler projection, EventEnvelope envelope)
     {
         await using var connection = await database.OpenConnectionAsync(Ct);
         await using var transaction = await connection.BeginTransactionAsync(Ct);
-        await projection.HandleAsync(envelope, transaction, Ct);
+        var changes = await projection.HandleAsync(envelope, transaction, Ct);
         await transaction.CommitAsync(Ct);
+        return changes;
     }
 
     private static async Task<SessionHistoryRow?> FindAsync(NpgsqlDataSource database)

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Runtime.ExceptionServices;
 using Akka;
 using Akka.Event;
@@ -5,6 +6,7 @@ using Akka.Persistence.Query;
 using Akka.Streams;
 using Akka.Streams.Dsl;
 using Npgsql;
+using Ohmline.Charging.Contracts.Live;
 
 namespace Ohmline.Charging.ReadModels.Projections;
 
@@ -18,7 +20,8 @@ namespace Ohmline.Charging.ReadModels.Projections;
 /// undoes both, and the event comes again. The projection may still see an event twice, after
 /// a failed attempt, or when its offset is reset to rebuild it, so it must not mind: delivery is
 /// at least once. An event the projection keeps failing on is dealt with by its
-/// <see cref="ProjectionFailurePolicy"/> (section 13.7).
+/// <see cref="ProjectionFailurePolicy"/> (section 13.7). What the projection says has changed is
+/// handed to <paramref name="publish"/> after the commit, never before (section 14.4).
 /// </remarks>
 public sealed class ProjectionRunner(
     IEventsByTagQuery readJournal,
@@ -27,6 +30,7 @@ public sealed class ProjectionRunner(
     IProjectionHandler projection,
     string tag,
     RestartSettings backoff,
+    Action<LiveUpdate> publish,
     ILoggingAdapter log)
 {
     private readonly ProjectionStream _stream = new(projection.ProjectionId, tag);
@@ -114,12 +118,16 @@ public sealed class ProjectionRunner(
     /// <summary>
     /// The projection's rows and the offset: both, or neither. The offset row also records when
     /// the event was written to the journal, and its <c>updated_at</c> when it was handled.
+    /// What changed is published after the commit: a client that is told about a version and
+    /// asks for it at once finds it in the read model. A crash between the two loses the
+    /// notification, never the row; clients catch up by reading.
     /// </summary>
-    private async Task WriteAsync(EventEnvelope envelope, Func<NpgsqlTransaction, Task> write)
+    private async Task WriteAsync(
+        EventEnvelope envelope, Func<NpgsqlTransaction, Task<ImmutableArray<LiveUpdate>>> write)
     {
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var transaction = await connection.BeginTransactionAsync();
-        await write(transaction);
+        var changes = await write(transaction);
         await offsets.SaveAsync(
             _stream,
             OffsetOf(envelope),
@@ -127,6 +135,10 @@ public sealed class ProjectionRunner(
             transaction,
             CancellationToken.None);
         await transaction.CommitAsync();
+        foreach (var change in changes)
+        {
+            publish(change);
+        }
     }
 
     private static long OffsetOf(EventEnvelope envelope) => ((Sequence)envelope.Offset).Value;
@@ -185,7 +197,7 @@ public sealed class ProjectionRunner(
         return stopped;
     }
 
-    private async Task RecordFailureAsync(
+    private async Task<ImmutableArray<LiveUpdate>> RecordFailureAsync(
         EventEnvelope envelope, Exception exception, NpgsqlTransaction transaction)
     {
         await using var insert = new NpgsqlCommand(
@@ -203,6 +215,7 @@ public sealed class ProjectionRunner(
         insert.Parameters.AddWithValue("sequence_nr", envelope.SequenceNr);
         insert.Parameters.AddWithValue("error", exception.ToString());
         await insert.ExecuteNonQueryAsync();
+        return [];
     }
 
     /// <summary>

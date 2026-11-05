@@ -1,8 +1,10 @@
 using Akka.Actor;
+using Akka.Cluster.Tools.PublishSubscribe;
 using Akka.Event;
 using Akka.Streams;
 using Npgsql;
 using Ohmline.ActorShell.Sharding;
+using Ohmline.Charging.Contracts.Live;
 using Ohmline.Charging.ReadModels.Query;
 
 namespace Ohmline.Charging.ReadModels.Projections;
@@ -18,7 +20,9 @@ namespace Ohmline.Charging.ReadModels.Projections;
 /// resumes from the stored offset. When the stream gives up on an event
 /// (<see cref="StopAfterRetries"/>, section 13.7), the daemon stays alive and idle: were it to
 /// stop, the daemon process's keep-alive would start it again within seconds, and the stop
-/// would be a slow retry loop instead.
+/// would be a slow retry loop instead. What the projection says has changed goes to this node's
+/// DistributedPubSub mediator, which carries it to the subscribers on every <c>charging</c>
+/// node (section 14.4).
 /// </remarks>
 public sealed class ProjectionDaemon : ReceiveActor, IWithTimers
 {
@@ -41,6 +45,7 @@ public sealed class ProjectionDaemon : ReceiveActor, IWithTimers
     {
         _stream = new ProjectionStream(projection.ProjectionId, tag);
         _dataSource = dataSource;
+        var mediator = DistributedPubSub.Get(Context.System).Mediator;
         _runner = log => new ProjectionRunner(
             Context.System.ReadJournal,
             dataSource,
@@ -48,6 +53,7 @@ public sealed class ProjectionDaemon : ReceiveActor, IWithTimers
             projection,
             tag,
             backoff,
+            change => mediator.Tell(new Publish(LiveTopics.Of(change), change)),
             log);
 
         Receive<SchemaReady>(_ => Start());

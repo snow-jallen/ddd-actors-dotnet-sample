@@ -124,6 +124,7 @@ public sealed class ProjectionFailureTests(PostgresFixture postgres)
             projection,
             ChargingTags.Charging,
             ProjectionRun.QuickBackoff,
+            _ => { },
             node.System.Log);
 
     private static IMaterializer Materializer(JournalNode node) => node.System.Materializer();

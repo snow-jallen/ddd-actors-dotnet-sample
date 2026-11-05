@@ -1,5 +1,6 @@
 using Akka.Streams;
 using Npgsql;
+using Ohmline.Charging.Contracts.Live;
 using Ohmline.Charging.ReadModels.Projections;
 using Ohmline.Charging.ReadModels.Query;
 using Ohmline.Testing;
@@ -15,7 +16,10 @@ internal static class ProjectionRun
     private static readonly TimeSpan Patience =
         TimeSpan.FromSeconds(15 * ActorTestConfig.TimeFactor);
 
-    /// <summary>Starts the runner, waits until it has stored the offset, and stops it.</summary>
+    /// <summary>
+    /// Starts the runner, waits until it has stored the offset, and stops it. What it publishes
+    /// goes to <paramref name="publish"/>, or nowhere.
+    /// </summary>
     public static async Task UntilOffsetAsync(
         JournalNode node,
         NpgsqlDataSource database,
@@ -23,7 +27,8 @@ internal static class ProjectionRun
         IProjectionHandler projection,
         string tag,
         long offset,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Action<LiveUpdate>? publish = null)
     {
         var runner = new ProjectionRunner(
             node.System.ReadJournal,
@@ -32,6 +37,7 @@ internal static class ProjectionRun
             projection,
             tag,
             QuickBackoff,
+            publish ?? (_ => { }),
             node.System.Log);
         await using var running = runner.Start(node.System.Materializer());
 
