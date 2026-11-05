@@ -6,7 +6,7 @@ namespace Ohmline.Charging.Actors.Journeys.Ports;
 
 /// <summary>
 /// How Charging tells a charge point what to do: a port, because the charge points are reached
-/// through the Device Gateway (Chapter 16), which speaks OCPP-style frames, not Charging's
+/// through the Device Gateway (section 16.7), which speaks OCPP-style frames, not Charging's
 /// messages. The answer says whether the charge point will do it.
 /// </summary>
 public interface IChargerCommandPort
@@ -27,7 +27,10 @@ public interface IChargerCommandPort
     Task<ChargerCommandResult> RemoteStopAsync(
         ConnectorId connectorId, SessionId sessionId, CancellationToken cancellationToken);
 
-    /// <summary>Draw at most this much on the connector from now on (OCPP's name).</summary>
+    /// <summary>
+    /// Draw at most this much on the connector from now on (OCPP's name). The version is the
+    /// site allocation's, so that a charger is never sent back to an older one (section 16.8).
+    /// </summary>
     Task<ChargerCommandResult> SetChargingProfileAsync(
-        ConnectorId connectorId, Power limit, CancellationToken cancellationToken);
+        ConnectorId connectorId, Power limit, long version, CancellationToken cancellationToken);
 }

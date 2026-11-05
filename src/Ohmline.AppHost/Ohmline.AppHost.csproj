@@ -2,9 +2,9 @@
 
   <!--
     Ohmline on a laptop: PostgreSQL 17 in a container, three replicas of the node, which form
-    one cluster, Billing and the TallyPay stand-in, with the Aspire dashboard. Run it with
-    "aspire run" in this folder, or with "dotnet run" and this project (Podman or Docker must
-    be running).
+    one cluster, Billing and the TallyPay stand-in, the Device Gateway and a charger simulator,
+    with the Aspire dashboard. Run it with "aspire run" in this folder, or with "dotnet run"
+    and this project (Podman or Docker must be running).
   -->
 
   <PropertyGroup>
@@ -21,6 +21,9 @@
     <ProjectReference Include="../Ohmline.Node/Ohmline.Node.csproj" />
     <ProjectReference Include="../Billing/Ohmline.Billing/Ohmline.Billing.csproj" />
     <ProjectReference Include="../../tools/Ohmline.FakePsp/Ohmline.FakePsp.csproj" />
+    <ProjectReference
+      Include="../DeviceGateway/Ohmline.DeviceGateway/Ohmline.DeviceGateway.csproj" />
+    <ProjectReference Include="../../tools/Ohmline.Simulator/Ohmline.Simulator.csproj" />
   </ItemGroup>
 
 </Project>

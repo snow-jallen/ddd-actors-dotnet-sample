@@ -3,27 +3,29 @@ using Akka.Cluster.Hosting;
 using Akka.Cluster.Hosting.SBR;
 using Akka.Hosting;
 using Akka.Remote.Hosting;
-using Ohmline.ActorShell.Clustering;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
-namespace Ohmline.Node;
+namespace Ohmline.ActorShell.Clustering;
 
 /// <summary>
 /// How a node joins Ohmline's cluster: remoting, role, seed nodes, downing, and the
-/// DistributedPubSub mediator the live updates travel on.
+/// DistributedPubSub mediator that live updates and charger commands travel on. Every host
+/// joins the same way: the charging nodes and, from section 16.7, the Device Gateway's.
 /// </summary>
 public static class ClusterExtensions
 {
     extension(AkkaConfigurationBuilder akka)
     {
         /// <summary>
-        /// Remoting on <c>Akka:Remote:Hostname</c> and <c>Akka:Remote:Port</c>, the
-        /// <c>charging</c> role, the seed nodes in <c>Akka:Cluster:SeedNodes</c>, and the
+        /// Remoting on <c>Akka:Remote:Hostname</c> and <c>Akka:Remote:Port</c>, the node's role
+        /// (<see cref="ClusterRoles"/>), the seed nodes in <c>Akka:Cluster:SeedNodes</c>, and the
         /// split-brain resolver written down rather than inherited. A development node without
         /// seed nodes joins itself and is a cluster of one; any other node without them is a
         /// configuration mistake and does not start.
         /// </summary>
         public AkkaConfigurationBuilder WithOhmlineCluster(
-            IConfiguration configuration, IHostEnvironment environment)
+            IConfiguration configuration, IHostEnvironment environment, string role)
         {
             var hostname = configuration["Akka:Remote:Hostname"] ?? "localhost";
             var port = configuration.GetValue<int>("Akka:Remote:Port");
@@ -41,7 +43,7 @@ public static class ClusterExtensions
                 .WithRemoting(hostname, port)
                 .WithClustering(new ClusterOptions
                 {
-                    Roles = [ClusterRoles.Charging],
+                    Roles = [role],
                     SeedNodes = seedNodes,
                     // Akka.NET's defaults since 1.5.2, made explicit: after 20 s without a
                     // change in reachability, the side with most nodes downs the other side.
@@ -49,8 +51,10 @@ public static class ClusterExtensions
                 })
                 // /health is Healthy only once this node is an Up member of the cluster.
                 .WithAkkaClusterReadinessCheck()
-                // Live updates from projections reach every charging node (section 14.4).
-                .WithDistributedPubSub(ClusterRoles.Charging)
+                // On every node, whatever its role: live updates reach every charging node
+                // (section 14.4), and a charger command reaches the gateway node that holds the
+                // charger's connection (section 16.7).
+                .WithDistributedPubSub(role: "")
                 .AddHocon(
                     "akka.cluster.split-brain-resolver.stable-after = 20s",
                     HoconAddMode.Prepend);

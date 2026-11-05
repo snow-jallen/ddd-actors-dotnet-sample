@@ -56,7 +56,7 @@ internal sealed class StubChargerPort : IChargerCommandPort
         Unanswered($"stop {connectorId}");
 
     public Task<ChargerCommandResult> SetChargingProfileAsync(
-        ConnectorId connectorId, Power limit, CancellationToken cancellationToken) =>
+        ConnectorId connectorId, Power limit, long version, CancellationToken cancellationToken) =>
         Unanswered($"profile {connectorId} at {limit}");
 
     private Task<ChargerCommandResult> Unanswered(string request)

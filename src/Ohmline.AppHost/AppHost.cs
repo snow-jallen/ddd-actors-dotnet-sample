@@ -1,8 +1,11 @@
 using System.Globalization;
 
 // Ohmline on a laptop: PostgreSQL 17 and a cluster of three nodes (section 12.10), Billing and
-// the TallyPay stand-in (section 16.5).
+// the TallyPay stand-in (section 16.5), the Device Gateway and a charger simulator (16.7).
 var builder = DistributedApplication.CreateBuilder(args);
+
+// The seed node's Akka.Remote address, which every member of the cluster joins.
+const string SeedNode = "akka.tcp://ohmline@localhost:4053";
 
 var postgres = builder.AddPostgres("postgres").WithImageTag("17");
 var ohmline = postgres.AddDatabase("ohmline");
@@ -34,6 +37,24 @@ Node("node-2", 1).WaitFor(seed);
 Node("node-3", 2).WaitFor(seed);
 billing.WithReference(seed);
 
+// The Device Gateway joins the same cluster with the role gateway: chargers connect to it at
+// ws://localhost:5190/ocpp/{chargePointId}, and it reaches Charging's regions through proxies.
+var gateway = builder.AddProject<Projects.Ohmline_DeviceGateway>("gateway", launchProfileName: null)
+    .WithHttpEndpoint(port: 5190, name: "http")
+    .WithHttpHealthCheck("/health")
+    .WithEnvironment("Akka__Remote__Port", Port(4060))
+    .WithEnvironment("Akka__Cluster__SeedNodes__0", SeedNode)
+    .WaitFor(seed);
+
+// Chargers and drivers, started by hand from the dashboard: three chargers, a whole charge each.
+builder.AddProject<Projects.Ohmline_Simulator>("simulator")
+    .WithArgs("--chargers", "3", "--scenario", "plug-in-and-charge")
+    .WithReference(gateway)
+    .WithReference(seed)
+    .WaitFor(gateway)
+    .WaitFor(billing)
+    .WithExplicitStart();
+
 builder.Build().Run();
 
 IResourceBuilder<ProjectResource> Node(string name, int index) =>
@@ -42,7 +63,7 @@ IResourceBuilder<ProjectResource> Node(string name, int index) =>
         .WithHttpHealthCheck("/health")
         .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Development")
         .WithEnvironment("Akka__Remote__Port", Port(4053 + index))
-        .WithEnvironment("Akka__Cluster__SeedNodes__0", "akka.tcp://ohmline@localhost:4053")
+        .WithEnvironment("Akka__Cluster__SeedNodes__0", SeedNode)
         .WithReference(ohmline)
         .WithReference(billing);
 

@@ -6,9 +6,9 @@ using Ohmline.SharedKernel.Units;
 namespace Ohmline.Charging.Actors.Journeys.Ports;
 
 /// <summary>
-/// A charge point that agrees to everything and does nothing but log it, until the Device
-/// Gateway connects real ones (section 16.7). The session itself is started, as before, by the
-/// charger's report: in Development, the pretend charger's endpoints and <c>POST /sessions</c>.
+/// A charge point that agrees to everything and does nothing but log it. Retired from the node
+/// when the Device Gateway connected real ones (section 16.7); tests that run a journey without
+/// a gateway put it behind the port, and report the charger's side through the regions.
 /// </summary>
 public sealed class LoggingChargerCommandPort(ILogger<LoggingChargerCommandPort> log)
     : IChargerCommandPort
@@ -39,10 +39,13 @@ public sealed class LoggingChargerCommandPort(ILogger<LoggingChargerCommandPort>
     }
 
     public Task<ChargerCommandResult> SetChargingProfileAsync(
-        ConnectorId connectorId, Power limit, CancellationToken cancellationToken)
+        ConnectorId connectorId, Power limit, long version, CancellationToken cancellationToken)
     {
         log.LogInformation(
-            "SetChargingProfile on {Connector}: at most {Limit}", connectorId, limit);
+            "SetChargingProfile on {Connector}: at most {Limit} (allocation {Version})",
+            connectorId,
+            limit,
+            version);
         return Accepted(connectorId);
     }
 

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Charge points and drivers on a laptop (section 16.7): each simulated charger connects to the
+    Device Gateway over a WebSocket and speaks the OCPP-style subset, and its driver starts a
+    charging journey over Charging's HTTP API. A console tool, and a library the system tests
+    run a scenario from (section 16.9).
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The frames and payloads, as the gateway reads them: the simulator writes the same. -->
+    <ProjectReference
+      Include="../../src/DeviceGateway/Ohmline.DeviceGateway.Ocpp/Ohmline.DeviceGateway.Ocpp.csproj" />
+  </ItemGroup>
+
+</Project>

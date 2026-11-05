@@ -58,6 +58,7 @@
     <Project Path="tests/Ohmline.Charging.Domain.Tests/Ohmline.Charging.Domain.Tests.csproj" />
     <Project Path="tests/Ohmline.Charging.ReadModels.Tests/Ohmline.Charging.ReadModels.Tests.csproj" />
     <Project Path="tests/Ohmline.DeviceGateway.Ocpp.Tests/Ohmline.DeviceGateway.Ocpp.Tests.csproj" />
+    <Project Path="tests/Ohmline.DeviceGateway.Tests/Ohmline.DeviceGateway.Tests.csproj" />
     <Project Path="tests/Ohmline.DriverAccounts.Actors.Tests/Ohmline.DriverAccounts.Actors.Tests.csproj" />
     <Project Path="tests/Ohmline.DriverAccounts.Api.Tests/Ohmline.DriverAccounts.Api.Tests.csproj" />
     <Project Path="tests/Ohmline.DriverAccounts.Domain.Tests/Ohmline.DriverAccounts.Domain.Tests.csproj" />
@@ -75,5 +76,6 @@
   </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/Ohmline.FakePsp/Ohmline.FakePsp.csproj" />
+    <Project Path="tools/Ohmline.Simulator/Ohmline.Simulator.csproj" />
   </Folder>
 </Solution>

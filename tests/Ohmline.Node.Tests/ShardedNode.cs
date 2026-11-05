@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Time.Testing;
+using Ohmline.ActorShell.Clustering;
 using Ohmline.Charging.Actors;
 using Ohmline.Charging.Actors.Journeys.Ports;
 using Ohmline.DriverAccounts.Actors;
@@ -38,9 +39,10 @@ public abstract class ShardedNode(ITestOutputHelper output)
     {
         base.ConfigureServices(context, services);
         services.AddSingleton<TimeProvider>(Clock);
-        services.AddDevelopmentJourneyPorts(); // As the node does in Development.
-        // Billing is not in the test: payments in memory, behind the same port.
+        // Neither Billing nor the gateway is in the test: payments in memory, and chargers that
+        // agree to everything, behind the journey's ports.
         services.AddSingleton<IPaymentPort, InMemoryPaymentPort>();
+        services.AddSingleton<IChargerCommandPort, LoggingChargerCommandPort>();
     }
 
     protected override void ConfigureAkka(
@@ -55,7 +57,7 @@ public abstract class ShardedNode(ITestOutputHelper output)
             })
             .Build();
         builder
-            .WithOhmlineCluster(settings, new Development())
+            .WithOhmlineCluster(settings, new Development(), ClusterRoles.Charging)
             .AddChargingContext()
             .AddSiteEnergyContext()
             .AddDriverAccountsContext()

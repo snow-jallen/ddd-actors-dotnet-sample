@@ -52,7 +52,7 @@ internal sealed class ProbeChargerPort(IActorRef chargers) : IChargerCommandPort
             new PortCall.RemoteStop(connectorId, sessionId), PortCall.Timeout, cancellationToken);
 
     public Task<ChargerCommandResult> SetChargingProfileAsync(
-        ConnectorId connectorId, Power limit, CancellationToken cancellationToken) =>
+        ConnectorId connectorId, Power limit, long version, CancellationToken cancellationToken) =>
         chargers.Ask<ChargerCommandResult>(
             new PortCall.ChargingProfile(connectorId, limit), PortCall.Timeout, cancellationToken);
 }

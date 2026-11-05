@@ -27,7 +27,7 @@ public sealed class DriverAppTests(PostgresFixture postgres)
     public async Task Given_one_session_then_it_has_a_row_in_all_three_read_models()
     {
         await using var node = new OhmlineNode(postgres);
-        var (_, _, session) = await ChargeAsync(node.CreateClient());
+        var (_, _, session) = await ChargeAsync(node, node.CreateClient());
 
         var history = await RowAsync(
             "SELECT status FROM read_models.session_history WHERE session_id = @id", session);
@@ -48,7 +48,7 @@ public sealed class DriverAppTests(PostgresFixture postgres)
     {
         await using var node = new OhmlineNode(postgres);
         var http = node.CreateClient();
-        var (_, token, session) = await ChargeAsync(http);
+        var (_, token, session) = await ChargeAsync(node, http);
 
         var cards = await http.GetFromJsonAsync<Cards>($"/app/v1/tokens/{token}/cards", Ct);
         var feed = await http.GetFromJsonAsync<Feed>($"/app/v1/tokens/{token}/feed?after=0", Ct);
@@ -70,7 +70,7 @@ public sealed class DriverAppTests(PostgresFixture postgres)
     {
         await using var node = new OhmlineNode(postgres);
         var http = node.CreateClient();
-        var (_, token, session) = await ChargeAsync(http);
+        var (_, token, session) = await ChargeAsync(node, http);
         await using var hub = new HubConnectionBuilder()
             .WithUrl(new Uri(node.Server.BaseAddress, "/hubs/charging"), options =>
             {
@@ -112,7 +112,7 @@ public sealed class DriverAppTests(PostgresFixture postgres)
     /// and charging: the session is in its history and has a card when this returns.
     /// </summary>
     private async Task<(string ChargePoint, string Token, Guid Session)> ChargeAsync(
-        HttpClient http)
+        OhmlineNode node, HttpClient http)
     {
         var (chargePoint, session) = (Chargers.Next(), Guid.CreateVersion7());
         var token = Convert.ToHexString(Guid.NewGuid().ToByteArray()[..7]);
@@ -122,11 +122,7 @@ public sealed class DriverAppTests(PostgresFixture postgres)
             new { displayName = DepotBays, accessInstructions = "Level -2", openingHours = "24/7" };
         (await http.PutAsJsonAsync($"/charge-points/{chargePoint}/listing", listing, Ct))
             .EnsureSuccessStatusCode();
-        (await http.PostAsJsonAsync(
-                $"/dev/charge-points/{chargePoint}/connectors/1/plug-in",
-                new { sessionId = session, tokenUid = token },
-                Ct))
-            .EnsureSuccessStatusCode();
+        await Chargers.PlugInAsync(node, chargePoint, session, token);
         (await http.PostAsJsonAsync("/tariffs", Sessions.Tariff, Ct)).EnsureSuccessStatusCode();
         var started = await http.PostAsJsonAsync(
             "/sessions", Sessions.Start(session, $"{chargePoint}/1", token), Ct);

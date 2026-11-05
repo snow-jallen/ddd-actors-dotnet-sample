@@ -39,5 +39,20 @@ public static class TariffsAkkaExtensions
                     createProxyToo: false)
                 .WithSingletonProxy<TariffBookProxy>(TariffBookActor.Name, options);
         }
+
+        /// <summary>
+        /// Tariffs for a node that only asks: the serializer and the proxy to the tariff book,
+        /// which runs on the <c>charging</c> nodes. The Device Gateway asks it for the tariff a
+        /// session at its chargers starts with (section 16.7).
+        /// </summary>
+        public AkkaConfigurationBuilder AddTariffsProxy() =>
+            akka
+                .WithCustomSerializer(
+                    TariffsSerializer.Name,
+                    TariffsSerializer.BoundTypes,
+                    system => new TariffsSerializer(system))
+                .WithSingletonProxy<TariffBookProxy>(
+                    TariffBookActor.Name,
+                    new ClusterSingletonOptions { Role = ClusterRoles.Charging });
     }
 }

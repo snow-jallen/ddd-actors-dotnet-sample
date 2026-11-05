@@ -27,7 +27,7 @@ public sealed class ReplayTests(PostgresFixture postgres)
         await using var database = NpgsqlDataSource.Create(postgres.ConnectionString);
         await using (var node = new OhmlineNode(postgres))
         {
-            await ChargeAndStopAsync(node.CreateClient(), chargePoint, session);
+            await ChargeAndStopAsync(node, chargePoint, session);
             // Each read model is a stream of its own, and on a node that has just started they
             // may all still be starting: longer than read-your-writes waits.
             await EventuallyAsync(database, $"""
@@ -72,8 +72,10 @@ public sealed class ReplayTests(PostgresFixture postgres)
     /// A listed charge point with a car plugged in, and a session on it that is metered and
     /// stopped: events for all three read models.
     /// </summary>
-    private static async Task ChargeAndStopAsync(HttpClient http, string chargePoint, Guid session)
+    private static async Task ChargeAndStopAsync(
+        OhmlineNode node, string chargePoint, Guid session)
     {
+        var http = node.CreateClient();
         const string token = "04A2B3C4D5E6F7";
         (await http.PostAsJsonAsync("/charge-points", Chargers.Registration(chargePoint), Ct))
             .EnsureSuccessStatusCode();
@@ -81,11 +83,7 @@ public sealed class ReplayTests(PostgresFixture postgres)
             new { displayName = "Depot", accessInstructions = "Gate", openingHours = "24/7" };
         (await http.PutAsJsonAsync($"/charge-points/{chargePoint}/listing", listing, Ct))
             .EnsureSuccessStatusCode();
-        (await http.PostAsJsonAsync(
-                $"/dev/charge-points/{chargePoint}/connectors/1/plug-in",
-                new { sessionId = session, tokenUid = token },
-                Ct))
-            .EnsureSuccessStatusCode();
+        await Chargers.PlugInAsync(node, chargePoint, session, token);
         (await http.PostAsJsonAsync("/tariffs", Sessions.Tariff, Ct)).EnsureSuccessStatusCode();
         (await http.PostAsJsonAsync(
                 "/sessions", Sessions.Start(session, $"{chargePoint}/1", token), Ct))

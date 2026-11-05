@@ -1,7 +1,7 @@
 using Akka.Hosting;
+using Ohmline.ActorShell.Clustering;
 using Ohmline.Charging.Actors;
 using Ohmline.Charging.Api;
-using Ohmline.Charging.Api.Development;
 using Ohmline.Charging.Api.Live;
 using Ohmline.DriverAccounts.Actors;
 using Ohmline.DriverAccounts.Api;
@@ -19,7 +19,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 
 builder.AddServiceDefaults();
 builder.Services.AddOhmlineReadModels(builder.Configuration);
-builder.Services.AddJourneyPorts(builder.Environment); // Billing; the gateway from 16.7.
+builder.Services.AddJourneyPorts(); // Billing, and the Device Gateway's charge points.
 
 builder.Services.AddAkka("ohmline", akka => akka
     .ConfigureLoggers(loggers =>
@@ -27,7 +27,7 @@ builder.Services.AddAkka("ohmline", akka => akka
         loggers.ClearLoggers();
         loggers.AddLoggerFactory(); // Akka.NET logs through Microsoft.Extensions.Logging.
     })
-    .WithOhmlineCluster(builder.Configuration, builder.Environment)
+    .WithOhmlineCluster(builder.Configuration, builder.Environment, ClusterRoles.Charging)
     // At most this many persistent actors replay their journals at once; the rest wait for a
     // permit, so a node restart does not stampede the database (section 11.3). 50 is Akka.NET's
     // default, written down here so that it is a decision and not an accident.
@@ -55,10 +55,6 @@ app.MapSiteEnergyEndpoints();
 app.MapDriverAccountsEndpoints();
 app.MapOhmlineReadModels(app.Configuration);
 app.MapChargingHub();
-if (app.Environment.IsDevelopment())
-{
-    app.MapDevScaffoldingEndpoints(); // A pretend charger, until section 16.7.
-}
 
 app.Run();
 

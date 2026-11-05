@@ -5,6 +5,7 @@ using Ohmline.Charging.Actors.Listings;
 using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Contracts.Chargers;
 using Ohmline.Charging.Contracts.Journeys;
 using Ohmline.Charging.Contracts.Listings;
 using Ohmline.Charging.Contracts.Live;
@@ -222,6 +223,12 @@ internal static class ChargingSamples
         new ChargerAccepted(Connector),
         new ChargerRejected(Connector, "Connector 1 is occupied."),
         new JourneyTimerElapsed(JourneyTimer.EnergyFlow),
+        new RemoteStart(
+            Connector, Token, JourneysSession, new Power(22m), $"{Journey}-charger"),
+        new RemoteStop(Connector, JourneysSession),
+        new SetChargingProfile(Connector, new Power(11m), Version: 7),
+        new ChargerCommandAccepted(Connector),
+        new ChargerCommandRejected(Connector, "The charger did not answer within 30 s."),
     ];
 
     private static ChargePointEvent Stamped(ChargePointEvent @event) =>

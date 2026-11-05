@@ -7,6 +7,7 @@ using Ohmline.Charging.Actors.Listings;
 using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Contracts.Chargers;
 using Ohmline.Charging.Contracts.Journeys;
 using Ohmline.Charging.Contracts.Listings;
 using Ohmline.Charging.Contracts.Live;
@@ -56,6 +57,8 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         typeof(PaymentPortResult),
         typeof(ChargerCommandResult),
         typeof(JourneyTimerElapsed),
+        typeof(ChargerCommand),
+        typeof(ChargerCommandReply),
     ];
 
     public static FrozenDictionary<Type, string> Manifests { get; } = new Dictionary<Type, string>
@@ -136,6 +139,12 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         [typeof(ChargerAccepted)] = "charging.charger-accepted.v1",
         [typeof(ChargerRejected)] = "charging.charger-rejected.v1",
         [typeof(JourneyTimerElapsed)] = "charging.journey-timer-elapsed.v1",
+
+        [typeof(RemoteStart)] = "charging.remote-start.v1",
+        [typeof(RemoteStop)] = "charging.remote-stop.v1",
+        [typeof(SetChargingProfile)] = "charging.set-charging-profile.v1",
+        [typeof(ChargerCommandAccepted)] = "charging.charger-command-accepted.v1",
+        [typeof(ChargerCommandRejected)] = "charging.charger-command-rejected.v1",
     }.ToFrozenDictionary();
 
     /// <summary>Permanent: Ohmline's serializer ids are listed in ADR 0007.</summary>

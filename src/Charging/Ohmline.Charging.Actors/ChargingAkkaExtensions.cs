@@ -2,6 +2,7 @@ using Akka.Cluster.Hosting;
 using Akka.Cluster.Sharding;
 using Akka.Hosting;
 using Akka.Persistence.Hosting;
+using Ohmline.ActorShell.Clustering;
 using Ohmline.ActorShell.Sharding;
 using Ohmline.Charging.Actors.ChargePoints;
 using Ohmline.Charging.Actors.Journeys;
@@ -71,6 +72,31 @@ public static class ChargingAkkaExtensions
                 // Sharding's distributed data is one per role, shared by every region: the
                 // journeys' remembered entities are its only durable keys, kept in memory.
                 .WithShardingDistributedData(ddata => ddata.Durable.Keys = []);
+
+        /// <summary>
+        /// Charging as its partner, the Device Gateway, reaches it (section 16.7): the same
+        /// serializer, and a proxy for each region that the gateway sends to, with the same type
+        /// names and extractors, routing to the regions on the <c>charging</c> nodes. A proxy
+        /// hosts no entity; the gateway's nodes never run an aggregate.
+        /// </summary>
+        public AkkaConfigurationBuilder AddChargingProxies() =>
+            akka
+                .WithCustomSerializer(
+                    ChargingSerializer.Name,
+                    ChargingSerializer.BoundTypes,
+                    system => new ChargingSerializer(system))
+                .WithShardRegionProxy<ChargePointRegion>(
+                    ChargePointActor.TypeName,
+                    ClusterRoles.Charging,
+                    ChargingMessageExtractors.ChargePoints)
+                .WithShardRegionProxy<ChargingSessionRegion>(
+                    ChargingSessionActor.TypeName,
+                    ClusterRoles.Charging,
+                    ChargingMessageExtractors.Sessions)
+                .WithShardRegionProxy<ChargingJourneyRegion>(
+                    ChargingJourneyActor.TypeName,
+                    ClusterRoles.Charging,
+                    ChargingMessageExtractors.Journeys);
     }
 
     /// <summary>

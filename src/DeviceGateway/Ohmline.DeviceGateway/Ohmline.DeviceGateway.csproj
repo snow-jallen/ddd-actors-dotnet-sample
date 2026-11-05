@@ -2,14 +2,28 @@
 
   <!--
     The Device Gateway host: one connection actor per charge point, in the Akka.NET cluster
-    with the role gateway. It forwards translated commands to Charging's shard regions.
+    with the role gateway. It forwards translated commands to Charging's shard regions through
+    proxies, and holds no aggregate (section 16.7).
   -->
+
+  <ItemGroup>
+    <PackageReference Include="Akka.Cluster.Hosting" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Ohmline.DeviceGateway.Ocpp/Ohmline.DeviceGateway.Ocpp.csproj" />
     <ProjectReference
       Include="../../Charging/Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
     <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+    <ProjectReference Include="../../Ohmline.ServiceDefaults/Ohmline.ServiceDefaults.csproj" />
+    <!--
+      The Partnership (section 5.4): Charging's serializer and its regions' extractors, for the
+      proxies (AddChargingProxies). No Charging actor runs here.
+    -->
+    <ProjectReference
+      Include="../../Charging/Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
+    <!-- The tariff book's serializer and proxy, for the tariff a session starts with. -->
+    <ProjectReference Include="../../Tariffs/Ohmline.Tariffs.Actors/Ohmline.Tariffs.Actors.csproj" />
   </ItemGroup>
 
 </Project>

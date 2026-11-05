@@ -29,11 +29,7 @@ public sealed class QueryApiTests(PostgresFixture postgres)
         var (site, chargePoint, session) = (NextSite(), Chargers.Next(), Guid.CreateVersion7());
         (await http.PostAsJsonAsync("/charge-points", Registration(chargePoint, site), Ct))
             .EnsureSuccessStatusCode();
-        (await http.PostAsJsonAsync(
-                $"/dev/charge-points/{chargePoint}/connectors/1/plug-in",
-                new { sessionId = session, tokenUid = "04A2B3C4D5E6F7" },
-                Ct))
-            .EnsureSuccessStatusCode();
+        await Chargers.PlugInAsync(node, chargePoint, session, "04A2B3C4D5E6F7");
         (await http.PostAsJsonAsync("/sites", Site(site, chargePoint), Ct))
             .EnsureSuccessStatusCode();
         await RequestPowerAsync(node, site, new ConnectorId(new(chargePoint), 1), session);
