@@ -54,6 +54,8 @@ good reading. Likewise, reaching the spend cap is not a rejection but a fact,
   session records the fact; stopping the charger is someone else's job.
 - **Whenever a session ends, then release its power allocation and unlock its token**
   (`ReleaseOnSessionEnded`, sections 8.5 and 15.1).
+- **Whenever charging is suspended, then warn the driver when the idle fee starts**
+  (`IdleFeePolicy`, section 8.5), only if the session's tariff has an idle fee.
 
 ## Handled commands
 
