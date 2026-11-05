@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The commands that other parts of Ohmline send to Charging's aggregates: the Device Gateway,
+    the HTTP edge and the charging journey. Contracts reference the shared kernel and nothing else.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

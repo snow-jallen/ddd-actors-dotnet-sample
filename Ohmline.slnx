@@ -11,6 +11,10 @@
   <Folder Name="/src/">
     <Project Path="src/Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
   </Folder>
+  <Folder Name="/src/Charging/">
+    <Project Path="src/Charging/Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
+    <Project Path="src/Charging/Ohmline.Charging.Domain/Ohmline.Charging.Domain.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Ohmline.SharedKernel.Tests/Ohmline.SharedKernel.Tests.csproj" />
   </Folder>
