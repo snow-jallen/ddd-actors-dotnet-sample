@@ -5,6 +5,7 @@ using Ohmline.ActorShell.Clustering;
 using Ohmline.ActorShell.Sharding;
 using Ohmline.Charging.ReadModels.DriverApp;
 using Ohmline.Charging.ReadModels.Journeys;
+using Ohmline.Charging.ReadModels.Outbox;
 using Ohmline.Charging.ReadModels.Policies;
 using Ohmline.Charging.ReadModels.Projections;
 using Ohmline.Charging.ReadModels.SessionHistory;
@@ -29,6 +30,7 @@ public static class ChargingReadModelsExtensions
                     new DriverAppProjection(),
                     new SessionEndedSubscriber(),
                     new JourneySessionRelay(),
+                    new IntegrationEventRelay(),
                 }
                 .SelectMany(projection => projection.Tags.Select(tag => (projection, tag))),
         ];

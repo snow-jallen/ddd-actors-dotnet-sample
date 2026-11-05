@@ -22,16 +22,18 @@ public sealed record SessionTerms(
     /// rate, plus the session fee. The spend cap is checked against this, so a session stops
     /// before its hold is used up; the price itself comes from the price calculator (8.3).
     /// </summary>
-    public Money CostOf(Energy energy)
-    {
-        var none = Money.Zero(Tariff.Currency);
-        var highestRate = Tariff.Components.OfType<EnergyRate>()
-            .Select(rate => rate.PricePerKwh)
-            .DefaultIfEmpty(none)
-            .MaxBy(price => price.Amount);
-        var sessionFee = Tariff.Components.OfType<SessionFee>()
-            .Aggregate(none, (fees, fee) => fees + fee.Amount);
+    public Money CostOf(Energy energy) =>
+        SessionFees + HighestEnergyRate * energy.KilowattHours;
 
-        return sessionFee + highestRate * energy.KilowattHours;
-    }
+    /// <summary>A kWh in <see cref="CostOf"/>: the tariff's highest energy rate.</summary>
+    public Money HighestEnergyRate =>
+        Tariff.Components.OfType<EnergyRate>()
+            .Select(rate => rate.PricePerKwh)
+            .DefaultIfEmpty(Money.Zero(Tariff.Currency))
+            .MaxBy(price => price.Amount);
+
+    /// <summary>What starting the session costs: every session fee of the tariff.</summary>
+    public Money SessionFees =>
+        Tariff.Components.OfType<SessionFee>()
+            .Aggregate(Money.Zero(Tariff.Currency), (fees, fee) => fees + fee.Amount);
 }

@@ -93,6 +93,26 @@ public static class ReadModelSchema
 
         CREATE INDEX IF NOT EXISTS driver_app_feed_by_token
             ON read_models.driver_app_feed (token_uid, position);
+
+        -- Section 16.1: the journal is the outbox; the relay writes integration events here.
+        CREATE TABLE IF NOT EXISTS read_models.integration_outbox (
+            position    bigserial   PRIMARY KEY,
+            event_id    uuid        NOT NULL UNIQUE,
+            type        text        NOT NULL,
+            occurred_at timestamptz NOT NULL,
+            payload     jsonb       NOT NULL,
+            written_at  timestamptz NOT NULL DEFAULT now()
+        );
+
+        CREATE TABLE IF NOT EXISTS read_models.integration_relay_sessions (
+            session_id   uuid        PRIMARY KEY,
+            token_uid    text        NOT NULL,
+            connector_id text        NOT NULL,
+            started_at   timestamptz NOT NULL,
+            currency     text        NOT NULL,
+            energy_rate  numeric     NOT NULL,
+            session_fees numeric     NOT NULL
+        );
         """;
 
     /// <summary>
