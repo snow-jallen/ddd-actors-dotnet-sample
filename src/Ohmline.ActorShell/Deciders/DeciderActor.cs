@@ -51,7 +51,7 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
         });
         Recover<TEvent>(Replay);
         Recover<RecoveryCompleted>(_ => Recovered());
-        Command<TCommand>(Handle);
+        Command<TCommand>(command => Handle(command, Sender));
 
         // A new snapshot makes the older ones useless: keep one. A failure costs only replay time.
         Command<SaveSnapshotSuccess>(saved =>
@@ -163,9 +163,14 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
         OnRecovered();
     }
 
-    private void Handle(TCommand command)
+    /// <summary>
+    /// The command path: decide, persist the decision's events with one PersistAll, evolve the
+    /// state as each is stored, and reply once the last one is. A subclass calls it for a
+    /// command it gives itself, such as one from a timer, with <see cref="ActorRefs.Nobody"/>
+    /// when no one waits for the reply.
+    /// </summary>
+    protected void Handle(TCommand command, IActorRef replyTo)
     {
-        var replyTo = Sender;
         switch (TDecider.Decide(State, command, DecisionContext.From(_clock)))
         {
             case Ok<ImmutableArray<TEvent>> { Value.IsEmpty: true }:

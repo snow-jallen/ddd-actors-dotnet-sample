@@ -25,6 +25,13 @@ public static class ActorTestConfig
         akka.test.timefactor = {TimeFactor.ToString(CultureInfo.InvariantCulture)}
         """);
 
+    /// <summary>
+    /// Virtual time for the actors' timers and scheduler: nothing scheduled happens until the
+    /// test advances <c>Akka.TestKit.TestScheduler</c>, which it moves with its fake clock.
+    /// </summary>
+    public static Config VirtualTime { get; } = ConfigurationFactory.ParseString(
+        "akka.scheduler.implementation = \"Akka.TestKit.TestScheduler, Akka.TestKit\"");
+
     public static double TimeFactor =>
         double.TryParse(
             Environment.GetEnvironmentVariable(TimeFactorVariable),
@@ -39,11 +46,18 @@ public static class ActorTestConfig
     /// constructor that takes an <see cref="ActorSystemSetup"/>.
     /// </summary>
     public static ActorSystemSetup With(
-        params IEnumerable<Func<ExtendedActorSystem, SerializerDetails>> serializers)
+        params IEnumerable<Func<ExtendedActorSystem, SerializerDetails>> serializers) =>
+        With(Akka.Configuration.Config.Empty, serializers);
+
+    /// <summary>
+    /// As above, with more configuration on top, such as <see cref="VirtualTime"/>.
+    /// </summary>
+    public static ActorSystemSetup With(
+        Config config, params IEnumerable<Func<ExtendedActorSystem, SerializerDetails>> serializers)
     {
         ExtendedActorSystem? started = null;
         return BootstrapSetup.Create()
-            .WithConfig(Config)
+            .WithConfig(config.WithFallback(Config))
             .And(SerializationSetup.Create(system =>
             {
                 started = system;

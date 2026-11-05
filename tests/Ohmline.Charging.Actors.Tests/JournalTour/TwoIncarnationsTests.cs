@@ -41,7 +41,9 @@ public sealed class TwoIncarnationsTests(ITestOutputHelper output)
         await AcceptAsync(first, Register(), 1);
         await AcceptAsync(first, Reserve(1, DriversCard), 2);
 
-        var later = new FakeTimeProvider(Morning.AddMinutes(16));
+        // Not lapsed yet when the second recovers, so its reservation timer (section 11.4) is
+        // not due during the test and only the commands below write.
+        var later = new FakeTimeProvider(Morning.AddMinutes(14));
         var second = system.ActorOf(ChargePointActor.Props(Charger, later), "second");
         (await second.Ask<ChargePointStatus>(Status(), AskTimeout, Ct)).Version.ShouldBe(2);
 
@@ -57,6 +59,7 @@ public sealed class TwoIncarnationsTests(ITestOutputHelper output)
 
         // The second decides from what it recovered: the reservation of connector 1 has lapsed,
         // so it writes ReservationExpired and ConnectorReserved as 3 and 4, in one batch.
+        later.Advance(TimeSpan.FromMinutes(2));
         second.Tell(Reserve(1, SomeoneElsesCard), ActorRefs.NoSender);
         second.Tell(Status(), ActorRefs.NoSender); // Waits in the internal stash.
 
@@ -89,7 +92,7 @@ public sealed class TwoIncarnationsTests(ITestOutputHelper output)
         failure.Cause.ShouldNotBeNull().GetBaseException().ShouldBeOfType<SqliteException>()
             .SqliteErrorCode.ShouldBe(19); // SQLITE_CONSTRAINT
 
-        var fresh = system.ActorOf(ChargePointActor.Props(Charger, later), "fresh");
+        var fresh = system.ActorOf(ChargePointActor.Props(Charger, clock), "fresh");
         var status = await fresh.Ask<ChargePointStatus>(Status(), AskTimeout, Ct);
         status.Version.ShouldBe(3);
         status.Connectors.Select(connector => connector.ReservedFor)
