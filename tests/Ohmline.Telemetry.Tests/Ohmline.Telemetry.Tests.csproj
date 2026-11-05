@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Ohmline's traces as a test sees them (Chapter 17): what reaches an actor through its
+    mailbox, the envelope that carries a trace there, and the shape of a whole trace. Spans
+    are recorded in memory by an ActivityListener; nothing is exported.
+  -->
+
+  <ItemGroup>
+    <PackageReference Include="Akka.TestKit.Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
+  </ItemGroup>
+
+</Project>
