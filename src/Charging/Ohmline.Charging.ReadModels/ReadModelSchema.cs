@@ -33,6 +33,15 @@ public static class ReadModelSchema
             ended_at         timestamptz NULL,
             last_sequence_nr bigint      NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS read_models.projection_failures (
+            projection_id  text        NOT NULL,
+            persistence_id text        NOT NULL,
+            sequence_nr    bigint      NOT NULL,
+            error          text        NOT NULL,
+            failed_at      timestamptz NOT NULL DEFAULT now(),
+            PRIMARY KEY (projection_id, persistence_id, sequence_nr)
+        );
         """;
 
     /// <summary>

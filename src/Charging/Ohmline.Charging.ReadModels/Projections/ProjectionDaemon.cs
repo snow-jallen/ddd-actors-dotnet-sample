@@ -15,7 +15,10 @@ namespace Ohmline.Charging.ReadModels.Projections;
 /// <remarks>
 /// It makes sure the read models' tables exist, then starts the runner, and stops it when it
 /// stops itself. The stream's state is all in the database: a new incarnation on another node
-/// resumes from the stored offset.
+/// resumes from the stored offset. When the stream gives up on an event
+/// (<see cref="StopAfterRetries"/>, section 13.7), the daemon stays alive and idle: were it to
+/// stop, the daemon process's keep-alive would start it again within seconds, and the stop
+/// would be a slow retry loop instead.
 /// </remarks>
 public sealed class ProjectionDaemon : ReceiveActor, IWithTimers
 {

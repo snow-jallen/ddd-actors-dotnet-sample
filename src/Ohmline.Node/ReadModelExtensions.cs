@@ -1,5 +1,6 @@
 using Akka.Hosting;
 using Npgsql;
+using Ohmline.Charging.Api.Queries;
 using Ohmline.Charging.ReadModels;
 
 namespace Ohmline.Node;
@@ -18,6 +19,15 @@ public static class ReadModelExtensions
             configuration.GetConnectionString("ohmline") is { } postgres
                 ? services.AddSingleton(_ => NpgsqlDataSource.Create(postgres))
                 : services;
+    }
+
+    extension(IEndpointRouteBuilder endpoints)
+    {
+        /// <summary>The query endpoints, if there is a database to answer from.</summary>
+        public IEndpointRouteBuilder MapOhmlineReadModels(IConfiguration configuration) =>
+            configuration.GetConnectionString("ohmline") is null
+                ? endpoints
+                : endpoints.MapChargingQueryEndpoints();
     }
 
     extension(AkkaConfigurationBuilder akka)

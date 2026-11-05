@@ -8,9 +8,24 @@ namespace Ohmline.Charging.ReadModels.Projections;
 /// </summary>
 public sealed class NpgsqlOffsetStore(NpgsqlDataSource dataSource) : IOffsetStore
 {
+    /// <summary>
+    /// Also writes the stream down at offset 0 the first time it starts, so a stream that is
+    /// stuck on its very first event shows up in <c>GET /projections/status</c> (section 13.7).
+    /// </summary>
     public async Task<long> LoadAsync(
         ProjectionStream stream, CancellationToken cancellationToken)
     {
+        await using (var register = dataSource.CreateCommand("""
+            INSERT INTO read_models.projection_offsets (projection_id, tag, last_offset)
+            VALUES (@projection_id, @tag, 0)
+            ON CONFLICT (projection_id, tag) DO NOTHING
+            """))
+        {
+            register.Parameters.AddWithValue("projection_id", stream.ProjectionId);
+            register.Parameters.AddWithValue("tag", stream.Tag);
+            await register.ExecuteNonQueryAsync(cancellationToken);
+        }
+
         await using var command = dataSource.CreateCommand("""
             SELECT last_offset
             FROM read_models.projection_offsets

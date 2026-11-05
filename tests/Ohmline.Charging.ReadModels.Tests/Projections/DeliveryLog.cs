@@ -7,23 +7,33 @@ namespace Ohmline.Charging.ReadModels.Tests.Projections;
 
 /// <summary>
 /// A projection that only writes down what it was given: one row per delivery, in the order of
-/// delivery, so a test can see an event that came twice, or never. It can fail once, on
-/// purpose, after its write, at one offset.
+/// delivery, so a test can see an event that came twice, or never. It can fail on purpose,
+/// after its write, at one offset: once, every time, or with a lost connection a few times.
 /// </summary>
-internal sealed class DeliveryLog(long? failOnceAt = null) : IProjectionHandler
+internal sealed class DeliveryLog(
+    long? failOnceAt = null,
+    long? failAlwaysAt = null,
+    (long Offset, int Times)? connectionLostAt = null,
+    ProjectionFailurePolicy? policy = null) : IProjectionHandler
 {
-    private bool _failed;
+    private readonly Dictionary<long, int> _attempts = [];
 
     public string ProjectionId => "delivery-log";
 
     public IReadOnlyList<string> Tags => [ChargingTags.Charging];
 
+    public ProjectionFailurePolicy FailurePolicy { get; } = policy ?? new StopAfterRetries(5);
+
     public static ProjectionStream Stream { get; } = new("delivery-log", ChargingTags.Charging);
+
+    /// <summary>How many times the projection was handed the event at the offset.</summary>
+    public int AttemptsAt(long offset) => _attempts.GetValueOrDefault(offset);
 
     public async Task HandleAsync(
         EventEnvelope envelope, NpgsqlTransaction transaction, CancellationToken cancellationToken)
     {
         var offset = ((Sequence)envelope.Offset).Value;
+        var attempt = _attempts[offset] = AttemptsAt(offset) + 1;
         await using var insert = new NpgsqlCommand(
             "INSERT INTO deliveries (journal_offset, persistence_id, sequence_nr) " +
             "VALUES (@journal_offset, @persistence_id, @sequence_nr)",
@@ -34,10 +44,14 @@ internal sealed class DeliveryLog(long? failOnceAt = null) : IProjectionHandler
         insert.Parameters.AddWithValue("sequence_nr", envelope.SequenceNr);
         await insert.ExecuteNonQueryAsync(cancellationToken);
 
-        if (offset == failOnceAt && !_failed)
+        if (offset == failOnceAt && attempt == 1 || offset == failAlwaysAt)
         {
-            _failed = true;
-            throw new InvalidOperationException($"Failed on purpose, once, at offset {offset}.");
+            throw new InvalidOperationException($"Failed on purpose at offset {offset}.");
+        }
+
+        if (connectionLostAt is var (lostAt, times) && offset == lostAt && attempt <= times)
+        {
+            throw new NpgsqlException("The connection was lost.", new IOException("Reset."));
         }
     }
 

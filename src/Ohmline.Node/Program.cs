@@ -49,6 +49,7 @@ app.MapDefaultEndpoints();
 app.MapChargingEndpoints();
 app.MapSiteEnergyEndpoints();
 app.MapDriverAccountsEndpoints();
+app.MapOhmlineReadModels(app.Configuration);
 if (app.Environment.IsDevelopment())
 {
     app.MapDevScaffoldingEndpoints(); // A pretend charger, until section 16.7.

@@ -14,12 +14,18 @@ namespace Ohmline.Charging.ReadModels.SessionHistory;
 /// </summary>
 public sealed class SessionHistoryProjection : IProjectionHandler
 {
-    /// <summary>Durable: its offsets are stored under it. A new table shape gets a new id.</summary>
+    /// <summary>Durable: its offsets are kept under it. A new table shape gets a new id.</summary>
     public const string Id = "session-history-v1";
 
     public string ProjectionId => Id;
 
     public IReadOnlyList<string> Tags { get; } = [ChargingTags.ChargingSession];
+
+    /// <summary>
+    /// A driver's history, and from Chapter 14 what they are billed by, must never be quietly
+    /// wrong: a session that cannot be shown stops the projection until it is fixed.
+    /// </summary>
+    public ProjectionFailurePolicy FailurePolicy { get; } = new StopAfterRetries(MaxRetries: 5);
 
     public async Task HandleAsync(
         EventEnvelope envelope, NpgsqlTransaction transaction, CancellationToken cancellationToken)

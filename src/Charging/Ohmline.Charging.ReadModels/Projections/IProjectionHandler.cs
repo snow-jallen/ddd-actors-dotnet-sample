@@ -19,6 +19,9 @@ public interface IProjectionHandler
     /// <summary>The tags it reads. Each is a stream of its own, with its own offset.</summary>
     IReadOnlyList<string> Tags { get; }
 
+    /// <summary>What to do about an event it keeps failing on (section 13.7).</summary>
+    ProjectionFailurePolicy FailurePolicy { get; }
+
     /// <summary>
     /// Applies one event to the read model, inside <paramref name="transaction"/>, which the
     /// runner opened and commits together with the offset. It may be called again with the same
