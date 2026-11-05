@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    What the test projects share: the Given-When-Then harness for deciders (section 9.2) and,
+    later, the property and actor helpers. A library, not a test project, so it takes back what
+    tests/Directory.Build.props gives every test project. It knows the shared kernel and no
+    bounded context, so every context's tests can use it.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Remove="xunit.v3" />
+    <Using Remove="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

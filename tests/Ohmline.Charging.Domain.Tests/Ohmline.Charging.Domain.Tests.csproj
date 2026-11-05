@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference
       Include="../../src/Charging/Ohmline.Charging.Domain/Ohmline.Charging.Domain.csproj" />
+    <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
   </ItemGroup>
 
 </Project>

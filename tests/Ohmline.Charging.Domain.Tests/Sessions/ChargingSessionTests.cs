@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.Sessions;
-using Ohmline.SharedKernel;
 using Ohmline.SharedKernel.Deciders;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Monetary;
@@ -12,8 +11,8 @@ using static Ohmline.Charging.Domain.Tests.Known;
 namespace Ohmline.Charging.Domain.Tests.Sessions;
 
 /// <summary>
-/// The session's decision table, row by row. States are built the way recovery builds them:
-/// by folding events.
+/// The session's decision table, row by row, as Given-When-Then: the history is folded the way
+/// recovery folds it. Evolve and Fold have tests of their own at the end.
 /// </summary>
 public sealed class ChargingSessionTests
 {
@@ -47,7 +46,9 @@ public sealed class ChargingSessionTests
     [Fact]
     public void Given_no_session_when_started_then_the_tariff_and_the_spend_cap_are_locked()
     {
-        Decide([], Start()).ShouldAccept(Started);
+        Given()
+            .When(Start())
+            .Then(Started);
     }
 
     [Fact]
@@ -55,15 +56,17 @@ public sealed class ChargingSessionTests
     {
         var nothing = Money.Zero(Currency.Usd);
 
-        Decide([], Start(spendCap: nothing))
-            .ShouldReject(new SessionError.SpendCapNotPositive(nothing));
+        Given()
+            .When(Start(spendCap: nothing))
+            .ThenRejects(new SessionError.SpendCapNotPositive(nothing));
     }
 
     [Fact]
     public void Given_no_session_when_the_spend_cap_is_in_another_currency_then_it_is_refused()
     {
-        Decide([], Start(spendCap: new Money(40m, Currency.Eur)))
-            .ShouldReject(new CurrencyMismatch(Currency.Usd, Currency.Eur));
+        Given()
+            .When(Start(spendCap: new Money(40m, Currency.Eur)))
+            .ThenRejects(new CurrencyMismatch(Currency.Usd, Currency.Eur));
     }
 
     [Theory]
@@ -74,7 +77,9 @@ public sealed class ChargingSessionTests
     public void Given_a_session_that_has_started_when_started_again_then_it_is_refused(
         string state)
     {
-        Decide(History(state), Start()).ShouldReject(new SessionError.AlreadyStarted(Session));
+        Given(History(state))
+            .When(Start())
+            .ThenRejects(new SessionError.AlreadyStarted(Session));
     }
 
     [Theory]
@@ -94,7 +99,9 @@ public sealed class ChargingSessionTests
             _ => throw new ArgumentOutOfRangeException(nameof(command)),
         };
 
-        Decide([], early).ShouldReject(new SessionError.NotStarted(Session));
+        Given()
+            .When(early)
+            .ThenRejects(new SessionError.NotStarted(Session));
     }
 
     // RecordMeterValue: facts that cannot be refused
@@ -106,16 +113,19 @@ public sealed class ChargingSessionTests
     public void Given_a_running_session_when_a_higher_register_arrives_then_it_is_recorded(
         string state)
     {
-        Decide(History(state), new RecordMeterValue(Command, Session, 1_205_000, Later))
-            .ShouldAccept(new MeterValueRecorded(Session, 1_205_000, Later).At(Morning));
+        Given(History(state))
+            .When(new RecordMeterValue(Command, Session, 1_205_000, Later))
+            .Then(new MeterValueRecorded(Session, 1_205_000, Later).At(Morning));
     }
 
     [Fact]
     public void Given_a_running_session_when_the_register_goes_backwards_then_it_is_an_anomaly()
     {
-        Decide([Started, Recorded(1_210_000)], new RecordMeterValue(Command, Session, 50, Later))
-            .ShouldAccept(new MeterAnomalyDetected(
-                Session, 50, Later, 1_210_000, Morning.AddMinutes(10)).At(Morning));
+        Given(Started, Recorded(1_210_000))
+            .When(new RecordMeterValue(Command, Session, 50, Later))
+            .Then(
+                new MeterAnomalyDetected(Session, 50, Later, 1_210_000, Morning.AddMinutes(10))
+                    .At(Morning));
     }
 
     [Fact]
@@ -123,31 +133,37 @@ public sealed class ChargingSessionTests
     {
         var early = Morning.AddMinutes(5);
 
-        Decide([Started, Recorded(1_210_000)], Value(1_211_000, minutes: 5))
-            .ShouldAccept(new MeterAnomalyDetected(
+        Given(Started, Recorded(1_210_000))
+            .When(Value(1_211_000, minutes: 5))
+            .Then(new MeterAnomalyDetected(
                 Session, 1_211_000, early, 1_210_000, Morning.AddMinutes(10)).At(Morning));
     }
 
     [Fact]
     public void Given_a_running_session_when_the_latest_reading_arrives_twice_then_nothing_changes()
     {
-        Decide([Started, Recorded(1_210_000)], Value(1_210_000)).ShouldAccept();
+        Given(Started, Recorded(1_210_000))
+            .When(Value(1_210_000))
+            .ThenNothingChanges();
     }
 
     [Fact]
     public void Given_an_ended_session_when_a_late_reading_arrives_then_nothing_changes()
     {
-        Decide(History("ended"), new RecordMeterValue(Command, Session, 1_230_000, Later))
-            .ShouldAccept();
+        Given(History("ended"))
+            .When(new RecordMeterValue(Command, Session, 1_230_000, Later))
+            .ThenNothingChanges();
     }
 
     [Fact]
     public void Given_a_reading_that_crosses_the_spend_cap_then_the_same_decision_records_the_cap()
     {
         // 20 kWh at USD 0.50 is the cap of USD 10.00.
-        Decide([Started, Recorded(1_210_000)], Value(1_220_000, minutes: 40)).ShouldAccept(
-            new MeterValueRecorded(Session, 1_220_000, Morning.AddMinutes(40)).At(Morning),
-            new SpendCapReached(Session, new Money(10.00m, Currency.Usd), Cap).At(Morning));
+        Given(Started, Recorded(1_210_000))
+            .When(Value(1_220_000, minutes: 40))
+            .Then(
+                new MeterValueRecorded(Session, 1_220_000, Morning.AddMinutes(40)).At(Morning),
+                new SpendCapReached(Session, new Money(10.00m, Currency.Usd), Cap).At(Morning));
     }
 
     [Fact]
@@ -165,17 +181,19 @@ public sealed class ChargingSessionTests
             ],
         };
 
-        Decide([Started with { Tariff = timeOfUse }], Value(1_215_000)).ShouldAccept(
-            new MeterValueRecorded(Session, 1_215_000, Morning.AddMinutes(10)).At(Morning),
-            new SpendCapReached(Session, new Money(10.00m, Currency.Usd), Cap).At(Morning));
+        Given(Started with { Tariff = timeOfUse })
+            .When(Value(1_215_000))
+            .Then(
+                new MeterValueRecorded(Session, 1_215_000, Morning.AddMinutes(10)).At(Morning),
+                new SpendCapReached(Session, new Money(10.00m, Currency.Usd), Cap).At(Morning));
     }
 
     [Fact]
     public void Given_a_spend_cap_reached_before_when_energy_flows_on_then_it_is_not_reached_again()
     {
-        Decide([Started, Recorded(1_220_000, minutes: 40)], Value(1_220_500, minutes: 41))
-            .ShouldAccept(
-                new MeterValueRecorded(Session, 1_220_500, Morning.AddMinutes(41)).At(Morning));
+        Given(Started, Recorded(1_220_000, minutes: 40))
+            .When(Value(1_220_500, minutes: 41))
+            .Then(new MeterValueRecorded(Session, 1_220_500, Morning.AddMinutes(41)).At(Morning));
     }
 
     // SuspendCharging and ResumeCharging: who suspended the charge?
@@ -188,7 +206,9 @@ public sealed class ChargingSessionTests
     public void Given_a_running_session_when_suspended_then_the_event_says_who_suspended_it(
         string state, string by)
     {
-        Decide(History(state), Suspend(by), at: Later).ShouldAccept(Suspension(by).At(Later));
+        Given(History(state)).At(Later)
+            .When(Suspend(by))
+            .Then(Suspension(by).At(Later));
     }
 
     [Theory]
@@ -197,7 +217,9 @@ public sealed class ChargingSessionTests
     public void Given_a_suspended_session_when_the_same_side_suspends_it_again_then_nothing_changes(
         string state, string by)
     {
-        Decide(History(state), Suspend(by)).ShouldAccept();
+        Given(History(state))
+            .When(Suspend(by))
+            .ThenNothingChanges();
     }
 
     [Theory]
@@ -205,23 +227,28 @@ public sealed class ChargingSessionTests
     [InlineData("suspended by charger")]
     public void Given_a_suspended_session_when_resumed_then_charging_continues(string state)
     {
-        Decide(History(state), new ResumeCharging(Command, Session), at: Later)
-            .ShouldAccept(new ChargingResumed(Session).At(Later));
+        Given(History(state)).At(Later)
+            .When(new ResumeCharging(Command, Session))
+            .Then(new ChargingResumed(Session).At(Later));
     }
 
     [Fact]
     public void Given_an_active_session_when_resumed_then_nothing_changes()
     {
-        Decide(History("active"), new ResumeCharging(Command, Session)).ShouldAccept();
+        Given(History("active"))
+            .When(new ResumeCharging(Command, Session))
+            .ThenNothingChanges();
     }
 
     [Fact]
     public void Given_an_ended_session_when_suspended_or_resumed_then_it_has_already_ended()
     {
-        Decide(History("ended"), Suspend("EV"))
-            .ShouldReject(new SessionError.AlreadyEnded(Session));
-        Decide(History("ended"), new ResumeCharging(Command, Session))
-            .ShouldReject(new SessionError.AlreadyEnded(Session));
+        Given(History("ended"))
+            .When(Suspend("EV"))
+            .ThenRejects(new SessionError.AlreadyEnded(Session));
+        Given(History("ended"))
+            .When(new ResumeCharging(Command, Session))
+            .ThenRejects(new SessionError.AlreadyEnded(Session));
     }
 
     [Fact]
@@ -251,15 +278,19 @@ public sealed class ChargingSessionTests
     {
         var stop = new StopSession(Command, Session);
 
-        Decide([.. History(state), Recorded(1_227_600)], stop, at: Later)
-            .ShouldAccept(new SessionEnded(
-                Session, Depot, Connector, DriversCard, new Energy(27.6m)).At(Later));
+        Given([.. History(state), Recorded(1_227_600)]).At(Later)
+            .When(stop)
+            .Then(
+                new SessionEnded(Session, Depot, Connector, DriversCard, new Energy(27.6m))
+                    .At(Later));
     }
 
     [Fact]
     public void Given_an_ended_session_when_stopped_again_then_nothing_changes()
     {
-        Decide(History("ended"), new StopSession(Command, Session)).ShouldAccept();
+        Given(History("ended"))
+            .When(new StopSession(Command, Session))
+            .ThenNothingChanges();
     }
 
     // Evolve and Fold
@@ -319,10 +350,9 @@ public sealed class ChargingSessionTests
             default, new StopSession(Command, Session), new DecisionContext(Morning)));
     }
 
-    private static Result<ImmutableArray<SessionEvent>, SessionError> Decide(
-        IEnumerable<SessionEvent> history, SessionCommand command, DateTimeOffset? at = null) =>
-        ChargingSession.Decide(
-            ChargingSession.Fold(history), command, new DecisionContext(at ?? Morning));
+    /// <summary>A session whose history is given, deciding at the depot's morning.</summary>
+    private static SessionSpec Given(params IEnumerable<SessionEvent> history) =>
+        SessionSpec.Given(history).At(Morning);
 
     private static SessionEvent[] History(string state) => state switch
     {

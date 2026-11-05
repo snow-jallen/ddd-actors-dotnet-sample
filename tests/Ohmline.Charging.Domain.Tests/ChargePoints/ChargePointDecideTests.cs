@@ -1,21 +1,20 @@
-using System.Collections.Immutable;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.Charging.Domain.ChargePoints;
-using Ohmline.SharedKernel;
 using Ohmline.SharedKernel.Deciders;
-using Ohmline.SharedKernel.Identity;
-using Ohmline.SharedKernel.Units;
 using static Ohmline.Charging.Domain.Tests.Known;
 
 namespace Ohmline.Charging.Domain.Tests.ChargePoints;
 
 /// <summary>
-/// One test per row of the decision table in <see cref="ChargePoint.Decide"/>. The states are
-/// written down directly; section 7.5 adds Evolve, and later tests build state from events.
+/// One test per row of the decision table in <see cref="ChargePoint.Decide"/>, as Given-When-Then:
+/// given the charge point's events, when it decides a command, then these events or this error.
+/// Connector 1 is put in each state by the event that puts it there.
 /// </summary>
 public sealed class ChargePointDecideTests
 {
     private static readonly DateTimeOffset Expiry = Morning.AddMinutes(15);
+
+    private static readonly ChargePointRegistered Registration = new(Charger, Depot, [new(50m)]);
 
     // The registration and the charge point level
 
@@ -24,37 +23,41 @@ public sealed class ChargePointDecideTests
     {
         var register = new RegisterChargePoint(Command, Charger, Depot, [new(50m), new(22m)]);
 
-        Decide(ChargePointState.Initial, register)
-            .ShouldAccept(
-                new ChargePointRegistered(Charger, Depot, [new(50m), new(22m)]).At(Morning));
+        Given()
+            .When(register)
+            .Then(new ChargePointRegistered(Charger, Depot, [new(50m), new(22m)]).At(Morning));
     }
 
     [Fact]
     public void Given_no_registration_when_a_connector_command_arrives_then_it_is_not_registered()
     {
-        Decide(ChargePointState.Initial, new ReserveConnector(Command, Charger, 1, DriversCard))
-            .ShouldReject(new ChargePointError.NotRegistered(Charger));
+        Given()
+            .When(new ReserveConnector(Command, Charger, 1, DriversCard))
+            .ThenRejects(new ChargePointError.NotRegistered(Charger));
     }
 
     [Fact]
     public void Given_a_charge_point_when_registered_again_then_it_is_already_registered()
     {
-        Decide(With("available"), new RegisterChargePoint(Command, Charger, Depot, [new(50m)]))
-            .ShouldReject(new ChargePointError.AlreadyRegistered(Charger));
+        Given("available")
+            .When(new RegisterChargePoint(Command, Charger, Depot, [new(50m)]))
+            .ThenRejects(new ChargePointError.AlreadyRegistered(Charger));
     }
 
     [Fact]
     public void Given_a_charge_point_when_a_command_names_a_missing_connector_then_it_is_unknown()
     {
-        Decide(With("available"), new OccupyConnector(Command, Charger, 3, Session, DriversCard))
-            .ShouldReject(new ChargePointError.UnknownConnector(3));
+        Given("available")
+            .When(new OccupyConnector(Command, Charger, 3, Session, DriversCard))
+            .ThenRejects(new ChargePointError.UnknownConnector(3));
     }
 
     [Fact]
     public void Given_a_default_state_when_deciding_then_the_null_arm_reports_the_bug()
     {
         Should.Throw<InvalidOperationException>(
-            () => Decide(default, new ReleaseConnector(Command, Charger, 1)));
+            () => ChargePoint.Decide(
+                default, new ReleaseConnector(Command, Charger, 1), new DecisionContext(Morning)));
     }
 
     // ReserveConnector
@@ -62,8 +65,9 @@ public sealed class ChargePointDecideTests
     [Fact]
     public void Given_an_available_connector_when_reserved_then_it_is_held_for_fifteen_minutes()
     {
-        Decide(With("available"), new ReserveConnector(Command, Charger, 1, DriversCard))
-            .ShouldAccept(new ConnectorReserved(Charger, 1, DriversCard, Expiry).At(Morning));
+        Given("available")
+            .When(new ReserveConnector(Command, Charger, 1, DriversCard))
+            .Then(new ConnectorReserved(Charger, 1, DriversCard, Expiry).At(Morning));
     }
 
     [Fact]
@@ -71,23 +75,26 @@ public sealed class ChargePointDecideTests
     {
         var noon = new DateTimeOffset(2026, 11, 4, 12, 0, 0, TimeSpan.Zero);
 
-        Decide(With("available"), new ReserveConnector(Command, Charger, 1, DriversCard), at: noon)
-            .ShouldAccept(
-                new ConnectorReserved(Charger, 1, DriversCard, noon.AddMinutes(15)).At(noon));
+        Given("available").At(noon)
+            .When(new ReserveConnector(Command, Charger, 1, DriversCard))
+            .Then(new ConnectorReserved(Charger, 1, DriversCard, noon.AddMinutes(15)).At(noon));
     }
 
     [Fact]
     public void Given_the_drivers_reservation_when_the_driver_reserves_again_then_nothing_changes()
     {
-        Decide(With("reserved"), new ReserveConnector(Command, Charger, 1, DriversCard))
-            .ShouldAccept();
+        Given("reserved")
+            .When(new ReserveConnector(Command, Charger, 1, DriversCard))
+            .ThenNothingChanges();
     }
 
     [Fact]
     public void Given_someone_elses_reservation_when_reserved_then_the_driver_learns_until_when()
     {
-        Decide(With("reserved"), new ReserveConnector(Command, Charger, 1, SomeoneElsesCard))
-            .ShouldReject(new ChargePointError.ReservedForAnotherToken(1, Expiry));
+        Given("reserved")
+            .When(new ReserveConnector(Command, Charger, 1, SomeoneElsesCard))
+            .ThenRejects<ChargePointError.ReservedForAnotherToken>()
+            .Until.ShouldBe(Expiry);
     }
 
     [Fact]
@@ -95,8 +102,9 @@ public sealed class ChargePointDecideTests
     {
         var reserve = new ReserveConnector(Command, Charger, 1, SomeoneElsesCard);
 
-        Decide(With("reserved"), reserve, at: Expiry)
-            .ShouldAccept(
+        Given("reserved").At(Expiry)
+            .When(reserve)
+            .Then(
                 new ReservationExpired(Charger, 1, DriversCard).At(Expiry),
                 new ConnectorReserved(Charger, 1, SomeoneElsesCard, Expiry.AddMinutes(15))
                     .At(Expiry));
@@ -108,15 +116,17 @@ public sealed class ChargePointDecideTests
     public void Given_a_connector_that_is_in_use_or_out_of_use_when_reserved_then_it_is_unavailable(
         string state)
     {
-        Decide(With(state), new ReserveConnector(Command, Charger, 1, DriversCard))
-            .ShouldReject(new ChargePointError.ConnectorUnavailable(1));
+        Given(state)
+            .When(new ReserveConnector(Command, Charger, 1, DriversCard))
+            .ThenRejects(new ChargePointError.ConnectorUnavailable(1));
     }
 
     [Fact]
     public void Given_a_faulted_connector_when_reserved_then_the_fault_is_reported()
     {
-        Decide(With("faulted"), new ReserveConnector(Command, Charger, 1, DriversCard))
-            .ShouldReject(new ChargePointError.ConnectorFaulted(1, "GroundFailure"));
+        Given("faulted")
+            .When(new ReserveConnector(Command, Charger, 1, DriversCard))
+            .ThenRejects(new ChargePointError.ConnectorFaulted(1, "GroundFailure"));
     }
 
     // CancelReservation
@@ -124,15 +134,17 @@ public sealed class ChargePointDecideTests
     [Fact]
     public void Given_the_drivers_reservation_when_cancelled_then_it_is_cancelled()
     {
-        Decide(With("reserved"), new CancelReservation(Command, Charger, 1, DriversCard))
-            .ShouldAccept(new ReservationCancelled(Charger, 1, DriversCard).At(Morning));
+        Given("reserved")
+            .When(new CancelReservation(Command, Charger, 1, DriversCard))
+            .Then(new ReservationCancelled(Charger, 1, DriversCard).At(Morning));
     }
 
     [Fact]
     public void Given_someone_elses_reservation_when_cancelled_then_it_is_refused()
     {
-        Decide(With("reserved"), new CancelReservation(Command, Charger, 1, SomeoneElsesCard))
-            .ShouldReject(new ChargePointError.ReservedForAnotherToken(1, Expiry));
+        Given("reserved")
+            .When(new CancelReservation(Command, Charger, 1, SomeoneElsesCard))
+            .ThenRejects(new ChargePointError.ReservedForAnotherToken(1, Expiry));
     }
 
     [Theory]
@@ -142,7 +154,9 @@ public sealed class ChargePointDecideTests
     [InlineData("unavailable")]
     public void Given_no_reservation_when_cancelled_then_nothing_changes(string state)
     {
-        Decide(With(state), new CancelReservation(Command, Charger, 1, DriversCard)).ShouldAccept();
+        Given(state)
+            .When(new CancelReservation(Command, Charger, 1, DriversCard))
+            .ThenNothingChanges();
     }
 
     // ExpireReservation
@@ -150,8 +164,9 @@ public sealed class ChargePointDecideTests
     [Fact]
     public void Given_a_reservation_whose_time_is_up_when_the_timer_fires_then_it_expires()
     {
-        Decide(With("reserved"), new ExpireReservation(Command, Charger, 1), at: Expiry)
-            .ShouldAccept(new ReservationExpired(Charger, 1, DriversCard).At(Expiry));
+        Given("reserved").At(Expiry)
+            .When(new ExpireReservation(Command, Charger, 1))
+            .Then(new ReservationExpired(Charger, 1, DriversCard).At(Expiry));
     }
 
     [Fact]
@@ -159,7 +174,9 @@ public sealed class ChargePointDecideTests
     {
         var expire = new ExpireReservation(Command, Charger, 1);
 
-        Decide(With("reserved"), expire, at: Expiry.AddSeconds(-1)).ShouldAccept();
+        Given("reserved").At(Expiry.AddSeconds(-1))
+            .When(expire)
+            .ThenNothingChanges();
     }
 
     [Theory]
@@ -169,7 +186,9 @@ public sealed class ChargePointDecideTests
     [InlineData("unavailable")]
     public void Given_no_reservation_when_a_stale_timer_fires_then_nothing_changes(string state)
     {
-        Decide(With(state), new ExpireReservation(Command, Charger, 1), at: Expiry).ShouldAccept();
+        Given(state).At(Expiry)
+            .When(new ExpireReservation(Command, Charger, 1))
+            .ThenNothingChanges();
     }
 
     // OccupyConnector
@@ -177,15 +196,17 @@ public sealed class ChargePointDecideTests
     [Fact]
     public void Given_an_available_connector_when_a_car_plugs_in_then_the_session_occupies_it()
     {
-        Decide(With("available"), new OccupyConnector(Command, Charger, 1, Session, DriversCard))
-            .ShouldAccept(new ConnectorOccupied(Charger, 1, Session, DriversCard).At(Morning));
+        Given("available")
+            .When(new OccupyConnector(Command, Charger, 1, Session, DriversCard))
+            .Then(new ConnectorOccupied(Charger, 1, Session, DriversCard).At(Morning));
     }
 
     [Fact]
     public void Given_the_drivers_reservation_when_they_plug_in_then_the_session_occupies_it()
     {
-        Decide(With("reserved"), new OccupyConnector(Command, Charger, 1, Session, DriversCard))
-            .ShouldAccept(new ConnectorOccupied(Charger, 1, Session, DriversCard).At(Morning));
+        Given("reserved")
+            .When(new OccupyConnector(Command, Charger, 1, Session, DriversCard))
+            .Then(new ConnectorOccupied(Charger, 1, Session, DriversCard).At(Morning));
     }
 
     [Fact]
@@ -193,8 +214,9 @@ public sealed class ChargePointDecideTests
     {
         var occupy = new OccupyConnector(Command, Charger, 1, Session, SomeoneElsesCard);
 
-        Decide(With("reserved"), occupy)
-            .ShouldReject(new ChargePointError.ReservedForAnotherToken(1, Expiry));
+        Given("reserved")
+            .When(occupy)
+            .ThenRejects(new ChargePointError.ReservedForAnotherToken(1, Expiry));
     }
 
     [Fact]
@@ -203,16 +225,19 @@ public sealed class ChargePointDecideTests
         var occupy = new OccupyConnector(Command, Charger, 1, NextSession, SomeoneElsesCard);
         var later = Expiry.AddMinutes(3);
 
-        Decide(With("reserved"), occupy, at: later).ShouldAccept(
-            new ReservationExpired(Charger, 1, DriversCard).At(later),
-            new ConnectorOccupied(Charger, 1, NextSession, SomeoneElsesCard).At(later));
+        Given("reserved").At(later)
+            .When(occupy)
+            .Then(
+                new ReservationExpired(Charger, 1, DriversCard).At(later),
+                new ConnectorOccupied(Charger, 1, NextSession, SomeoneElsesCard).At(later));
     }
 
     [Fact]
     public void Given_an_occupied_connector_when_its_session_plugs_in_again_then_nothing_changes()
     {
-        Decide(With("occupied"), new OccupyConnector(Command, Charger, 1, Session, DriversCard))
-            .ShouldAccept();
+        Given("occupied")
+            .When(new OccupyConnector(Command, Charger, 1, Session, DriversCard))
+            .ThenNothingChanges();
     }
 
     [Theory]
@@ -221,15 +246,17 @@ public sealed class ChargePointDecideTests
     public void Given_a_busy_or_closed_connector_when_another_car_plugs_in_then_it_is_unavailable(
         string state)
     {
-        Decide(With(state), new OccupyConnector(Command, Charger, 1, NextSession, SomeoneElsesCard))
-            .ShouldReject(new ChargePointError.ConnectorUnavailable(1));
+        Given(state)
+            .When(new OccupyConnector(Command, Charger, 1, NextSession, SomeoneElsesCard))
+            .ThenRejects(new ChargePointError.ConnectorUnavailable(1));
     }
 
     [Fact]
     public void Given_a_faulted_connector_when_a_car_plugs_in_then_the_fault_is_reported()
     {
-        Decide(With("faulted"), new OccupyConnector(Command, Charger, 1, Session, DriversCard))
-            .ShouldReject(new ChargePointError.ConnectorFaulted(1, "GroundFailure"));
+        Given("faulted")
+            .When(new OccupyConnector(Command, Charger, 1, Session, DriversCard))
+            .ThenRejects(new ChargePointError.ConnectorFaulted(1, "GroundFailure"));
     }
 
     // ReleaseConnector
@@ -237,8 +264,9 @@ public sealed class ChargePointDecideTests
     [Fact]
     public void Given_an_occupied_connector_when_the_car_is_unplugged_then_the_session_is_named()
     {
-        Decide(With("occupied"), new ReleaseConnector(Command, Charger, 1))
-            .ShouldAccept(new ConnectorReleased(Charger, 1, Session).At(Morning));
+        Given("occupied")
+            .When(new ReleaseConnector(Command, Charger, 1))
+            .Then(new ConnectorReleased(Charger, 1, Session).At(Morning));
     }
 
     [Theory]
@@ -248,7 +276,9 @@ public sealed class ChargePointDecideTests
     [InlineData("unavailable")]
     public void Given_no_car_plugged_in_when_released_then_nothing_changes(string state)
     {
-        Decide(With(state), new ReleaseConnector(Command, Charger, 1)).ShouldAccept();
+        Given(state)
+            .When(new ReleaseConnector(Command, Charger, 1))
+            .ThenNothingChanges();
     }
 
     // ReportConnectorFault and ClearConnectorFault
@@ -261,22 +291,25 @@ public sealed class ChargePointDecideTests
     public void Given_a_connector_that_is_not_faulted_when_a_fault_is_reported_then_it_is_faulted(
         string state)
     {
-        Decide(With(state), new ReportConnectorFault(Command, Charger, 1, "PowerSwitchFailure"))
-            .ShouldAccept(new ConnectorFaulted(Charger, 1, "PowerSwitchFailure").At(Morning));
+        Given(state)
+            .When(new ReportConnectorFault(Command, Charger, 1, "PowerSwitchFailure"))
+            .Then(new ConnectorFaulted(Charger, 1, "PowerSwitchFailure").At(Morning));
     }
 
     [Fact]
     public void Given_a_faulted_connector_when_a_fault_is_reported_again_then_nothing_changes()
     {
-        Decide(With("faulted"), new ReportConnectorFault(Command, Charger, 1, "GroundFailure"))
-            .ShouldAccept();
+        Given("faulted")
+            .When(new ReportConnectorFault(Command, Charger, 1, "GroundFailure"))
+            .ThenNothingChanges();
     }
 
     [Fact]
     public void Given_a_faulted_connector_when_the_fault_is_cleared_then_it_is_cleared()
     {
-        Decide(With("faulted"), new ClearConnectorFault(Command, Charger, 1))
-            .ShouldAccept(new ConnectorFaultCleared(Charger, 1).At(Morning));
+        Given("faulted")
+            .When(new ClearConnectorFault(Command, Charger, 1))
+            .Then(new ConnectorFaultCleared(Charger, 1).At(Morning));
     }
 
     [Theory]
@@ -287,7 +320,9 @@ public sealed class ChargePointDecideTests
     public void Given_a_connector_that_is_not_faulted_when_a_fault_is_cleared_then_nothing_changes(
         string state)
     {
-        Decide(With(state), new ClearConnectorFault(Command, Charger, 1)).ShouldAccept();
+        Given(state)
+            .When(new ClearConnectorFault(Command, Charger, 1))
+            .ThenNothingChanges();
     }
 
     // MakeConnectorUnavailable and MakeConnectorAvailable
@@ -298,22 +333,25 @@ public sealed class ChargePointDecideTests
     public void Given_a_free_or_reserved_connector_when_made_unavailable_then_it_is_out_of_use(
         string state)
     {
-        Decide(With(state), new MakeConnectorUnavailable(Command, Charger, 1))
-            .ShouldAccept(new ConnectorMadeUnavailable(Charger, 1).At(Morning));
+        Given(state)
+            .When(new MakeConnectorUnavailable(Command, Charger, 1))
+            .Then(new ConnectorMadeUnavailable(Charger, 1).At(Morning));
     }
 
     [Fact]
     public void Given_an_unavailable_connector_when_made_unavailable_then_nothing_changes()
     {
-        Decide(With("unavailable"), new MakeConnectorUnavailable(Command, Charger, 1))
-            .ShouldAccept();
+        Given("unavailable")
+            .When(new MakeConnectorUnavailable(Command, Charger, 1))
+            .ThenNothingChanges();
     }
 
     [Fact]
     public void Given_an_occupied_connector_when_made_unavailable_then_it_is_refused()
     {
-        Decide(With("occupied"), new MakeConnectorUnavailable(Command, Charger, 1))
-            .ShouldReject(new ChargePointError.ConnectorUnavailable(1));
+        Given("occupied")
+            .When(new MakeConnectorUnavailable(Command, Charger, 1))
+            .ThenRejects(new ChargePointError.ConnectorUnavailable(1));
     }
 
     [Fact]
@@ -321,17 +359,20 @@ public sealed class ChargePointDecideTests
     {
         var fault = new ChargePointError.ConnectorFaulted(1, "GroundFailure");
 
-        Decide(With("faulted"), new MakeConnectorUnavailable(Command, Charger, 1))
-            .ShouldReject(fault);
-        Decide(With("faulted"), new MakeConnectorAvailable(Command, Charger, 1))
-            .ShouldReject(fault);
+        Given("faulted")
+            .When(new MakeConnectorUnavailable(Command, Charger, 1))
+            .ThenRejects(fault);
+        Given("faulted")
+            .When(new MakeConnectorAvailable(Command, Charger, 1))
+            .ThenRejects(fault);
     }
 
     [Fact]
     public void Given_an_unavailable_connector_when_made_available_then_it_is_back_in_service()
     {
-        Decide(With("unavailable"), new MakeConnectorAvailable(Command, Charger, 1))
-            .ShouldAccept(new ConnectorMadeAvailable(Charger, 1).At(Morning));
+        Given("unavailable")
+            .When(new MakeConnectorAvailable(Command, Charger, 1))
+            .Then(new ConnectorMadeAvailable(Charger, 1).At(Morning));
     }
 
     [Theory]
@@ -340,28 +381,28 @@ public sealed class ChargePointDecideTests
     [InlineData("occupied")]
     public void Given_a_connector_in_service_when_made_available_then_nothing_changes(string state)
     {
-        Decide(With(state), new MakeConnectorAvailable(Command, Charger, 1)).ShouldAccept();
+        Given(state)
+            .When(new MakeConnectorAvailable(Command, Charger, 1))
+            .ThenNothingChanges();
     }
 
-    private static Result<ImmutableArray<ChargePointEvent>, ChargePointError> Decide(
-        ChargePointState state, ChargePointCommand command, DateTimeOffset? at = null) =>
-        ChargePoint.Decide(state, command, new DecisionContext(at ?? Morning));
+    /// <summary>A charge point whose history is given, deciding at the depot's morning.</summary>
+    private static ChargePointSpec Given(params IEnumerable<ChargePointEvent> history) =>
+        ChargePointSpec.Given(history).At(Morning);
 
     /// <summary>A registered charge point whose connector 1 is in the named state.</summary>
-    private static ChargePointState With(string connectorState)
+    private static ChargePointSpec Given(string connectorState)
     {
-        ConnectorState state = connectorState switch
+        ChargePointEvent[] connector = connectorState switch
         {
-            "available" => new Available(),
-            "reserved" => new Reserved(DriversCard, Expiry),
-            "occupied" => new Occupied(Session),
-            "faulted" => new Faulted("GroundFailure"),
-            "unavailable" => new Unavailable(),
+            "available" => [],
+            "reserved" => [new ConnectorReserved(Charger, 1, DriversCard, Expiry)],
+            "occupied" => [new ConnectorOccupied(Charger, 1, Session, DriversCard)],
+            "faulted" => [new ConnectorFaulted(Charger, 1, "GroundFailure")],
+            "unavailable" => [new ConnectorMadeUnavailable(Charger, 1)],
             _ => throw new ArgumentOutOfRangeException(nameof(connectorState)),
         };
 
-        var connector = new Connector(new ConnectorId(Charger, 1), new Power(50m), state);
-        return new Registered(Charger, Depot, ImmutableDictionary<int, Connector>.Empty
-            .Add(1, connector));
+        return Given([Registration, .. connector]);
     }
 }

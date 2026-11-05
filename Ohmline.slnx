@@ -52,5 +52,6 @@
     <Project Path="tests/Ohmline.SiteEnergy.Acl.AssetRegistry.Tests/Ohmline.SiteEnergy.Acl.AssetRegistry.Tests.csproj" />
     <Project Path="tests/Ohmline.SiteEnergy.Domain.Tests/Ohmline.SiteEnergy.Domain.Tests.csproj" />
     <Project Path="tests/Ohmline.Tariffs.Domain.Tests/Ohmline.Tariffs.Domain.Tests.csproj" />
+    <Project Path="tests/Ohmline.Testing/Ohmline.Testing.csproj" />
   </Folder>
 </Solution>
