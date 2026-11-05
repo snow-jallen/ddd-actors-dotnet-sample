@@ -110,6 +110,15 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch04-s06` | 4.6 From stickies to types: the vocabulary compiles | `Ohmline.Charging.Contracts` and `.Domain` with empty `ChargePointCommand` and `ChargePointEvent` hierarchies |
 | `ch04-s07` | 4.7 Subdomains: core, supporting, generic | `docs/subdomains.md` |
 | `ch04-s08` | 4.8 Choosing a business-logic pattern per subdomain | ADR 0004: an implementation style per subdomain |
+| `ch05-s01` | 5.1 Bounded contexts and the Bounded Context Canvas | A Bounded Context Canvas per context in `docs/canvases/` |
+| `ch05-s02` | 5.2 Modules made physical: architecture styles and the solution layout | Empty projects for every context, Billing, the Device Gateway and `Ohmline.ActorShell` |
+| `ch05-s03` | 5.3 Keeping the core pure, enforced | `build/DomainPurity.targets`, `tests/Ohmline.ArchitectureTests` |
+| `ch05-s04` | 5.4 Context mapping I: teams and flows | `docs/context-map.md`: teams, the map, every relationship |
+| `ch05-s05` | 5.5 Context mapping II: Shared Kernel, Open Host Service and Published Language | Shared kernel governance, `.github/CODEOWNERS`, the Published Language rules |
+| `ch05-s06` | 5.6 Context mapping III: Anticorruption Layer, Separate Ways and Big Ball of Mud | The AssetTrack export and its translation rules in `docs/acl/` |
+| `ch05-s07` | 5.7 The executable context map and deployment topology | An artifact per relationship, ADR 0005, `ContextBoundaryTests` |
+| `ch05-s08` | 5.8 Distillation | The final `docs/vision.md`, `docs/highlighted-core.md` |
+| `ch05-s09` | 5.9 Large-scale structure | ADR 0006: responsibility layers and supervision |
 
 ## Licence and disclaimers
 
