@@ -44,6 +44,8 @@ public static class ClusterExtensions
                     // change in reachability, the side with most nodes downs the other side.
                     SplitBrainResolver = new KeepMajorityOption(),
                 })
+                // /health is Healthy only once this node is an Up member of the cluster.
+                .WithAkkaClusterReadinessCheck()
                 .AddHocon(
                     "akka.cluster.split-brain-resolver.stable-after = 20s",
                     HoconAddMode.Prepend);

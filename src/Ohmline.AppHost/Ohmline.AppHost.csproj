@@ -1,0 +1,23 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.6.4">
+
+  <!--
+    Ohmline on a laptop: PostgreSQL 17 in a container and three replicas of the node, which
+    form one cluster, with the Aspire dashboard. Run it with "aspire run" in this folder, or
+    with "dotnet run" and this project (Podman or Docker must be running).
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <UserSecretsId>ohmline-apphost</UserSecretsId>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Ohmline.Node/Ohmline.Node.csproj" />
+  </ItemGroup>
+
+</Project>

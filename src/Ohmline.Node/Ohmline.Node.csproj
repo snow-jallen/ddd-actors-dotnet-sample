@@ -12,9 +12,12 @@
     <PackageReference Include="Akka.Persistence.Hosting" />
     <PackageReference Include="Akka.Persistence.Sql.Hosting" />
     <PackageReference Include="Microsoft.Data.Sqlite" />
+    <!-- PostgreSQL, when ConnectionStrings:ohmline is set (section 12.10). -->
+    <PackageReference Include="Npgsql" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../Ohmline.ServiceDefaults/Ohmline.ServiceDefaults.csproj" />
     <ProjectReference
       Include="../Charging/Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
     <ProjectReference Include="../Charging/Ohmline.Charging.Api/Ohmline.Charging.Api.csproj" />

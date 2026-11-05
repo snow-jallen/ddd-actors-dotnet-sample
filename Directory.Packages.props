@@ -22,9 +22,16 @@
   </ItemGroup>
 
   <ItemGroup Label="Hosting and Aspire">
+    <!-- Aspire.Hosting.AppHost is not here: Aspire.AppHost.Sdk/13.6.4 references it implicitly,
+         at its own version, and NU1009 forbids a PackageVersion for an implicit reference. -->
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.6.4" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.11.0" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.11.0" />
   </ItemGroup>
 
   <ItemGroup Label="Data">
+    <!-- The PostgreSQL driver Akka.Persistence.Sql loads for ProviderName.PostgreSQL15. -->
+    <PackageVersion Include="Npgsql" Version="10.0.3" />
     <!-- 10.0.0 pulls in a vulnerable SQLitePCLRaw; 10.0.14 does not. -->
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.14" />
   </ItemGroup>

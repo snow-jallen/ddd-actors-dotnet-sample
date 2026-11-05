@@ -11,7 +11,9 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+    <Project Path="src/Ohmline.AppHost/Ohmline.AppHost.csproj" />
     <Project Path="src/Ohmline.Node/Ohmline.Node.csproj" />
+    <Project Path="src/Ohmline.ServiceDefaults/Ohmline.ServiceDefaults.csproj" />
     <Project Path="src/Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
   </Folder>
   <Folder Name="/src/Billing/">
