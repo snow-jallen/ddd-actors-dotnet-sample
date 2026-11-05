@@ -33,6 +33,7 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     private readonly long _startedAt = Stopwatch.GetTimestamp();
     private int _eventsReplayed;
     private long _snapshotSequenceNr;
+    private IActorRef? _writeFor;
 
     /// <param name="typeName">The durable type name, such as <c>charge-point</c>.</param>
     /// <param name="entityId">The aggregate's identity, such as <c>OHM-SLC-0042</c>.</param>
@@ -79,6 +80,12 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
 
     /// <summary>The reply to a command the decider refused: the error mapped to the wire.</summary>
     protected abstract object Rejected(TError error);
+
+    /// <summary>
+    /// The reply to a command the shell could not carry out, with a code from
+    /// <see cref="ShellRejectionCodes"/>, in the context's wire vocabulary.
+    /// </summary>
+    protected abstract object Rejected(string code, string message);
 
     /// <summary>
     /// A snapshot is saved after every event whose sequence number is a multiple of this: 100 by
@@ -177,7 +184,8 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
                 replyTo.Tell(Accepted(LastSequenceNr));
                 break;
             case Ok<ImmutableArray<TEvent>> accepted:
-                PersistAll(accepted.Value, Apply, () => replyTo.Tell(Accepted(LastSequenceNr)));
+                _writeFor = replyTo;
+                PersistAll(accepted.Value, Apply, () => AnswerWrite(Accepted(LastSequenceNr)));
                 break;
             case Err<TError> rejected:
                 replyTo.Tell(Rejected(rejected.Error));
@@ -185,6 +193,51 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
             case null:
                 throw new InvalidOperationException("Decide returned a default Result.");
         }
+    }
+
+    /// <summary>
+    /// The journal refused the events (for example, one could not be serialized): nothing was
+    /// stored or applied, and the actor lives on. Akka.NET calls this once per event of the
+    /// batch, and then still runs PersistAll's completion callback, so the sender is answered
+    /// here, once, and the completion finds nobody left to tell that it was accepted.
+    /// </summary>
+    protected override void OnPersistRejected(Exception cause, object @event, long sequenceNr)
+    {
+        _log.Error(
+            cause,
+            "{0} could not persist {1} with sequence number {2}: the journal rejected it. " +
+            "Nothing changed, and the sender is told {3}",
+            PersistenceId,
+            @event.GetType().Name,
+            sequenceNr,
+            ShellRejectionCodes.PersistenceRejected);
+        AnswerWrite(Rejected(
+            ShellRejectionCodes.PersistenceRejected,
+            $"The decision could not be stored ({cause.Message}). Nothing changed."));
+    }
+
+    /// <summary>
+    /// The journal failed the write, and Akka.NET stops the actor after this: it no longer
+    /// knows what is stored. The sender gets no answer, and neither do the commands stashed
+    /// behind the write, which become dead letters. Their senders time out and retry with the
+    /// same command id (section 12.6), and a supervisor or the shard starts a new incarnation
+    /// that recovers whatever was stored.
+    /// </summary>
+    protected override void OnPersistFailure(Exception cause, object @event, long sequenceNr)
+    {
+        _log.Error(
+            cause,
+            "Failed to persist {0} with sequence number {1} for {2}. The actor stops; the " +
+            "commands waiting behind the write become dead letters",
+            @event.GetType().Name,
+            sequenceNr,
+            PersistenceId);
+    }
+
+    private void AnswerWrite(object reply)
+    {
+        _writeFor?.Tell(reply);
+        _writeFor = null;
     }
 
     private void Apply(TEvent @event)

@@ -31,6 +31,9 @@ public sealed class ChargingSessionActor
 
     protected override object Rejected(SessionError error) => error.ToReply();
 
+    protected override object Rejected(string code, string message) =>
+        new CommandRejected(code, message);
+
     protected override object? ToSnapshot(SessionState state) => state.ToSnapshot();
 
     protected override SessionState FromSnapshot(object snapshot) =>

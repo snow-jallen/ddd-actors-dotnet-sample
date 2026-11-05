@@ -64,6 +64,9 @@ public static class ActorTestConfig
                 return serializers.Select(serializer => serializer(system)).ToImmutableHashSet();
             }))
             .And(NewtonSoftJsonSerializerSetup.Create(settings =>
-                settings.Converters.Add(new BoundTypeJsonConverter(() => started))));
+            {
+                settings.Converters.Add(new BoundTypeJsonConverter(() => started));
+                settings.Converters.Add(new LocalExceptionJsonConverter());
+            }));
     }
 }
