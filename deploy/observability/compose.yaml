@@ -29,3 +29,6 @@ services:
     volumes:
       - ./dashboards:/otel-lgtm/ohmline-dashboards:ro,Z
       - ./grafana-dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/ohmline.yaml:ro,Z
+      # Prometheus's own configuration, with Ohmline's SLO rules (section 18.9).
+      - ./prometheus.yaml:/otel-lgtm/prometheus.yaml:ro,Z
+      - ./alerts:/otel-lgtm/ohmline-alerts:ro,Z

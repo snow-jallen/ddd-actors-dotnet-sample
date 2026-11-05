@@ -75,6 +75,7 @@ promoted to labels (`service_name`, and `job`). Observed with the node at `ch18-
 | `ohmline.akka.recovery.duration` (histogram) | `s` | `ohmline_akka_recovery_duration_seconds_bucket`, `_sum`, `_count` |
 | `ohmline.akka.sharding.entities` (gauge) | `{entity}` | `ohmline_akka_sharding_entities` |
 | `ohmline.akka.dead_letters` (counter) | `{message}` | `ohmline_akka_dead_letters_total` |
+| `ohmline.charging.journey.time_to_energy_flow` (histogram) | `s` | `ohmline_charging_journey_time_to_energy_flow_seconds_bucket`, `_sum`, `_count` |
 
 Tags become labels: `command.type` is `command_type`, `aggregate.type` is `aggregate_type`.
 A refusal at `ch18-s07`, as Prometheus stores it:
@@ -104,3 +105,31 @@ node's shard poller reports the whole cluster's figures (section 18.2).
 change up within a few seconds. Panels: sessions started, energy delivered and energy per
 session; commands and refusals by reason; the fullest site; and the actor shell's recovery
 times, dead letters, entities and actor lifecycles.
+
+## The service level objective
+
+`deploy/observability/alerts/ohmline-slo.yaml` holds Ohmline's first SLO (section 18.9): a driver
+who says "start charging" gets energy flowing within 60 seconds, for 99% of journeys over 28
+days. The SLI is measured by the journey from its own events: from `JourneyStarted` to
+`EnergyFlowStarted`, or to `JourneyAbandoned` when it gives up first, with the outcome as a tag
+(`energy-flowing`, or the abandon reason). Journeys ended by a refused token or a declined hold
+are the driver's, not Ohmline's, and are left out.
+
+The file has four recording rules, the error ratio over 5 minutes, 30 minutes, 1 hour and 6
+hours, and two alerts that burn the 1% budget at two speeds:
+
+| Alert | Fires when | Severity |
+|---|---|---|
+| `TimeToEnergyFlowBudgetBurningFast` | 1 h and 5 min error ratios above 14.4 × 1% | `page` |
+| `TimeToEnergyFlowBudgetBurningSlowly` | 6 h and 30 min error ratios above 6 × 1% | `ticket` |
+
+compose.yaml mounts the rules and `prometheus.yaml` (the image's own configuration plus
+`rule_files`), so Prometheus evaluates them: see <http://localhost:9090/alerts>. Routing alerts
+to people (Alertmanager, or Grafana's alerting) is a production concern this stack leaves out.
+Check the rules after an edit with the `promtool` inside the image:
+
+```bash
+podman run --rm --entrypoint /otel-lgtm/prometheus/promtool \
+  -v ./deploy/observability/alerts:/a:ro,Z docker.io/grafana/otel-lgtm:0.39.0 \
+  check rules /a/ohmline-slo.yaml
+```

@@ -46,8 +46,10 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
     private readonly IRequiredActor<SitePowerBudgetRegion> _budgets;
     private readonly IPaymentPort _payments;
     private readonly IChargerCommandPort _chargers;
+    private readonly ChargingMetrics _metrics;
     private readonly ILogger _log;
     private JourneyState _state = ChargingJourney.Initial;
+    private DateTimeOffset? _startedAt;
 
     public ChargingJourneyActor(
         JourneyId journeyId,
@@ -56,6 +58,7 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
         IRequiredActor<SitePowerBudgetRegion> budgets,
         IPaymentPort payments,
         IChargerCommandPort chargers,
+        ChargingMetrics metrics,
         ILogger<ChargingJourneyActor> log)
     {
         PersistenceId = PersistenceIdOf(journeyId);
@@ -65,9 +68,14 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
         _budgets = budgets;
         _payments = payments;
         _chargers = chargers;
+        _metrics = metrics;
         _log = log;
 
-        Recover<JourneyEvent>(@event => _state = ChargingJourney.Evolve(_state, @event));
+        Recover<JourneyEvent>(@event =>
+        {
+            _state = ChargingJourney.Evolve(_state, @event);
+            Remember(@event);
+        });
         Recover<RecoveryCompleted>(_ => Resume());
 
         Command<GetJourney>(_ =>
@@ -151,9 +159,9 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
     public static string PersistenceIdOf(JourneyId journeyId) => $"{TypeName}-{journeyId}";
 
     /// <summary>
-    /// For a test that starts the actor itself, with a logger of its choosing or none. In a
-    /// node, the shard region has the container make it, with the node's clock, shard regions,
-    /// ports and logging.
+    /// For a test that starts the actor itself, with instruments and a logger of its choosing
+    /// or none. In a node, the shard region has the container make it, with the node's clock,
+    /// shard regions, ports, instruments and logging.
     /// </summary>
     public static Props Props(
         JourneyId journeyId,
@@ -162,11 +170,13 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
         IRequiredActor<SitePowerBudgetRegion> budgets,
         IPaymentPort payments,
         IChargerCommandPort chargers,
+        ChargingMetrics? metrics = null,
         ILogger<ChargingJourneyActor>? log = null)
     {
+        var instruments = metrics ?? ChargingMetrics.Unhosted;
         var logger = log ?? NullLogger<ChargingJourneyActor>.Instance;
         return Akka.Actor.Props.Create(() => new ChargingJourneyActor(
-            journeyId, clock, tokens, budgets, payments, chargers, logger));
+            journeyId, clock, tokens, budgets, payments, chargers, instruments, logger));
     }
 
     /// <summary>
@@ -190,7 +200,10 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
 
     private void Apply(JourneyEvent @event)
     {
+        var before = _state;
         _state = ChargingJourney.Evolve(_state, @event);
+        Remember(@event);
+        Measure(before, @event);
         switch (@event)
         {
             case JourneyAbandoned abandoned:
@@ -201,6 +214,43 @@ public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
                 break;
             case DebtRecorded debt:
                 _log.DebtRecorded(_journeyId, debt.Amount, debt.Reason);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// When the journey started, from its first event, stored or replayed: a journey that
+    /// recovers halfway still knows how long its driver has waited.
+    /// </summary>
+    private void Remember(JourneyEvent @event)
+    {
+        if (@event is JourneyStarted started)
+        {
+            _startedAt = started.OccurredAt;
+        }
+    }
+
+    /// <summary>
+    /// The SLI of section 18.9, from the journey's own events as they are stored, never as
+    /// they are replayed: from <see cref="JourneyStarted"/> to <see cref="EnergyFlowStarted"/>,
+    /// or to <see cref="JourneyAbandoned"/> if the journey was given up before energy flowed.
+    /// </summary>
+    private void Measure(JourneyState before, JourneyEvent @event)
+    {
+        if (_startedAt is not { } startedAt)
+        {
+            return;
+        }
+
+        switch (@event, before.Value)
+        {
+            case (EnergyFlowStarted flowing, _):
+                _metrics.EnergyWaitEnded(
+                    flowing.OccurredAt - startedAt, ChargingMetrics.EnergyFlowing);
+                break;
+            case (JourneyAbandoned abandoned,
+                AwaitingTokenLock or AwaitingHold or AwaitingAllocation or AwaitingEnergyFlow):
+                _metrics.EnergyWaitEnded(abandoned.OccurredAt - startedAt, abandoned.Reason);
                 break;
         }
     }

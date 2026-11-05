@@ -1,0 +1,89 @@
+# File: deploy/observability/alerts/ohmline-slo.yaml
+#
+# Ohmline's first service level objective, taken from the domain (section 18.9): a driver who
+# says "start charging" gets energy flowing within 60 seconds, for 99% of journeys over 28 days.
+# The SLI comes from the journey's own events (JourneyStarted to EnergyFlowStarted, or to
+# JourneyAbandoned on the way), recorded as ohmline.charging.journey.time_to_energy_flow.
+#
+# Journeys abandoned because the driver's token was refused or the card declined the hold are
+# not Ohmline's failures: they count neither as good nor as bad. Every other abandonment, and
+# every journey whose energy took longer than 60 s, spends the error budget of 1%.
+#
+# With no journey reaching energy at all, the good series does not exist, and a plain division
+# would have no value and alert on nothing in a total outage: hence `or vector(0)`.
+#
+# Alerts burn the budget at two speeds (multiwindow, multi-burn-rate, as in Google's SRE
+# workbook): fast enough to spend 2% of a month's budget in an hour pages someone; 5% in six
+# hours opens a ticket. Each alert needs a long and a short window, so it stops soon after the
+# cause does.
+groups:
+  - name: ohmline-slo-time-to-energy-flow
+    rules:
+      - record: ohmline:time_to_energy_flow:error_ratio5m
+        expr: |
+          1 - (
+            (sum(rate(ohmline_charging_journey_time_to_energy_flow_seconds_bucket{
+              outcome="energy-flowing", le="60"}[5m])) or vector(0))
+            /
+            sum(rate(ohmline_charging_journey_time_to_energy_flow_seconds_count{
+              outcome!~"token-refused|hold-declined"}[5m]))
+          )
+      - record: ohmline:time_to_energy_flow:error_ratio30m
+        expr: |
+          1 - (
+            (sum(rate(ohmline_charging_journey_time_to_energy_flow_seconds_bucket{
+              outcome="energy-flowing", le="60"}[30m])) or vector(0))
+            /
+            sum(rate(ohmline_charging_journey_time_to_energy_flow_seconds_count{
+              outcome!~"token-refused|hold-declined"}[30m]))
+          )
+      - record: ohmline:time_to_energy_flow:error_ratio1h
+        expr: |
+          1 - (
+            (sum(rate(ohmline_charging_journey_time_to_energy_flow_seconds_bucket{
+              outcome="energy-flowing", le="60"}[1h])) or vector(0))
+            /
+            sum(rate(ohmline_charging_journey_time_to_energy_flow_seconds_count{
+              outcome!~"token-refused|hold-declined"}[1h]))
+          )
+      - record: ohmline:time_to_energy_flow:error_ratio6h
+        expr: |
+          1 - (
+            (sum(rate(ohmline_charging_journey_time_to_energy_flow_seconds_bucket{
+              outcome="energy-flowing", le="60"}[6h])) or vector(0))
+            /
+            sum(rate(ohmline_charging_journey_time_to_energy_flow_seconds_count{
+              outcome!~"token-refused|hold-declined"}[6h]))
+          )
+
+      # 14.4 times the budget's rate spends 2% of 28 days' budget in one hour.
+      - alert: TimeToEnergyFlowBudgetBurningFast
+        expr: |
+          ohmline:time_to_energy_flow:error_ratio1h > (14.4 * 0.01)
+          and
+          ohmline:time_to_energy_flow:error_ratio5m > (14.4 * 0.01)
+        labels:
+          severity: page
+          slo: time-to-energy-flow
+        annotations:
+          summary: Drivers wait more than 60 s for energy, or give up, far too often
+          description: >-
+            {{ $value | humanizePercentage }} of journeys in the last hour missed the
+            60-second objective. At 14.4 times the allowed rate or more, the month's error
+            budget lasts two days at most. Look at abandon reasons and refusals on the
+            Ohmline: Charging dashboard first.
+
+      # 6 times the budget's rate spends 5% of 28 days' budget in six hours.
+      - alert: TimeToEnergyFlowBudgetBurningSlowly
+        expr: |
+          ohmline:time_to_energy_flow:error_ratio6h > (6 * 0.01)
+          and
+          ohmline:time_to_energy_flow:error_ratio30m > (6 * 0.01)
+        labels:
+          severity: ticket
+          slo: time-to-energy-flow
+        annotations:
+          summary: The time-to-energy-flow objective is losing its error budget
+          description: >-
+            {{ $value | humanizePercentage }} of journeys in the last six hours missed the
+            60-second objective, at least six times the rate the budget allows.

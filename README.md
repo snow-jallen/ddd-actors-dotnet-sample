@@ -216,6 +216,15 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch17-s07` | 17.7 Parents versus links | Traced events stored in envelopes and tagged by `TracedEventTagger`; projection, OCPP frame and journey timer spans linked to their origin; `messaging.message.conversation_id` |
 | `ch17-s08` | 17.8 Testing traces | OpenTelemetry.Exporter.InMemory; `TraceShapeTests` on the node as it runs: HTTP to actor to journal in one trace, a projection's link, a journey's Tell |
 | `ch17-s09` | 17.9 Buy versus build: Phobos | ADR 0012: manual tracing, its known gaps, and the criteria for buying Phobos |
+| `ch18-s01` | 18.1 Domain metrics with a cardinality budget | `ChargingMetrics` (commands, refusals by error case, sessions started, kWh delivered) and `SiteEnergyMetrics` (fullest site's allocation), on the host's `IMeterFactory`; `DeciderActor.OnDecided`; branch `wrong/ch18-s01-high-cardinality-tags` |
+| `ch18-s02` | 18.2 Actor and cluster metrics | `Ohmline.ActorShell/Telemetry`: `ActorShellMetrics` extension, `DeadLetterMetricsListener`, `LifecycleMetricsListener`, `ShardStatsPoller`, recovery time in `DeciderActor`; `WithShellMetrics()`, `WithShardStats()` |
+| `ch18-s03` | 18.3 Testing metrics | Microsoft.Extensions.Diagnostics.Testing; `MetricTests` and `NodeMetricTests` with `MetricCollector<T>` |
+| `ch18-s04` | 18.4 Logs that correlate | `AddAkkaTraceCorrelation()` in the node and the gateway; `ChargingLog` and `GatewayLog` (`[LoggerMessage]`); `LogCorrelationTests` |
+| `ch18-s05` | 18.5 Health checks that tell the truth | `/health/live` and `/health/ready` in every environment; `HealthTags`; SQL connectivity checks under `ready`; `HealthTests` stops PostgreSQL |
+| `ch18-s06` | 18.6 .NET 11 AddTracing and ActivitySourceFactory | ADR 0013 and `AddTracingTests`: what the factory and its rules do beside the OpenTelemetry SDK |
+| `ch18-s07` | 18.7 Production-shaped telemetry locally | `deploy/observability`: Collector 0.142.0, grafana/otel-lgtm 0.39.0, the *Ohmline: Charging* dashboard; `docs/observability.md` |
+| `ch18-s08` | 18.8 Petabridge.Cmd, bound safely | Petabridge.Cmd 1.5.2 on `127.0.0.1` in the node and the gateway; `OperatorCommandsTests`; `docs/runbooks/operator-commands.md` |
+| `ch18-s09` | 18.9 SLOs from the domain | `ohmline.charging.journey.time_to_energy_flow` from the journey's events; `deploy/observability/alerts/ohmline-slo.yaml`; SLO panels |
 
 ## Licence and disclaimers
 

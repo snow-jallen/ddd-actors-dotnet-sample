@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Akka.TestKit;
+using Ohmline.Charging.Actors.Diagnostics;
 using Ohmline.Charging.Actors.Journeys;
 using Ohmline.Charging.Domain.Journeys;
 using Ohmline.DriverAccounts.Contracts.Tokens;
@@ -63,15 +64,17 @@ internal sealed record FakeContexts(
             _ => throw new InvalidOperationException($"The payment port has no {call}."),
         };
 
-    /// <summary>The journey, among these contexts.</summary>
-    public Props Journey(JourneyId journeyId, TimeProvider clock) =>
+    /// <summary>The journey, among these contexts, with the test's instruments.</summary>
+    public Props Journey(
+        JourneyId journeyId, TimeProvider clock, ChargingMetrics? metrics = null) =>
         ChargingJourneyActor.Props(
             journeyId,
             clock,
             new Region<IdTokenRegion>(Tokens.Ref),
             new Region<SitePowerBudgetRegion>(Budgets.Ref),
             new ProbePaymentPort(Payments.Ref),
-            new ProbeChargerPort(Chargers.Ref));
+            new ProbeChargerPort(Chargers.Ref),
+            metrics);
 
     /// <summary>The probe answers every message it gets, and keeps it for the test.</summary>
     private static void AnswerWith(TestProbe probe, Func<object, object> answer) =>
