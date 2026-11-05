@@ -8,6 +8,8 @@
   <ItemGroup>
     <!-- The read journal (SqlReadJournal) over the tables the actors write, and Akka.Streams. -->
     <PackageReference Include="Akka.Persistence.Sql.Hosting" />
+    <!-- The read models' own tables and the projection offsets, in PostgreSQL. -->
+    <PackageReference Include="Npgsql" />
   </ItemGroup>
 
   <ItemGroup>

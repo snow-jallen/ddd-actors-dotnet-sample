@@ -2,7 +2,8 @@
 
   <!--
     Charging's read side against real journals: the read journal over a temporary SQLite file,
-    written by Charging's own actors and taggers (section 13.3).
+    written by Charging's own actors and taggers (section 13.3), and projections into a
+    PostgreSQL 17 container, a database per test (section 13.4).
   -->
 
   <ItemGroup>
@@ -14,6 +15,9 @@
     <PackageReference Include="Akka.Persistence.Sql.Hosting" />
     <PackageReference Include="Microsoft.Data.Sqlite" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <!-- PostgreSQL for the read models and offsets: [Trait("Category", "Integration")] only. -->
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.XunitV3" />
   </ItemGroup>
 
   <ItemGroup>
