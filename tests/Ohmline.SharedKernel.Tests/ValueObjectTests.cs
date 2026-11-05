@@ -16,7 +16,7 @@ public sealed class ValueObjectTests
         var result = StateOfCharge.TryCreate(120);
 
         result.ShouldBe(
-            Result.Fail(new ValidationError("A state of charge is 0 to 100 %, not 120 %.")));
+            Result.Fail<ValidationError>(new OutOfRange("State of charge", 120, "0 to 100 %")));
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public sealed class ValueObjectTests
     {
         var exception = Should.Throw<ArgumentException>(() => Create<StateOfCharge, int>(-1));
 
-        exception.Message.ShouldStartWith("A state of charge is 0 to 100 %, not -1 %.");
+        exception.Message.ShouldStartWith("State of charge must be 0 to 100 %, not -1.");
         exception.ParamName.ShouldBe("value");
     }
 

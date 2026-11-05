@@ -10,5 +10,5 @@ public sealed record StateOfCharge : IValueObject<StateOfCharge, int>
     public static Result<StateOfCharge, ValidationError> TryCreate(int value) =>
         value is >= 0 and <= 100
             ? Result.Ok(new StateOfCharge(value))
-            : Result.Fail(new ValidationError($"A state of charge is 0 to 100 %, not {value} %."));
+            : Result.Fail<ValidationError>(new OutOfRange("State of charge", value, "0 to 100 %"));
 }

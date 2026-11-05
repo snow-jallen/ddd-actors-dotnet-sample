@@ -10,7 +10,8 @@ public readonly record struct Current :
     IAdditionOperators<Current, Current, Current>,
     ISubtractionOperators<Current, Current, Current>,
     IComparisonOperators<Current, Current, bool>,
-    IAdditiveIdentity<Current, Current>
+    IAdditiveIdentity<Current, Current>,
+    IValueObject<Current, decimal>
 {
     public Current(decimal amperes) => Amperes = amperes;
 
@@ -23,9 +24,17 @@ public readonly record struct Current :
                 nameof(Amperes), value, "Current is never negative.");
     }
 
+    decimal IValueObject<Current, decimal>.Value => Amperes;
+
     public static Current Zero => default;
 
     static Current IAdditiveIdentity<Current, Current>.AdditiveIdentity => Zero;
+
+    public static Result<Current, ValidationError> TryCreate(decimal amperes) =>
+        amperes >= 0m
+            ? Result.Ok(new Current(amperes))
+            : Result.Fail<ValidationError>(
+                new OutOfRange(nameof(Current), amperes, "0 A or more"));
 
     public static Current operator +(Current left, Current right) =>
         new(left.Amperes + right.Amperes);

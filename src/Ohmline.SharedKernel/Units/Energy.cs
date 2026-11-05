@@ -10,7 +10,8 @@ public readonly record struct Energy :
     IAdditionOperators<Energy, Energy, Energy>,
     ISubtractionOperators<Energy, Energy, Energy>,
     IComparisonOperators<Energy, Energy, bool>,
-    IAdditiveIdentity<Energy, Energy>
+    IAdditiveIdentity<Energy, Energy>,
+    IValueObject<Energy, decimal>
 {
     public Energy(decimal kilowattHours) => KilowattHours = kilowattHours;
 
@@ -23,11 +24,19 @@ public readonly record struct Energy :
                 nameof(KilowattHours), value, "Energy is never negative.");
     }
 
+    decimal IValueObject<Energy, decimal>.Value => KilowattHours;
+
     public decimal WattHours => KilowattHours * 1000m;
 
     public static Energy Zero => default;
 
     static Energy IAdditiveIdentity<Energy, Energy>.AdditiveIdentity => Zero;
+
+    public static Result<Energy, ValidationError> TryCreate(decimal kilowattHours) =>
+        kilowattHours >= 0m
+            ? Result.Ok(new Energy(kilowattHours))
+            : Result.Fail<ValidationError>(
+                new OutOfRange(nameof(Energy), kilowattHours, "0 kWh or more"));
 
     public static Energy FromWattHours(decimal wattHours) => new(wattHours / 1000m);
 

@@ -9,7 +9,8 @@ public readonly record struct Voltage :
     IAdditionOperators<Voltage, Voltage, Voltage>,
     ISubtractionOperators<Voltage, Voltage, Voltage>,
     IComparisonOperators<Voltage, Voltage, bool>,
-    IAdditiveIdentity<Voltage, Voltage>
+    IAdditiveIdentity<Voltage, Voltage>,
+    IValueObject<Voltage, decimal>
 {
     public Voltage(decimal volts) => Volts = volts;
 
@@ -22,9 +23,17 @@ public readonly record struct Voltage :
                 nameof(Volts), value, "Voltage is never negative.");
     }
 
+    decimal IValueObject<Voltage, decimal>.Value => Volts;
+
     public static Voltage Zero => default;
 
     static Voltage IAdditiveIdentity<Voltage, Voltage>.AdditiveIdentity => Zero;
+
+    public static Result<Voltage, ValidationError> TryCreate(decimal volts) =>
+        volts >= 0m
+            ? Result.Ok(new Voltage(volts))
+            : Result.Fail<ValidationError>(
+                new OutOfRange(nameof(Voltage), volts, "0 V or more"));
 
     public static Voltage operator +(Voltage left, Voltage right) => new(left.Volts + right.Volts);
 
