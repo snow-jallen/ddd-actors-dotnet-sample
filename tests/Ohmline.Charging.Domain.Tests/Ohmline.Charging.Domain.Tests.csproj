@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="CsCheck" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference
       Include="../../src/Charging/Ohmline.Charging.Domain/Ohmline.Charging.Domain.csproj" />
     <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />

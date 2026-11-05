@@ -11,3 +11,17 @@ global using SessionSpec = Ohmline.Testing.DeciderSpec<
     Ohmline.Charging.Contracts.Sessions.SessionCommand,
     Ohmline.Charging.Domain.Sessions.SessionEvent,
     Ohmline.Charging.Domain.Sessions.SessionError>;
+
+// The model-based property helper, closed over the same deciders (section 9.4).
+global using ChargePointChecks = Ohmline.Testing.DeciderProperties<
+    Ohmline.Charging.Domain.ChargePoints.ChargePoint,
+    Ohmline.Charging.Domain.ChargePoints.ChargePointState,
+    Ohmline.Charging.Contracts.ChargePoints.ChargePointCommand,
+    Ohmline.Charging.Domain.ChargePoints.ChargePointEvent,
+    Ohmline.Charging.Domain.ChargePoints.ChargePointError>;
+global using SessionChecks = Ohmline.Testing.DeciderProperties<
+    Ohmline.Charging.Domain.Sessions.ChargingSession,
+    Ohmline.Charging.Domain.Sessions.SessionState,
+    Ohmline.Charging.Contracts.Sessions.SessionCommand,
+    Ohmline.Charging.Domain.Sessions.SessionEvent,
+    Ohmline.Charging.Domain.Sessions.SessionError>;

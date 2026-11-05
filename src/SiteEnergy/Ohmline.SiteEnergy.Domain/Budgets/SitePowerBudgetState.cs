@@ -36,6 +36,22 @@ public sealed record Configured(
     public Power Allocated =>
         Allocations.Aggregate(Power.Zero, (sum, allocation) => sum + allocation.Power);
 
+    /// <summary>
+    /// The budget's invariant, stated once as an assertion: the allocations add up to no more
+    /// than the effective capacity, and each belongs to one open request and lies between its
+    /// connector's minimum and what the request may draw. Every decision keeps it true, and the
+    /// property tests check it after every decision of many random scripts (section 9.4).
+    /// </summary>
+    public bool AllocationsFit =>
+        Allocated <= EffectiveCapacity
+        && Allocations.Select(allocation => allocation.ConnectorId).Distinct().Count()
+            == Allocations.Length
+        && Allocations.All(allocation =>
+            AllocationRequests.SingleOrDefault(
+                    request => request.ConnectorId == allocation.ConnectorId) is { } request
+            && allocation.Power >= request.MinPower
+            && allocation.Power <= request.MaxPower);
+
     /// <summary>The open requests as the allocator sees them, bounded by connectors.</summary>
     public ImmutableArray<AllocationRequest> AllocationRequests =>
     [

@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    What the test projects share: the Given-When-Then harness for deciders (section 9.2) and,
-    later, the property and actor helpers. A library, not a test project, so it takes back what
-    tests/Directory.Build.props gives every test project. It knows the shared kernel and no
-    bounded context, so every context's tests can use it.
+    What the test projects share: the Given-When-Then harness for deciders (section 9.2), the
+    model-based property helper (section 9.4) and, later, the actor helpers. A library, not a
+    test project, so it takes back what tests/Directory.Build.props gives every test project.
+    It knows the shared kernel and no bounded context, so every context's tests can use it.
   -->
 
   <PropertyGroup>
@@ -15,6 +15,7 @@
   <ItemGroup>
     <PackageReference Remove="xunit.v3" />
     <Using Remove="Xunit" />
+    <PackageReference Include="CsCheck" />
   </ItemGroup>
 
   <ItemGroup>
