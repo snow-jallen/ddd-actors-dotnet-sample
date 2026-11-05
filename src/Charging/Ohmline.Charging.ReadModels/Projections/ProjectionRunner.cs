@@ -59,6 +59,11 @@ public sealed class ProjectionRunner(
         var offset = ((Sequence)envelope.Offset).Value;
         try
         {
+            // WRONG ON PURPOSE (section 13.4): the offset is stored before the projection's
+            // write. A crash between the two skips this event for good: at most once. Store it
+            // after the write is committed instead.
+            await offsets.SaveAsync(_stream, offset, CancellationToken.None);
+
             await using (var connection = await dataSource.OpenConnectionAsync())
             await using (var transaction = await connection.BeginTransactionAsync())
             {
@@ -66,7 +71,6 @@ public sealed class ProjectionRunner(
                 await transaction.CommitAsync();
             }
 
-            await offsets.SaveAsync(_stream, offset, CancellationToken.None);
             return offset;
         }
         catch (Exception exception)
