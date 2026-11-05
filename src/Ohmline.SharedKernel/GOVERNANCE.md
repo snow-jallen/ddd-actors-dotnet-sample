@@ -74,6 +74,7 @@ and this version becomes the package version.
 | 2.5.0 | `CommandId` in `Identity`: the id a sender gives a command, recorded by its events | 8.1 |
 | 2.6.0 | `ISpecification<T>`, `And`/`Or`/`Not` and their extension members in `Specifications` | 8.4 |
 | 2.7.0 | `SiteLocalTime` in `Time`: an instant on a site's wall clock, by IANA time zone id | 8.7 |
+| 2.8.0 | `GuidV7.Derive` and `CommandId.Derive`: an id that follows from another, the same every time | 15.1 |
 
 ## How a change gets in
 

@@ -4,6 +4,7 @@ using Npgsql;
 using Ohmline.ActorShell.Clustering;
 using Ohmline.ActorShell.Sharding;
 using Ohmline.Charging.ReadModels.DriverApp;
+using Ohmline.Charging.ReadModels.Policies;
 using Ohmline.Charging.ReadModels.Projections;
 using Ohmline.Charging.ReadModels.SessionHistory;
 using Ohmline.Charging.ReadModels.SiteLiveBoard;
@@ -25,6 +26,7 @@ public static class ChargingReadModelsExtensions
                     new SessionHistoryProjection(),
                     new SiteLiveBoardProjection(),
                     new DriverAppProjection(),
+                    new SessionEndedSubscriber(),
                 }
                 .SelectMany(projection => projection.Tags.Select(tag => (projection, tag))),
         ];
