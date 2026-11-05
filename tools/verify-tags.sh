@@ -8,6 +8,7 @@
 # At each tag it runs, from the root of the checkout:
 #   dotnet build Ohmline.slnx -warnaserror
 #   dotnet test --solution Ohmline.slnx
+#   dotnet build mobile/Ohmline.Mobile.slnx -warnaserror   (where it exists, from ch19-s04)
 # and then fails the tag if the build or the tests left untracked or modified files.
 # Tags whose Ohmline.slnx is missing or lists no projects yet are reported as skipped: these are
 # the Chapter 1 tags (ch01-s02 to ch01-s07), which hold documents and setup only and are exempt
@@ -15,6 +16,11 @@
 #
 # Tests that start containers need Podman or Docker. With rootless Podman, first run:
 #   export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock
+#
+# The driver app's MAUI head needs the maui-android workload, an Android SDK and a JDK:
+# ANDROID_HOME (or AndroidSdkDirectory) and JAVA_HOME (or JavaSdkDirectory) must be set, or
+# the script stops before the first tag. Without an Android toolchain, set
+# OHMLINE_SKIP_MOBILE=1 to skip the mobile solution (see mobile/README.md).
 set -euo pipefail
 
 pattern="${1:-ch[0-9][0-9]-s[0-9][0-9]}"
@@ -40,6 +46,15 @@ if (( ${#tags[@]} == 0 )); then
   exit 1
 fi
 
+skip_mobile="${OHMLINE_SKIP_MOBILE:-0}"
+if [[ "$skip_mobile" != 1 ]]; then
+  if [[ -z "${ANDROID_HOME:-${AndroidSdkDirectory:-}}" || -z "${JAVA_HOME:-${JavaSdkDirectory:-}}" ]]; then
+    echo "The mobile solution needs an Android SDK and a JDK: set ANDROID_HOME and JAVA_HOME," >&2
+    echo "or set OHMLINE_SKIP_MOBILE=1 to skip it (see mobile/README.md)." >&2
+    exit 1
+  fi
+fi
+
 mkdir -p "$logs"
 git -C "$repo" worktree add --quiet --detach "$tree" "${tags[0]}"
 
@@ -52,6 +67,13 @@ verify() {
     cd "$tree"
     dotnet build Ohmline.slnx -warnaserror
     dotnet test --solution Ohmline.slnx
+    if [[ -f mobile/Ohmline.Mobile.slnx ]]; then
+      if [[ "$skip_mobile" == 1 ]]; then
+        echo "Skipping mobile/Ohmline.Mobile.slnx (OHMLINE_SKIP_MOBILE=1)."
+      else
+        dotnet build mobile/Ohmline.Mobile.slnx -warnaserror
+      fi
+    fi
   ) || return 1
 
   local leftovers

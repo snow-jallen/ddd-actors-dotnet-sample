@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The driver app's logic (section 19.4), as a plain net11.0 library: view models, the API
+    client and, later, the outbox, the read-model cache and sync. No MAUI reference, so all of
+    it builds and is tested on any machine, in Ohmline.slnx. The MAUI head in mobile/ is pages,
+    platform adapters and wiring only. AOT-compatible, because it ships in the app package.
+  -->
+
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Observable properties and commands for the view models, generated at compile time. -->
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The only server project the app may reference: Charging's published language. -->
+    <ProjectReference
+      Include="../../Charging/Ohmline.Charging.Client.Contracts/Ohmline.Charging.Client.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

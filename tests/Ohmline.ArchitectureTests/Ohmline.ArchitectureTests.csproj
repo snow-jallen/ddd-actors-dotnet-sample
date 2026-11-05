@@ -10,6 +10,8 @@
     <ProjectReference Include="../../src/Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
     <ProjectReference Include="../../src/**/Ohmline.*.Domain.csproj" />
     <ProjectReference Include="../../src/**/Ohmline.*.Contracts.csproj" />
+    <!-- The driver app's logic, checked for what it must never reference (section 19.4). -->
+    <ProjectReference Include="../../src/Mobile/Ohmline.Mobile.Core/Ohmline.Mobile.Core.csproj" />
   </ItemGroup>
 
 </Project>

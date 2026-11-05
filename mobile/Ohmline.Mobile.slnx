@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="../src/Charging/Ohmline.Charging.Client.Contracts/Ohmline.Charging.Client.Contracts.csproj" />
+    <Project Path="../src/Mobile/Ohmline.Mobile.Core/Ohmline.Mobile.Core.csproj" />
+    <Project Path="Ohmline.Mobile/Ohmline.Mobile.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="../tests/Ohmline.Mobile.Core.Tests/Ohmline.Mobile.Core.Tests.csproj" />
+  </Folder>
+</Solution>

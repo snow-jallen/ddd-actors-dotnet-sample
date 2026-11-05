@@ -54,6 +54,13 @@
   </ItemGroup>
 
   <ItemGroup Label="Mobile">
+    <!-- Source generators for the app's view models: observable partial properties, commands. -->
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <!-- The MAUI head only. $(MauiVersion) of the installed workload: there is no MAUI rc.3,
+         and the rc.3 SDK's workload set ships MAUI rc.2. -->
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="11.0.0-rc.2.26505.5" />
+    <!-- The MAUI head only; the template floats 11.0.0-*, pinned here for reproducible tags. -->
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="11.0.0-rc.3.26522.148" />
   </ItemGroup>
 
   <ItemGroup Label="Build and release">

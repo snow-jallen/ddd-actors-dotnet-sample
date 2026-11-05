@@ -1,0 +1,19 @@
+<ContentPage
+  x:Class="Ohmline.Mobile.Pages.ListingPage"
+  xmlns:listings="clr-namespace:Ohmline.Mobile.Core.Listings;assembly=Ohmline.Mobile.Core"
+  x:DataType="listings:ChargePointListingViewModel"
+  Title="Charge point">
+
+  <VerticalStackLayout Padding="16" Spacing="12">
+    <Entry Text="{Binding ChargePointId}"
+           Placeholder="Charge point, such as OHM-SLC-0042"
+           Keyboard="Text" />
+    <Button Text="Show listing" Command="{Binding LoadCommand}" />
+    <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" />
+    <Label Text="{Binding Message}" />
+    <Label Text="{Binding Listing.DisplayName}" FontSize="22" FontAttributes="Bold" />
+    <Label Text="{Binding Listing.AccessInstructions}" />
+    <Label Text="{Binding Listing.OpeningHours}" />
+  </VerticalStackLayout>
+
+</ContentPage>

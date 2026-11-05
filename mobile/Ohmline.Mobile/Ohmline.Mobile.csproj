@@ -1,0 +1,71 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The driver app's .NET MAUI head (section 19.4): pages, wiring and platform adapters only.
+    Its logic is Ohmline.Mobile.Core, a plain library in Ohmline.slnx. This project needs the
+    maui-android workload, an Android SDK and a JDK, so it is only in mobile/Ohmline.Mobile.slnx,
+    never in Ohmline.slnx. iOS and Mac Catalyst build only on a Mac, Windows only on Windows.
+  -->
+
+  <PropertyGroup>
+    <TargetFrameworks>net11.0-android</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Ohmline.Mobile</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ApplicationTitle>Ohmline</ApplicationTitle>
+    <ApplicationId>example.ohmline.driver</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <WindowsPackageType>None</WindowsPackageType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('osx'))">
+    <TargetFrameworks>$(TargetFrameworks);net11.0-ios;net11.0-maccatalyst</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('windows'))">
+    <TargetFrameworks>$(TargetFrameworks);net11.0-windows10.0.19041.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <!-- The oldest platform versions the app runs on; API 24 is the .NET 11 minimum. -->
+  <PropertyGroup>
+    <TfmPlatform>$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)'))</TfmPlatform>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TfmPlatform)' == 'android'">
+    <SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TfmPlatform)' == 'ios'">
+    <SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TfmPlatform)' == 'maccatalyst'">
+    <SupportedOSPlatformVersion>17.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TfmPlatform)' == 'windows'">
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <MauiIcon Include="Resources/AppIcon/appicon.svg"
+              ForegroundFile="Resources/AppIcon/appiconfg.svg"
+              Color="#512BD4" />
+    <MauiSplashScreen Include="Resources/Splash/splash.svg" Color="#512BD4" BaseSize="128,128" />
+    <MauiFont Include="Resources/Fonts/*" />
+    <!-- The server's address and the like, read once at start (Settings/AppSettings.cs). -->
+    <EmbeddedResource Include="appsettings.json" LogicalName="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- No versions: Directory.Packages.props pins them, MAUI's to the installed workload's. -->
+    <PackageReference Include="Microsoft.Maui.Controls" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Mobile/Ohmline.Mobile.Core/Ohmline.Mobile.Core.csproj" />
+    <ProjectReference
+      Include="../../src/Charging/Ohmline.Charging.Client.Contracts/Ohmline.Charging.Client.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,9 @@
+<Shell x:Class="Ohmline.Mobile.AppShell"
+       xmlns:pages="clr-namespace:Ohmline.Mobile.Pages"
+       Title="Ohmline">
+
+  <ShellContent Title="Charge point"
+                ContentTemplate="{DataTemplate pages:ListingPage}"
+                Route="listing" />
+
+</Shell>

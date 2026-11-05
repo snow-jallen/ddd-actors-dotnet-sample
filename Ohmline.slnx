@@ -38,6 +38,9 @@
     <Project Path="src/DriverAccounts/Ohmline.DriverAccounts.Contracts/Ohmline.DriverAccounts.Contracts.csproj" />
     <Project Path="src/DriverAccounts/Ohmline.DriverAccounts.Domain/Ohmline.DriverAccounts.Domain.csproj" />
   </Folder>
+  <Folder Name="/src/Mobile/">
+    <Project Path="src/Mobile/Ohmline.Mobile.Core/Ohmline.Mobile.Core.csproj" />
+  </Folder>
   <Folder Name="/src/SiteEnergy/">
     <Project Path="src/SiteEnergy/Ohmline.SiteEnergy.Acl.AssetRegistry/Ohmline.SiteEnergy.Acl.AssetRegistry.csproj" />
     <Project Path="src/SiteEnergy/Ohmline.SiteEnergy.Acl.GridOperator/Ohmline.SiteEnergy.Acl.GridOperator.csproj" />
@@ -67,6 +70,7 @@
     <Project Path="tests/Ohmline.DriverAccounts.Domain.Tests/Ohmline.DriverAccounts.Domain.Tests.csproj" />
     <Project Path="tests/Ohmline.FakePsp.Tests/Ohmline.FakePsp.Tests.csproj" />
     <Project Path="tests/Ohmline.IntegrationTests/Ohmline.IntegrationTests.csproj" />
+    <Project Path="tests/Ohmline.Mobile.Core.Tests/Ohmline.Mobile.Core.Tests.csproj" />
     <Project Path="tests/Ohmline.Node.Tests/Ohmline.Node.Tests.csproj" />
     <Project Path="tests/Ohmline.SharedKernel.Tests/Ohmline.SharedKernel.Tests.csproj" />
     <Project Path="tests/Ohmline.SiteEnergy.Acl.AssetRegistry.Tests/Ohmline.SiteEnergy.Acl.AssetRegistry.Tests.csproj" />

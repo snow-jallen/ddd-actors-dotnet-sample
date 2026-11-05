@@ -1,0 +1,4 @@
+<Project>
+  <!-- MSBuild uses only the nearest Directory.Build.targets, so import the root one. -->
+  <Import Project="$(MSBuildThisFileDirectory)../Directory.Build.targets" />
+</Project>
