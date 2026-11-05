@@ -31,11 +31,14 @@ public static class ChargingReadModelsExtensions
     {
         /// <summary>
         /// Runs each projection stream exactly once in the cluster: as one instance of the
-        /// sharded daemon process <c>projections</c>, on nodes with the <c>charging</c> role.
+        /// sharded daemon process <c>projections</c>, on nodes with the <c>charging</c> role,
+        /// reading the journal as often as <paramref name="options"/> says (section 14.3).
         /// The read models' PostgreSQL comes from the host's <see cref="NpgsqlDataSource"/>.
         /// </summary>
-        public AkkaConfigurationBuilder AddChargingReadModels() =>
-            akka.WithShardedDaemonProcess<ProjectionDaemon>(
+        public AkkaConfigurationBuilder AddChargingReadModels(ProjectionOptions? options = null)
+        {
+            akka.AddHocon((options ?? new ProjectionOptions()).ToHocon(), HoconAddMode.Prepend);
+            return akka.WithShardedDaemonProcess<ProjectionDaemon>(
                 ProjectionDaemon.Name,
                 Streams.Count,
                 (_, _, resolver) =>
@@ -52,5 +55,6 @@ public static class ChargingReadModelsExtensions
                     Role = ClusterRoles.Charging,
                     HandoffStopMessage = Stop.Instance,
                 });
+        }
     }
 }

@@ -2,6 +2,7 @@ using Akka.Hosting;
 using Npgsql;
 using Ohmline.Charging.Api.Queries;
 using Ohmline.Charging.ReadModels;
+using Ohmline.Charging.ReadModels.Projections;
 
 namespace Ohmline.Node;
 
@@ -14,11 +15,20 @@ public static class ReadModelExtensions
 {
     extension(IServiceCollection services)
     {
-        /// <summary>The read models' database, for projections and query endpoints.</summary>
-        public IServiceCollection AddOhmlineReadModels(IConfiguration configuration) =>
-            configuration.GetConnectionString("ohmline") is { } postgres
+        /// <summary>
+        /// The read models' database, for projections and query endpoints, and the projections'
+        /// polling settings from <c>Ohmline:Projections</c>, checked at start.
+        /// </summary>
+        public IServiceCollection AddOhmlineReadModels(IConfiguration configuration)
+        {
+            services.AddOptions<ProjectionOptions>()
+                .BindConfiguration(ProjectionOptions.Section)
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+            return configuration.GetConnectionString("ohmline") is { } postgres
                 ? services.AddSingleton(_ => NpgsqlDataSource.Create(postgres))
                 : services;
+        }
     }
 
     extension(IEndpointRouteBuilder endpoints)
@@ -36,6 +46,7 @@ public static class ReadModelExtensions
         public AkkaConfigurationBuilder WithOhmlineReadModels(IConfiguration configuration) =>
             configuration.GetConnectionString("ohmline") is null
                 ? akka
-                : akka.AddChargingReadModels();
+                : akka.AddChargingReadModels(
+                    configuration.GetSection(ProjectionOptions.Section).Get<ProjectionOptions>());
     }
 }

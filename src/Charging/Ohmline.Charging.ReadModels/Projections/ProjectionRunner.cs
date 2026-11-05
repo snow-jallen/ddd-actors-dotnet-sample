@@ -79,11 +79,11 @@ public sealed class ProjectionRunner(
 
     private async Task<long> HandleAsync(EventEnvelope envelope)
     {
-        var offset = ((Sequence)envelope.Offset).Value;
+        var offset = OffsetOf(envelope);
         try
         {
             await WriteAsync(
-                offset,
+                envelope,
                 transaction =>
                     projection.HandleAsync(envelope, transaction, CancellationToken.None));
             _failing = default;
@@ -111,15 +111,32 @@ public sealed class ProjectionRunner(
         }
     }
 
-    /// <summary>The projection's rows and the offset: both, or neither.</summary>
-    private async Task WriteAsync(long offset, Func<NpgsqlTransaction, Task> write)
+    /// <summary>
+    /// The projection's rows and the offset: both, or neither. The offset row also records when
+    /// the event was written to the journal, and its <c>updated_at</c> when it was handled.
+    /// </summary>
+    private async Task WriteAsync(EventEnvelope envelope, Func<NpgsqlTransaction, Task> write)
     {
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var transaction = await connection.BeginTransactionAsync();
         await write(transaction);
-        await offsets.SaveAsync(_stream, offset, transaction, CancellationToken.None);
+        await offsets.SaveAsync(
+            _stream,
+            OffsetOf(envelope),
+            WrittenAt(envelope),
+            transaction,
+            CancellationToken.None);
         await transaction.CommitAsync();
     }
+
+    private static long OffsetOf(EventEnvelope envelope) => ((Sequence)envelope.Offset).Value;
+
+    /// <summary>
+    /// Akka.Persistence.Sql stamps each journal row with the writing node's
+    /// <see cref="DateTime.UtcNow"/>, in ticks.
+    /// </summary>
+    private static DateTimeOffset WrittenAt(EventEnvelope envelope) =>
+        new(envelope.Timestamp, TimeSpan.Zero);
 
     private Task<long> GiveUpAsync(EventEnvelope envelope, long offset, Exception exception) =>
         projection.FailurePolicy switch
@@ -133,7 +150,7 @@ public sealed class ProjectionRunner(
     private async Task<long> SkipAsync(EventEnvelope envelope, long offset, Exception exception)
     {
         await WriteAsync(
-            offset, transaction => RecordFailureAsync(envelope, exception, transaction));
+            envelope, transaction => RecordFailureAsync(envelope, exception, transaction));
         log.Error(
             exception,
             "Projection {0} skipped {1} #{2} at offset {3}; it is recorded in " +

@@ -22,6 +22,10 @@ public static class ReadModelSchema
             PRIMARY KEY (projection_id, tag)
         );
 
+        -- Section 14.3: when the last handled event was written to the journal.
+        ALTER TABLE read_models.projection_offsets
+            ADD COLUMN IF NOT EXISTS last_event_at timestamptz NULL;
+
         CREATE TABLE IF NOT EXISTS read_models.session_history (
             session_id       uuid        PRIMARY KEY,
             token_uid        text        NOT NULL,

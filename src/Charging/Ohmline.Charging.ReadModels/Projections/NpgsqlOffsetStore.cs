@@ -36,24 +36,33 @@ public sealed class NpgsqlOffsetStore(NpgsqlDataSource dataSource) : IOffsetStor
         return await command.ExecuteScalarAsync(cancellationToken) is long offset ? offset : 0;
     }
 
+    /// <summary>
+    /// <c>updated_at</c> is <c>clock_timestamp()</c>, the time of this statement, the last
+    /// before the commit: <c>now()</c> would be the time the transaction began.
+    /// </summary>
     public async Task SaveAsync(
         ProjectionStream stream,
         long offset,
+        DateTimeOffset eventWrittenAt,
         NpgsqlTransaction transaction,
         CancellationToken cancellationToken)
     {
         await using var command = new NpgsqlCommand(
             """
-            INSERT INTO read_models.projection_offsets (projection_id, tag, last_offset)
-            VALUES (@projection_id, @tag, @last_offset)
-            ON CONFLICT (projection_id, tag)
-            DO UPDATE SET last_offset = excluded.last_offset, updated_at = now()
+            INSERT INTO read_models.projection_offsets
+                (projection_id, tag, last_offset, last_event_at, updated_at)
+            VALUES (@projection_id, @tag, @last_offset, @last_event_at, clock_timestamp())
+            ON CONFLICT (projection_id, tag) DO UPDATE SET
+                last_offset = excluded.last_offset,
+                last_event_at = excluded.last_event_at,
+                updated_at = excluded.updated_at
             """,
             transaction.Connection,
             transaction);
         command.Parameters.AddWithValue("projection_id", stream.ProjectionId);
         command.Parameters.AddWithValue("tag", stream.Tag);
         command.Parameters.AddWithValue("last_offset", offset);
+        command.Parameters.AddWithValue("last_event_at", eventWrittenAt.ToUniversalTime());
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 }

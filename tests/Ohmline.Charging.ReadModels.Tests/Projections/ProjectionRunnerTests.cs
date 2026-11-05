@@ -1,8 +1,12 @@
+using Akka.Persistence.Query;
+using Akka.Streams;
+using Akka.Streams.Dsl;
 using Microsoft.Extensions.Time.Testing;
 using Npgsql;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.Charging.ReadModels.Projections;
+using Ohmline.Charging.ReadModels.Query;
 using static Ohmline.Charging.ReadModels.Tests.Known;
 
 namespace Ohmline.Charging.ReadModels.Tests.Projections;
@@ -28,7 +32,8 @@ public sealed class ProjectionRunnerTests(PostgresFixture postgres)
         await using (var connection = await database.OpenConnectionAsync(Ct))
         await using (var transaction = await connection.BeginTransactionAsync(Ct))
         {
-            await offsets.SaveAsync(DeliveryLog.Stream, 1, transaction, Ct);
+            await offsets.SaveAsync(
+                DeliveryLog.Stream, 1, DateTimeOffset.UtcNow, transaction, Ct);
             await transaction.CommitAsync(Ct);
         }
 
@@ -65,6 +70,31 @@ public sealed class ProjectionRunnerTests(PostgresFixture postgres)
 
         // The failed attempt's insert was rolled back with its transaction.
         (await DeliveryLog.OffsetsAsync(database, Ct)).ShouldBe([1, 2, 3]);
+    }
+
+    [Fact]
+    public async Task Given_a_handled_event_then_its_offset_row_says_when_it_was_journaled()
+    {
+        using var journal = new TemporaryDatabase();
+        await using var node = await WithThreeEventsAsync(journal);
+        await using var database = await ReadModelsAsync();
+        var last = (await node.System.ReadJournal
+                .CurrentEventsByTag(ChargingTags.Charging, Offset.Sequence(2))
+                .RunWith(Sink.First<EventEnvelope>(), node.System.Materializer()))
+            .Timestamp;
+
+        await RunUntilOffsetAsync(
+            node, database, new NpgsqlOffsetStore(database), new DeliveryLog(), offset: 3);
+
+        await using var select = database.CreateCommand(
+            "SELECT last_event_at, updated_at FROM read_models.projection_offsets " +
+            "WHERE projection_id = 'delivery-log'");
+        await using var reader = await select.ExecuteReaderAsync(Ct);
+        (await reader.ReadAsync(Ct)).ShouldBeTrue();
+        var lastEventAt = reader.GetFieldValue<DateTimeOffset>(0);
+        // The journal's timestamp is in ticks; PostgreSQL keeps microseconds.
+        lastEventAt.ShouldBe(new DateTimeOffset(last, TimeSpan.Zero), TimeSpan.FromTicks(10));
+        reader.GetFieldValue<DateTimeOffset>(1).ShouldBeGreaterThan(lastEventAt);
     }
 
     private static async Task<JournalNode> WithThreeEventsAsync(TemporaryDatabase journal)

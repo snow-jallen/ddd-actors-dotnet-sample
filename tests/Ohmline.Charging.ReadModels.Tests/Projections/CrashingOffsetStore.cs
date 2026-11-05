@@ -17,6 +17,7 @@ internal sealed class CrashingOffsetStore(IOffsetStore inner, long crashAt) : IO
     public Task SaveAsync(
         ProjectionStream stream,
         long offset,
+        DateTimeOffset eventWrittenAt,
         NpgsqlTransaction transaction,
         CancellationToken cancellationToken)
     {
@@ -26,6 +27,6 @@ internal sealed class CrashingOffsetStore(IOffsetStore inner, long crashAt) : IO
             throw new IOException($"Crashed before storing offset {offset}.");
         }
 
-        return inner.SaveAsync(stream, offset, transaction, cancellationToken);
+        return inner.SaveAsync(stream, offset, eventWrittenAt, transaction, cancellationToken);
     }
 }
