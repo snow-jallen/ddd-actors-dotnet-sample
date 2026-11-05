@@ -5,13 +5,16 @@ using Ohmline.Charging.Actors.Listings;
 using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Contracts.Journeys;
 using Ohmline.Charging.Contracts.Listings;
 using Ohmline.Charging.Contracts.Live;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.Charging.Domain.Journeys;
 using Ohmline.Charging.Domain.Listings;
 using Ohmline.Charging.Domain.Metering;
 using Ohmline.Charging.Domain.Sessions;
+using Ohmline.DriverAccounts.Contracts.Tokens;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Monetary;
 using Ohmline.SharedKernel.Units;
@@ -61,6 +64,17 @@ internal static class ChargingSamples
         "America/Denver");
 
     public static readonly Money SpendCap = new(40m, Currency.Usd);
+
+    public static readonly JourneyId Journey =
+        new(Guid.Parse("019a4f6e-1c40-7a51-8e2f-3b1d00000a01"));
+
+    public static readonly SessionId JourneysSession = ChargingJourney.SessionOf(Journey);
+
+    public static readonly DriverRef Driver = new("drv-7f3a91c2");
+
+    public static readonly Money Hold = new(50m, Currency.Usd);
+
+    public const string HoldId = "hold-8812";
 
     public const string DisplayName = "Salt Lake bus depot, public bays";
 
@@ -174,6 +188,34 @@ internal static class ChargingSamples
             EnergyKwh: 6.35m,
             StartedAt: At,
             EndedAt: null),
+
+        new StartCharging(Command, Journey, Token, Connector, Depot, new Power(22m), Hold),
+        Stamped(new JourneyStarted(
+            Journey, Command, JourneysSession, Token, Connector, Depot, new Power(22m), Hold)),
+        Stamped(new TokenSecured(Journey, Driver)),
+        Stamped(new HoldSecured(Journey, HoldId)),
+        Stamped(new PowerSecured(Journey, new Power(11m))),
+        Stamped(new EnergyFlowStarted(Journey, Tariff)),
+        Stamped(new SettlementDue(Journey, new Energy(63.35m), new Money(29.51m, Currency.Usd))),
+        Stamped(new JourneyCompleted(Journey, new Money(29.51m, Currency.Usd))),
+        Stamped(new JourneyAbandoned(
+            Journey, AbandonReasons.ChargerRejected, "Connector 1 is occupied.")),
+        new GetJourney(Journey),
+        new JourneyView(
+            Journey,
+            Version: 4,
+            JourneyView.Abandoned,
+            JourneysSession,
+            AbandonReasons.ChargerRejected,
+            "Connector 1 is occupied."),
+        new HoldPlaced(HoldId, Hold),
+        new HoldDeclined("insufficient-funds", "The card was declined."),
+        new HoldVoided(HoldId),
+        new PaymentCaptured(HoldId, new Money(29.51m, Currency.Usd)),
+        new CaptureFailed(HoldId, "provider-unavailable", "The payment provider did not answer."),
+        new ChargerAccepted(Connector),
+        new ChargerRejected(Connector, "Connector 1 is occupied."),
+        new JourneyTimerElapsed(JourneyTimer.EnergyFlow),
     ];
 
     private static ChargePointEvent Stamped(ChargePointEvent @event) =>
@@ -184,4 +226,6 @@ internal static class ChargingSamples
 
     private static ChargePointListingEvent Stamped(ChargePointListingEvent @event) =>
         @event with { CommandId = Command, OccurredAt = At };
+
+    private static JourneyEvent Stamped(JourneyEvent @event) => @event with { OccurredAt = At };
 }

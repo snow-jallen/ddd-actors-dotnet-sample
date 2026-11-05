@@ -17,4 +17,7 @@ public static class ChargingTags
 
     /// <summary>Charging sessions: starts, meter values, suspensions, ends.</summary>
     public const string ChargingSession = "charging-session";
+
+    /// <summary>Charging journeys: each step from "start charging" to a settled payment.</summary>
+    public const string ChargingJourney = "charging-journey";
 }

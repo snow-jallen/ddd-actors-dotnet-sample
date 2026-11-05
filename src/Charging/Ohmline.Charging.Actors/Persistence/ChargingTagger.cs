@@ -1,6 +1,7 @@
 using Akka.Persistence.Journal;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.Charging.Domain.Journeys;
 using Ohmline.Charging.Domain.Listings;
 using Ohmline.Charging.Domain.Sessions;
 
@@ -18,7 +19,12 @@ public sealed class ChargingTagger : IWriteEventAdapter
 
     /// <summary>The event families the journal passes through this adapter.</summary>
     public static IReadOnlyList<Type> BoundTypes { get; } =
-        [typeof(ChargePointEvent), typeof(ChargePointListingEvent), typeof(SessionEvent)];
+    [
+        typeof(ChargePointEvent),
+        typeof(ChargePointListingEvent),
+        typeof(SessionEvent),
+        typeof(JourneyEvent),
+    ];
 
     /// <summary>No manifest of its own: the serializer's manifest is the one that counts.</summary>
     public string Manifest(object evt) => string.Empty;
@@ -27,6 +33,7 @@ public sealed class ChargingTagger : IWriteEventAdapter
     {
         ChargePointEvent or ChargePointListingEvent => new Tagged(evt, [ChargingTags.Charging]),
         SessionEvent => new Tagged(evt, [ChargingTags.ChargingSession]),
+        JourneyEvent => new Tagged(evt, [ChargingTags.ChargingJourney]),
         _ => evt,
     };
 }

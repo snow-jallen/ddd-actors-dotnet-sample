@@ -1,8 +1,10 @@
 using Akka.Actor;
 using Akka.Event;
+using Akka.Hosting;
 using Akka.TestKit;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Contracts.Journeys;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.DriverAccounts.Contracts.Tokens;
 using Ohmline.SharedKernel.Identity;
@@ -51,6 +53,17 @@ public sealed class RegionTests(ITestOutputHelper output) : ShardedNode(output)
         var status = await AskAsync<ChargePointRegion, ChargePointStatus>(
             new GetChargePointStatus(Charger));
         status.Connectors[0].ReservedUntil.ShouldBe(Morning.AddMinutes(15)); // The fake clock.
+    }
+
+    [Fact]
+    public async Task Given_the_journeys_region_then_it_remembers_its_journeys_in_memory()
+    {
+        (await ActorRegistry.For(Sys).GetAsync<ChargingJourneyRegion>(Ct))
+            .ShouldNotBe(ActorRefs.Nobody);
+
+        Sys.Settings.Config
+            .GetStringList("akka.cluster.sharding.distributed-data.durable.keys")
+            .ShouldBeEmpty();
     }
 
     [Fact]

@@ -16,4 +16,15 @@ public sealed class ChargingApiOptions
     /// </summary>
     [Range(typeof(TimeSpan), "00:00:00.100", "00:01:00")]
     public TimeSpan AskTimeout { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// How much a charging journey holds on the driver's card before charging starts
+    /// (section 15.3): more than most sessions cost. Chapter 19 lets the driver choose.
+    /// </summary>
+    [Range(typeof(decimal), "1", "1000")]
+    public decimal HoldAmount { get; set; } = 50m;
+
+    /// <summary>The hold's currency, an ISO 4217 code.</summary>
+    [RegularExpression("^[A-Z]{3}$")]
+    public string HoldCurrency { get; set; } = "USD";
 }

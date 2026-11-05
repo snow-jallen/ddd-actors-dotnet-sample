@@ -16,6 +16,11 @@
   <ItemGroup>
     <ProjectReference
       Include="../../src/Charging/Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
+    <!-- Their serializers, for the replies the charging journey hears (section 15.3). -->
+    <ProjectReference
+      Include="../../src/DriverAccounts/Ohmline.DriverAccounts.Actors/Ohmline.DriverAccounts.Actors.csproj" />
+    <ProjectReference
+      Include="../../src/SiteEnergy/Ohmline.SiteEnergy.Actors/Ohmline.SiteEnergy.Actors.csproj" />
     <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
   </ItemGroup>
 

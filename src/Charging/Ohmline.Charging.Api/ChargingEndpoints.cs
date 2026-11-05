@@ -54,6 +54,10 @@ public static class ChargingEndpoints
             sessions.MapPost("/{id:guid}/meter-values", SessionEndpoints.RecordMeterValueAsync);
             sessions.MapPost("/{id:guid}/stop", SessionEndpoints.StopAsync);
 
+            var journeys = endpoints.MapGroup("/journeys").WithTags("Charging journeys");
+            journeys.MapPost("", JourneyEndpoints.StartAsync);
+            journeys.MapGet("/{id:guid}", JourneyEndpoints.GetAsync);
+
             var tariffs = endpoints.MapGroup("/tariffs").WithTags("Tariffs");
             tariffs.MapPost("", TariffEndpoints.PublishAsync);
             tariffs.MapGet("/{id}", TariffEndpoints.GetAsync);

@@ -79,6 +79,15 @@ public static class ChargingJourney
         events.Aggregate(Initial, Evolve);
 
     /// <summary>
+    /// What a journey recovered from its journal does again (section 15.3): the effects of the
+    /// state it is in, as if it had just entered it, with its timers started again for the time
+    /// they have left. The journey may have stopped after storing a step and before acting on
+    /// it, and it cannot tell; so it acts again, and its receivers must not mind.
+    /// </summary>
+    public static ImmutableArray<JourneyEffect> Resume(JourneyState state, DateTimeOffset now) =>
+        Enter(state, now);
+
+    /// <summary>
     /// The decision table: what each input means in each state. A reply is matched to the
     /// journey's own session, so another session's reply, or one that comes late or twice,
     /// finds no row and changes nothing.

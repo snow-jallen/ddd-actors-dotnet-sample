@@ -7,10 +7,12 @@ using Ohmline.Charging.Actors.Listings;
 using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Contracts.Journeys;
 using Ohmline.Charging.Contracts.Listings;
 using Ohmline.Charging.Contracts.Live;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.Charging.Domain.Journeys;
 using Ohmline.Charging.Domain.Listings;
 using Ohmline.Charging.Domain.Sessions;
 using Ohmline.Tariffs.Contracts;
@@ -47,6 +49,13 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         typeof(ChargePointListingView),
         typeof(ChargePointListingSnapshot),
         typeof(LiveUpdate),
+        typeof(JourneyCommand),
+        typeof(JourneyEvent),
+        typeof(JourneyQuery),
+        typeof(JourneyView),
+        typeof(PaymentPortResult),
+        typeof(ChargerCommandResult),
+        typeof(JourneyTimerElapsed),
     ];
 
     public static FrozenDictionary<Type, string> Manifests { get; } = new Dictionary<Type, string>
@@ -105,6 +114,26 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
 
         [typeof(SessionSummaryChanged)] = "charging.session-summary-changed.v1",
         [typeof(DriverCardChanged)] = "charging.driver-card-changed.v1",
+
+        [typeof(StartCharging)] = "charging.start-charging.v1",
+        [typeof(JourneyStarted)] = "charging.journey-started.v1",
+        [typeof(TokenSecured)] = "charging.token-secured.v1",
+        [typeof(HoldSecured)] = "charging.hold-secured.v1",
+        [typeof(PowerSecured)] = "charging.power-secured.v1",
+        [typeof(EnergyFlowStarted)] = "charging.energy-flow-started.v1",
+        [typeof(SettlementDue)] = "charging.settlement-due.v1",
+        [typeof(JourneyCompleted)] = "charging.journey-completed.v1",
+        [typeof(JourneyAbandoned)] = "charging.journey-abandoned.v1",
+        [typeof(GetJourney)] = "charging.get-journey.v1",
+        [typeof(JourneyView)] = "charging.journey-view.v1",
+        [typeof(HoldPlaced)] = "charging.hold-placed.v1",
+        [typeof(HoldDeclined)] = "charging.hold-declined.v1",
+        [typeof(HoldVoided)] = "charging.hold-voided.v1",
+        [typeof(PaymentCaptured)] = "charging.payment-captured.v1",
+        [typeof(CaptureFailed)] = "charging.capture-failed.v1",
+        [typeof(ChargerAccepted)] = "charging.charger-accepted.v1",
+        [typeof(ChargerRejected)] = "charging.charger-rejected.v1",
+        [typeof(JourneyTimerElapsed)] = "charging.journey-timer-elapsed.v1",
     }.ToFrozenDictionary();
 
     /// <summary>Permanent: Ohmline's serializer ids are listed in ADR 0007.</summary>

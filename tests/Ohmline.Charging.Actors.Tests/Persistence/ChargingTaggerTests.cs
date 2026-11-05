@@ -2,6 +2,7 @@ using Akka.Persistence.Journal;
 using Ohmline.Charging.Actors.Persistence;
 using Ohmline.Charging.Actors.Tests.Serialization;
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.Charging.Domain.Journeys;
 using Ohmline.Charging.Domain.Listings;
 using Ohmline.Charging.Domain.Sessions;
 
@@ -26,6 +27,7 @@ public sealed class ChargingTaggerTests
         tagged.Tags.ShouldHaveSingleItem().ShouldBe(@event switch
         {
             SessionEvent => "charging-session",
+            JourneyEvent => "charging-journey",
             _ => "charging",
         });
     }
@@ -38,9 +40,14 @@ public sealed class ChargingTaggerTests
     [Fact]
     public void The_journal_routes_every_event_family_through_it() =>
         ChargingTagger.BoundTypes.ShouldBe(
-            [typeof(ChargePointEvent), typeof(ChargePointListingEvent), typeof(SessionEvent)],
+            [
+                typeof(ChargePointEvent),
+                typeof(ChargePointListingEvent),
+                typeof(SessionEvent),
+                typeof(JourneyEvent),
+            ],
             ignoreOrder: true);
 
     private static bool IsEvent(object message) =>
-        message is ChargePointEvent or ChargePointListingEvent or SessionEvent;
+        message is ChargePointEvent or ChargePointListingEvent or SessionEvent or JourneyEvent;
 }

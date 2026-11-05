@@ -76,6 +76,16 @@ public abstract class PersistenceShellSpec(
             return _kit.Sys.ActorOf(_actor);
         }
 
+        /// <summary>
+        /// Writes the history and starts the actor as a child of <paramref name="shard"/>, which
+        /// plays its shard: for a test that expects the actor to passivate itself.
+        /// </summary>
+        public async Task<IActorRef> StartUnderAsync(TestProbe shard)
+        {
+            await SeedAsync();
+            return shard.ChildActorOf(_actor, cancellationToken: Ct);
+        }
+
         internal async Task<IActorRef> StartWatchedAsync()
         {
             var actor = await StartAsync();

@@ -1,7 +1,9 @@
 using Ohmline.ActorShell.Sharding;
 using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Contracts.Journeys;
 using Ohmline.Charging.Contracts.Listings;
 using Ohmline.Charging.Contracts.Sessions;
+using Ohmline.Charging.Domain.Sessions;
 
 namespace Ohmline.Charging.Actors;
 
@@ -30,6 +32,18 @@ public static class ChargingMessageExtractors
     {
         ChargePointListingCommand command => command.ChargePointId.Value,
         ChargePointListingQuery query => query.ChargePointId.Value,
+        _ => null,
+    });
+
+    /// <summary>
+    /// A journey by its id; a session's event to the journey its session is named after
+    /// (section 15.2), so the session's events find their journey without a lookup.
+    /// </summary>
+    public static EntityMessageExtractor Journeys { get; } = new(message => message switch
+    {
+        JourneyCommand command => command.JourneyId.ToString(),
+        JourneyQuery query => query.JourneyId.ToString(),
+        SessionEvent @event => @event.SessionId.ToString(),
         _ => null,
     });
 }

@@ -63,7 +63,33 @@ public sealed class SitePowerBudgetActorTests(ITestOutputHelper output)
     public async Task Given_a_configured_site_when_power_is_requested_then_it_is_granted() =>
         await Budget.Given(Configured())
             .When(Request(Fleet1, BusSession))
-            .ThenAsync(new BudgetCommandAccepted(2), Granted(Fleet1, BusSession, by: Command));
+            .ThenAsync(
+                new PowerAllocated(Site, Fleet1, BusSession, new Power(50m), Version: 2),
+                Granted(Fleet1, BusSession, by: Command));
+
+    [Fact]
+    public async Task Given_a_site_with_no_room_when_power_is_requested_then_it_is_queued() =>
+        await Budget.Given(
+                Configured(),
+                Stamped(new CurtailmentApplied(Site, new Power(190m))))
+            .When(Request(Fleet1, BusSession))
+            .ThenAsync(
+                new QueuedForPower(Site, Fleet1, BusSession, Version: 3),
+                Stamped(
+                    new AllocationQueued(Site, Fleet1, BusSession, new Power(50m)), by: Command));
+
+    [Fact]
+    public async Task Given_a_granted_request_when_it_is_asked_again_then_it_hears_its_allocation()
+    {
+        var again = Request(Fleet1, BusSession) with
+        {
+            CommandId = new CommandId(Guid.CreateVersion7(Morning.AddMinutes(1))),
+        };
+
+        await Budget.Given(Configured(), Granted(Fleet1, BusSession))
+            .When(again)
+            .ThenAsync(new PowerAllocated(Site, Fleet1, BusSession, new Power(50m), Version: 2));
+    }
 
     [Fact]
     public async Task Given_a_configured_site_in_the_journal_then_the_new_incarnation_remembers() =>

@@ -1,14 +1,17 @@
 using Ohmline.ActorShell.Sharding;
 using Ohmline.Charging.Actors.Tests.Serialization;
 using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Contracts.Journeys;
 using Ohmline.Charging.Contracts.Listings;
 using Ohmline.Charging.Contracts.Sessions;
+using Ohmline.Charging.Domain.Sessions;
 
 namespace Ohmline.Charging.Actors.Tests.Sharding;
 
 /// <summary>
 /// Every command and query Charging owns reaches exactly one region, as the entity whose id it
-/// carries; nothing else Charging sends (events, replies, views) is routed at all.
+/// carries. A session's events reach the journey its session is named after; nothing else
+/// Charging sends (other events, replies, views) is routed at all.
 /// </summary>
 public sealed class ChargingMessageExtractorsTests
 {
@@ -17,6 +20,7 @@ public sealed class ChargingMessageExtractorsTests
         ("charge-point", ChargingMessageExtractors.ChargePoints),
         ("charging-session", ChargingMessageExtractors.Sessions),
         ("charge-point-listing", ChargingMessageExtractors.Listings),
+        ("charging-journey", ChargingMessageExtractors.Journeys),
     ];
 
     public static TheoryData<string> Samples =>
@@ -43,6 +47,9 @@ public sealed class ChargingMessageExtractorsTests
         ChargePointListingCommand command =>
             [("charge-point-listing", command.ChargePointId.Value)],
         ChargePointListingQuery query => [("charge-point-listing", query.ChargePointId.Value)],
+        JourneyCommand command => [("charging-journey", command.JourneyId.ToString())],
+        JourneyQuery query => [("charging-journey", query.JourneyId.ToString())],
+        SessionEvent @event => [("charging-journey", @event.SessionId.ToString())],
         _ => [],
     };
 }

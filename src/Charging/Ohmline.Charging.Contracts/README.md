@@ -16,7 +16,8 @@ It has two audiences, and two sets of rules.
 Senders inside the cluster address an aggregate by the id its command carries, through a shard
 region (section 12.2). Each folder therefore also holds the key under which a node's actor
 registry keeps that region (`ChargePointRegion`, `ChargingSessionRegion`,
-`ChargePointListingRegion`), so that a sender needs these contracts and no actor.
+`ChargePointListingRegion`, `ChargingJourneyRegion`), so that a sender needs these contracts and
+no actor.
 
 Readers inside the node ask the journal for Charging's events by tag (section 13.2).
 `ChargingTags` names the tags, so a projection needs these contracts and not the actors that
