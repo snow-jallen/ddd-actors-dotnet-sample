@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The journal read by hand: rows Akka.NET's serializers really wrote, in a SQLite file. -->
+
+  <ItemGroup>
+    <PackageReference Include="Akka.TestKit.Xunit" />
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../tools/Ohmline.JournalInspect/Ohmline.JournalInspect.csproj" />
+    <!-- Only to write real payloads: the tool itself references no Akka.NET at all. -->
+    <ProjectReference
+      Include="../../src/Charging/Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
+    <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
+  </ItemGroup>
+
+</Project>

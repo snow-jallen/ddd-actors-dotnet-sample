@@ -70,6 +70,7 @@
     <Project Path="tests/Ohmline.DriverAccounts.Domain.Tests/Ohmline.DriverAccounts.Domain.Tests.csproj" />
     <Project Path="tests/Ohmline.FakePsp.Tests/Ohmline.FakePsp.Tests.csproj" />
     <Project Path="tests/Ohmline.IntegrationTests/Ohmline.IntegrationTests.csproj" />
+    <Project Path="tests/Ohmline.JournalInspect.Tests/Ohmline.JournalInspect.Tests.csproj" />
     <Project Path="tests/Ohmline.Mobile.Core.Tests/Ohmline.Mobile.Core.Tests.csproj" />
     <Project Path="tests/Ohmline.Node.Tests/Ohmline.Node.Tests.csproj" />
     <Project Path="tests/Ohmline.SharedKernel.Tests/Ohmline.SharedKernel.Tests.csproj" />
@@ -87,6 +88,7 @@
   <Folder Name="/tools/">
     <Project Path="tools/Ohmline.FakeGridOperator/Ohmline.FakeGridOperator.csproj" />
     <Project Path="tools/Ohmline.FakePsp/Ohmline.FakePsp.csproj" />
+    <Project Path="tools/Ohmline.JournalInspect/Ohmline.JournalInspect.csproj" />
     <Project Path="tools/Ohmline.Simulator/Ohmline.Simulator.csproj" />
   </Folder>
 </Solution>

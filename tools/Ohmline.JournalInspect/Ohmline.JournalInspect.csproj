@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The journal, read by hand (section 20.1): rows of Akka.Persistence.Sql's journal or snapshot
+    table, from PostgreSQL or a SQLite file, with what each one stores: the persistence id, the
+    sequence number, the serializer id, the manifest and the payload. Plain ADO.NET and the
+    journal tour's SELECT statements (section 10.8); no Akka.NET, so it reads a journal without
+    knowing any of Ohmline's types. For learning and for incident work, never for application code.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+
+</Project>

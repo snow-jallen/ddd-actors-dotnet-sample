@@ -18,6 +18,8 @@
     <ProjectReference Include="../../src/Ohmline.Node/Ohmline.Node.csproj" />
     <!-- The driver app's live updates client, against the node's hub (section 19.7). -->
     <ProjectReference Include="../../src/Mobile/Ohmline.Mobile.Core/Ohmline.Mobile.Core.csproj" />
+    <!-- The journal read by hand, on PostgreSQL (section 20.1). -->
+    <ProjectReference Include="../../tools/Ohmline.JournalInspect/Ohmline.JournalInspect.csproj" />
   </ItemGroup>
 
 </Project>

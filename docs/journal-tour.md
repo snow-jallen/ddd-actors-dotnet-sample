@@ -211,3 +211,9 @@ second writer first.
 
 None of this is a concurrency strategy. Sharding and the split-brain resolver keep one writer
 per persistence id (Chapter 12); this is the net under them.
+
+## On PostgreSQL
+
+The cluster's journal from section 12.10 has the same tables and columns in PostgreSQL's types.
+`docs/contracts-that-never-die.md` shows them, and `tools/Ohmline.JournalInspect` reads either
+database with the SELECT statements above (section 20.1).
