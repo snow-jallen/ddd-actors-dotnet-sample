@@ -39,6 +39,14 @@
   </ItemGroup>
 
   <ItemGroup Label="Telemetry and operations">
+    <!-- The OpenTelemetry SDK, in Ohmline.ServiceDefaults only: every other project speaks the
+         BCL's ActivitySource and Meter (section 17.1). Akka.Hosting already asks for
+         OpenTelemetry >= 1.12.0; these pins lift every host to 1.20.1. -->
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.20.1" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.20.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.20.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.20.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.20.1" />
   </ItemGroup>
 
   <ItemGroup Label="Mobile">
