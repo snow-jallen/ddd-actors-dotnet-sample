@@ -1,10 +1,11 @@
+using Npgsql;
 using Ohmline.Charging.ReadModels.Projections;
 
 namespace Ohmline.Charging.ReadModels.Tests.Projections;
 
 /// <summary>
-/// The process dying at the worst moment: the projection's write is committed, and the offset
-/// save that should follow it never happens, once, at <paramref name="crashAt"/>.
+/// The process dying at the worst moment: the projection has written its rows, and the offset
+/// save that should follow never happens, once, at <paramref name="crashAt"/>.
 /// </summary>
 internal sealed class CrashingOffsetStore(IOffsetStore inner, long crashAt) : IOffsetStore
 {
@@ -14,7 +15,10 @@ internal sealed class CrashingOffsetStore(IOffsetStore inner, long crashAt) : IO
         inner.LoadAsync(stream, cancellationToken);
 
     public Task SaveAsync(
-        ProjectionStream stream, long offset, CancellationToken cancellationToken)
+        ProjectionStream stream,
+        long offset,
+        NpgsqlTransaction transaction,
+        CancellationToken cancellationToken)
     {
         if (offset == crashAt && !_crashed)
         {
@@ -22,6 +26,6 @@ internal sealed class CrashingOffsetStore(IOffsetStore inner, long crashAt) : IO
             throw new IOException($"Crashed before storing offset {offset}.");
         }
 
-        return inner.SaveAsync(stream, offset, cancellationToken);
+        return inner.SaveAsync(stream, offset, transaction, cancellationToken);
     }
 }

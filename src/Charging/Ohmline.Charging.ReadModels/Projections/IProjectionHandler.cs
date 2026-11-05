@@ -21,7 +21,8 @@ public interface IProjectionHandler
 
     /// <summary>
     /// Applies one event to the read model, inside <paramref name="transaction"/>, which the
-    /// runner opened and commits. It may be called again with the same envelope.
+    /// runner opened and commits together with the offset. It may be called again with the same
+    /// envelope, or an older one, and must then change nothing (section 13.5).
     /// </summary>
     Task HandleAsync(
         EventEnvelope envelope, NpgsqlTransaction transaction, CancellationToken cancellationToken);

@@ -13,9 +13,10 @@ namespace Ohmline.Charging.ReadModels.Projections;
 /// restarts the whole stream with backoff, from the offset stored last.
 /// </summary>
 /// <remarks>
-/// The offset is stored after the projection's write is committed, so delivery is at least
-/// once: a crash between the two delivers the same event again, and the projection must not
-/// mind. Storing it first would make it at most once, and lose the event instead.
+/// The projection's rows and the offset are written in one transaction (section 13.5): a crash
+/// undoes both, and the event comes again. The projection may still see an event twice, after
+/// a failed attempt, or when its offset is reset to rebuild it, so it must not mind: delivery is
+/// at least once.
 /// </remarks>
 public sealed class ProjectionRunner(
     IEventsByTagQuery readJournal,
@@ -59,14 +60,11 @@ public sealed class ProjectionRunner(
         var offset = ((Sequence)envelope.Offset).Value;
         try
         {
-            await using (var connection = await dataSource.OpenConnectionAsync())
-            await using (var transaction = await connection.BeginTransactionAsync())
-            {
-                await projection.HandleAsync(envelope, transaction, CancellationToken.None);
-                await transaction.CommitAsync();
-            }
-
-            await offsets.SaveAsync(_stream, offset, CancellationToken.None);
+            await using var connection = await dataSource.OpenConnectionAsync();
+            await using var transaction = await connection.BeginTransactionAsync();
+            await projection.HandleAsync(envelope, transaction, CancellationToken.None);
+            await offsets.SaveAsync(_stream, offset, transaction, CancellationToken.None);
+            await transaction.CommitAsync();
             return offset;
         }
         catch (Exception exception)

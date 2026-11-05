@@ -1,3 +1,5 @@
+using Npgsql;
+
 namespace Ohmline.Charging.ReadModels.Projections;
 
 /// <summary>
@@ -10,5 +12,13 @@ public interface IOffsetStore
     /// <summary>The stored offset, or 0 for a stream that has handled nothing yet.</summary>
     Task<long> LoadAsync(ProjectionStream stream, CancellationToken cancellationToken);
 
-    Task SaveAsync(ProjectionStream stream, long offset, CancellationToken cancellationToken);
+    /// <summary>
+    /// Stores the offset inside <paramref name="transaction"/>, the one the projection wrote its
+    /// rows in, so that the rows and the offset are committed together or not at all.
+    /// </summary>
+    Task SaveAsync(
+        ProjectionStream stream,
+        long offset,
+        NpgsqlTransaction transaction,
+        CancellationToken cancellationToken);
 }

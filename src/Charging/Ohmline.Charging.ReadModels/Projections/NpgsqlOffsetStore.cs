@@ -22,14 +22,20 @@ public sealed class NpgsqlOffsetStore(NpgsqlDataSource dataSource) : IOffsetStor
     }
 
     public async Task SaveAsync(
-        ProjectionStream stream, long offset, CancellationToken cancellationToken)
+        ProjectionStream stream,
+        long offset,
+        NpgsqlTransaction transaction,
+        CancellationToken cancellationToken)
     {
-        await using var command = dataSource.CreateCommand("""
+        await using var command = new NpgsqlCommand(
+            """
             INSERT INTO read_models.projection_offsets (projection_id, tag, last_offset)
             VALUES (@projection_id, @tag, @last_offset)
             ON CONFLICT (projection_id, tag)
             DO UPDATE SET last_offset = excluded.last_offset, updated_at = now()
-            """);
+            """,
+            transaction.Connection,
+            transaction);
         command.Parameters.AddWithValue("projection_id", stream.ProjectionId);
         command.Parameters.AddWithValue("tag", stream.Tag);
         command.Parameters.AddWithValue("last_offset", offset);

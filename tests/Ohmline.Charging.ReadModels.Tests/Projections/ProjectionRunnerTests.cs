@@ -1,11 +1,8 @@
-using Akka.Streams;
 using Microsoft.Extensions.Time.Testing;
 using Npgsql;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
 using Ohmline.Charging.ReadModels.Projections;
-using Ohmline.Charging.ReadModels.Query;
-using Ohmline.Testing;
 using static Ohmline.Charging.ReadModels.Tests.Known;
 
 namespace Ohmline.Charging.ReadModels.Tests.Projections;
@@ -19,12 +16,6 @@ namespace Ohmline.Charging.ReadModels.Tests.Projections;
 [Collection(PostgresCollection.Name)]
 public sealed class ProjectionRunnerTests(PostgresFixture postgres)
 {
-    private static readonly RestartSettings QuickBackoff =
-        RestartSettings.Create(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 0);
-
-    private static readonly TimeSpan Patience =
-        TimeSpan.FromSeconds(15 * ActorTestConfig.TimeFactor);
-
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
@@ -34,7 +25,12 @@ public sealed class ProjectionRunnerTests(PostgresFixture postgres)
         await using var node = await WithThreeEventsAsync(journal);
         await using var database = await ReadModelsAsync();
         var offsets = new NpgsqlOffsetStore(database);
-        await offsets.SaveAsync(DeliveryLog.Stream, 1, Ct);
+        await using (var connection = await database.OpenConnectionAsync(Ct))
+        await using (var transaction = await connection.BeginTransactionAsync(Ct))
+        {
+            await offsets.SaveAsync(DeliveryLog.Stream, 1, transaction, Ct);
+            await transaction.CommitAsync(Ct);
+        }
 
         await RunUntilOffsetAsync(node, database, offsets, new DeliveryLog(), offset: 3);
 
@@ -42,7 +38,7 @@ public sealed class ProjectionRunnerTests(PostgresFixture postgres)
     }
 
     [Fact]
-    public async Task Given_a_crash_between_the_projection_write_and_the_offset_save_then_again()
+    public async Task Given_a_crash_before_the_offset_save_then_the_write_is_undone_with_it()
     {
         using var journal = new TemporaryDatabase();
         await using var node = await WithThreeEventsAsync(journal);
@@ -51,9 +47,9 @@ public sealed class ProjectionRunnerTests(PostgresFixture postgres)
 
         await RunUntilOffsetAsync(node, database, offsets, new DeliveryLog(), offset: 3);
 
-        // At least once: the write for offset 2 was committed, its offset was not, so the
-        // restarted stream delivered offset 2 a second time.
-        (await DeliveryLog.OffsetsAsync(database, Ct)).ShouldBe([1, 2, 2, 3]);
+        // One transaction (section 13.5): the crash rolled back offset 2's write with its
+        // offset, and the restarted stream delivered it again, so it is there once.
+        (await DeliveryLog.OffsetsAsync(database, Ct)).ShouldBe([1, 2, 3]);
     }
 
     [Fact]
@@ -91,34 +87,12 @@ public sealed class ProjectionRunnerTests(PostgresFixture postgres)
         return database;
     }
 
-    /// <summary>Runs the projection until its stored offset is <paramref name="offset"/>.</summary>
-    private static async Task RunUntilOffsetAsync(
+    private static Task RunUntilOffsetAsync(
         JournalNode node,
         NpgsqlDataSource database,
         IOffsetStore offsets,
         IProjectionHandler projection,
-        long offset)
-    {
-        var runner = new ProjectionRunner(
-            node.System.ReadJournal,
-            database,
-            offsets,
-            projection,
-            ChargingTags.Charging,
-            QuickBackoff,
-            node.System.Log);
-        await using var running = runner.Start(node.System.Materializer());
-
-        var stored = new NpgsqlOffsetStore(database);
-        var deadline = DateTimeOffset.UtcNow + Patience;
-        while (await stored.LoadAsync(DeliveryLog.Stream, Ct) < offset)
-        {
-            if (DateTimeOffset.UtcNow > deadline)
-            {
-                throw new TimeoutException($"The projection did not reach offset {offset}.");
-            }
-
-            await Task.Delay(TimeSpan.FromMilliseconds(50), Ct);
-        }
-    }
+        long offset) =>
+        ProjectionRun.UntilOffsetAsync(
+            node, database, offsets, projection, ChargingTags.Charging, offset, Ct);
 }

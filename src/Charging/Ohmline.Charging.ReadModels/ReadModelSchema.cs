@@ -21,6 +21,18 @@ public static class ReadModelSchema
             updated_at    timestamptz NOT NULL DEFAULT now(),
             PRIMARY KEY (projection_id, tag)
         );
+
+        CREATE TABLE IF NOT EXISTS read_models.session_history (
+            session_id       uuid        PRIMARY KEY,
+            token_uid        text        NOT NULL,
+            connector_id     text        NOT NULL,
+            status           text        NOT NULL,
+            energy_kwh       numeric     NOT NULL,
+            meter_start_wh   bigint      NOT NULL,
+            started_at       timestamptz NOT NULL,
+            ended_at         timestamptz NULL,
+            last_sequence_nr bigint      NOT NULL
+        );
         """;
 
     /// <summary>
