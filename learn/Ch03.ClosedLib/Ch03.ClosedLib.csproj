@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    A separate assembly on purpose: LanguageLab switches over these types from outside, which is
+    where closed hierarchies and plain abstract records behave differently.
+  -->
+
+</Project>

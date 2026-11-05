@@ -8,4 +8,8 @@
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../Ch03.ClosedLib/Ch03.ClosedLib.csproj" />
+  </ItemGroup>
+
 </Project>
