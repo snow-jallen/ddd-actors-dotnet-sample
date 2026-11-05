@@ -52,6 +52,8 @@
     <PackageVersion Include="Akka.Hosting.TestKit" Version="$(AkkaVersion)" />
     <PackageVersion Include="Akka.Persistence.TestKit.Xunit" Version="$(AkkaVersion)" />
     <PackageVersion Include="Akka.TestKit.Xunit" Version="$(AkkaVersion)" />
+    <!-- The whole AppHost in a test: containers, processes and their endpoints (16.9). -->
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.6.4" />
     <PackageVersion Include="CsCheck" Version="5.0.1" />
     <!-- The RC that matches the SDK: WebApplicationFactory for the net11.0 node. -->
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0-rc.3.26522.148" />

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Ohmline as a whole (section 16.9): the AppHost started by Aspire.Hosting.Testing, with
+    PostgreSQL in a container and every service as a process, and a simulated charger and its
+    driver from the simulator. Every test here carries [Trait("Category", "System")] and needs
+    Podman or Docker; each takes a minute or two.
+  -->
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Ohmline.AppHost/Ohmline.AppHost.csproj" />
+    <ProjectReference Include="../../tools/Ohmline.Simulator/Ohmline.Simulator.csproj" />
+    <ProjectReference
+      Include="../../src/Billing/Ohmline.Billing.Contracts/Ohmline.Billing.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

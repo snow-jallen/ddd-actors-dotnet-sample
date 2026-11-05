@@ -1,6 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Npgsql;
+using Ohmline.Charging.Api.Feeds;
 using Ohmline.Charging.Contracts.Integration;
 
 namespace Ohmline.IntegrationTests;
@@ -65,6 +69,28 @@ public sealed class FeedTests(PostgresFixture postgres)
         end.Entries.ShouldBeEmpty();
         end.Next.ShouldStartWith($"{ChargingFeedPage.Path}?after=");
         (await http.GetFromJsonAsync<ChargingFeedPage>(end.Next, Ct))!.Next.ShouldBe(end.Next);
+    }
+
+    [Fact]
+    public async Task Given_a_node_whose_outbox_is_not_made_yet_then_the_feed_says_try_again()
+    {
+        var empty = new NpgsqlConnectionStringBuilder(postgres.ConnectionString)
+        {
+            Database = $"feed_{Guid.NewGuid():N}",
+        };
+        await using (var server = NpgsqlDataSource.Create(postgres.ConnectionString))
+        {
+            await server.CreateCommand($"CREATE DATABASE {empty.Database}")
+                .ExecuteNonQueryAsync(Ct);
+        }
+
+        await using var readModels = NpgsqlDataSource.Create(empty.ConnectionString);
+        var http = new DefaultHttpContext();
+
+        var answer = await FeedEndpoints.GetAsync(0, 10, http, readModels, Ct);
+
+        answer.Result.ShouldBeOfType<ProblemHttpResult>().StatusCode.ShouldBe(503);
+        http.Response.Headers.RetryAfter.ToString().ShouldBe("1");
     }
 
     private static async Task<Guid> ChargeAsync(HttpClient http)

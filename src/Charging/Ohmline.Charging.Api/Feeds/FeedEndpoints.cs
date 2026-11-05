@@ -49,7 +49,15 @@ public static class FeedEndpoints
             });
         }
 
-        var entries = await EntriesAsync(readModels, from, count, cancellationToken);
+        if (await EntriesAsync(readModels, from, count, cancellationToken) is not { } entries)
+        {
+            http.Response.Headers.RetryAfter = "1";
+            return TypedResults.Problem(
+                "Nothing has been published yet: the outbox is still being created.",
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "The feed is not ready.");
+        }
+
         long? last = entries is [.., var newest] ? newest.Position : null;
         var etag = FeedPaging.ETag(from, last);
         http.Response.Headers.ETag = etag;
@@ -64,7 +72,11 @@ public static class FeedEndpoints
             FeedPaging.NextLink(ChargingFeedPage.Path, from, count, last)));
     }
 
-    private static async Task<List<ChargingFeedEntry>> EntriesAsync(
+    /// <summary>
+    /// The entries, or null on a node that has just started, before its projections have made
+    /// the outbox (Chapter 20 creates the schema before any node starts).
+    /// </summary>
+    private static async Task<List<ChargingFeedEntry>?> EntriesAsync(
         NpgsqlDataSource readModels, long after, int limit, CancellationToken cancellationToken)
     {
         await using var select = readModels.CreateCommand("""
@@ -77,11 +89,20 @@ public static class FeedEndpoints
         select.Parameters.AddWithValue("after", after);
         select.Parameters.AddWithValue("limit", limit);
         var entries = new List<ChargingFeedEntry>();
-        await using var reader = await select.ExecuteReaderAsync(cancellationToken);
-        while (await reader.ReadAsync(cancellationToken))
+        try
         {
-            using var payload = JsonDocument.Parse(reader.GetString(1));
-            entries.Add(new ChargingFeedEntry(reader.GetInt64(0), payload.RootElement.Clone()));
+            await using var reader = await select.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                using var payload = JsonDocument.Parse(reader.GetString(1));
+                entries.Add(
+                    new ChargingFeedEntry(reader.GetInt64(0), payload.RootElement.Clone()));
+            }
+        }
+        catch (PostgresException missing)
+            when (missing.SqlState == PostgresErrorCodes.UndefinedTable)
+        {
+            return null;
         }
 
         return entries;
