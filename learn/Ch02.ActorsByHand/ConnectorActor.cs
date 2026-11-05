@@ -3,9 +3,9 @@ namespace Ch02.ActorsByHand;
 /// <summary>
 /// The connector as an actor. Its state is private and only its mailbox loop touches it, so the
 /// check-then-act in <see cref="Start"/> needs no lock. Callers tell it messages and learn the
-/// outcome from the events it publishes.
+/// outcome from the events it publishes, or from a reply sent to the address in the message.
 /// </summary>
-public sealed class ConnectorActor : IAsyncDisposable
+public sealed class ConnectorActor : ICanTell<ConnectorMessage>, IAsyncDisposable
 {
     private readonly Func<string, bool> _authorize;
     private readonly Action<ConnectorEvent> _publish;
@@ -36,6 +36,9 @@ public sealed class ConnectorActor : IAsyncDisposable
                 break;
             case EndSession end:
                 End(end);
+                break;
+            case GetStatus get:
+                get.ReplyTo(new ConnectorStatus(ConnectorId, _activeSession));
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(message), message, null);
