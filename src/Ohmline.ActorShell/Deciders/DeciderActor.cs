@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Akka.Actor;
 using Akka.Event;
 using Akka.Persistence;
+using Ohmline.ActorShell.Serialization;
 using Ohmline.SharedKernel;
 using Ohmline.SharedKernel.Deciders;
 
@@ -106,6 +107,38 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     /// <summary>Called once all stored events are replayed, before the first command.</summary>
     protected virtual void OnRecovered()
     {
+    }
+
+    /// <summary>
+    /// The journal could not be read, or an event could not be deserialized or applied. Akka.NET
+    /// stops the actor after this, and the commands that waited for the replay are lost. The next
+    /// message starts it again, and if the cause is a row in the journal it fails again: a poison
+    /// event. The fix is in the code (a serializer that knows the manifest, or an upcaster),
+    /// never in the row (<c>docs/runbooks/poison-event.md</c>).
+    /// </summary>
+    /// <remarks>
+    /// The sequence number is the last one recovered: the failing event comes after it, though
+    /// not necessarily right after it, because Akka.Persistence.Sql reads events in batches.
+    /// </remarks>
+    protected override void OnRecoveryFailure(Exception reason, object? message = null)
+    {
+        var unknown = Causes(reason).OfType<UnknownManifestException>().FirstOrDefault();
+        _log.Error(
+            reason,
+            "Recovery of {0} failed after sequence number {1}{2}{3}. The actor stops; see " +
+            "docs/runbooks/poison-event.md",
+            PersistenceId,
+            LastSequenceNr,
+            message is null ? "" : $" while applying {message.GetType().Name}",
+            unknown is null ? "" : $", on an event with the unknown manifest '{unknown.Manifest}'");
+    }
+
+    private static IEnumerable<Exception> Causes(Exception reason)
+    {
+        for (Exception? cause = reason; cause is not null; cause = cause.InnerException)
+        {
+            yield return cause;
+        }
     }
 
     private void Replay(TEvent @event)

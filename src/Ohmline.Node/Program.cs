@@ -21,6 +21,10 @@ builder.Services.AddAkka("ohmline", akka => akka
         loggers.ClearLoggers();
         loggers.AddLoggerFactory(); // Akka.NET logs through Microsoft.Extensions.Logging.
     })
+    // At most this many persistent actors replay their journals at once; the rest wait for a
+    // permit, so a node restart does not stampede the database (section 11.3). 50 is Akka.NET's
+    // default, written down here so that it is a decision and not an accident.
+    .AddHocon("akka.persistence.max-concurrent-recoveries = 50", HoconAddMode.Prepend)
     .WithSqlPersistence(
         connectionString: journal,
         providerName: ProviderName.SQLiteMS,

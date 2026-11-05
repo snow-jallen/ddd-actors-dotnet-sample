@@ -53,13 +53,13 @@ public abstract class ManifestJsonSerializer : SerializerWithStringManifest
     /// <summary>
     /// Reads the bytes as the type registered for the manifest. An unknown manifest throws a
     /// <see cref="SerializationException"/>, as Akka.NET asks: it may be a newer node's message.
+    /// It is an <see cref="UnknownManifestException"/>, which keeps the manifest (section 11.3).
     /// </summary>
     public override object FromBinary(byte[] bytes, string manifest) =>
         _types.TryGetValue(manifest, out var type)
             ? JsonSerializer.Deserialize(bytes, type, _options)
                 ?? throw new SerializationException($"The '{manifest}' payload is null.")
-            : throw new SerializationException(
-                $"{GetType().Name} ({Identifier}) does not know the manifest '{manifest}'.");
+            : throw new UnknownManifestException(GetType().Name, Identifier, manifest);
 
     private static JsonSerializerOptions CreateOptions(Action<JsonSerializerOptions>? configure)
     {

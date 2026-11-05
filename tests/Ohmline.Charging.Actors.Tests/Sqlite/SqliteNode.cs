@@ -50,6 +50,15 @@ internal sealed class SqliteNode : IAsyncDisposable
         return new SqliteNode(host);
     }
 
+    /// <summary>Sends to the charge point directory without waiting for a reply.</summary>
+    public async Task TellAsync(
+        object message, IActorRef replyTo, CancellationToken cancellationToken)
+    {
+        var directory = await ActorRegistry.For(System)
+            .GetAsync<ChargePointDirectory>(cancellationToken);
+        directory.Tell(message, replyTo);
+    }
+
     /// <summary>Sends to the charge point directory and waits for the one reply.</summary>
     public async Task<TReply> AskAsync<TReply>(object message, CancellationToken cancellationToken)
     {
