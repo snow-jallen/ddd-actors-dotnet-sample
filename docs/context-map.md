@@ -34,6 +34,7 @@ The group worked in four passes:
 | Energy | Site Energy | Works with the grid engineers |
 | Pricing and Accounts | Tariffs, Driver Accounts | Works with the pricing analyst and support |
 | Finance IT | Billing | Reports to the finance director, not to engineering |
+| Mobile | Driver App | Ships through two app stores; added in section 19.1 |
 
 Outside Ohmline: TallyPay (payments), Northgate Grid (grid operator), the AssetTrack vendor, the
 charger vendors, the roaming hub, the marketing agency's CRM and the accounting package.
@@ -53,6 +54,7 @@ flowchart LR
     DA["Driver Accounts"]
     BI["Billing"]
     RO["Roaming (planned)"]
+    APP["Driver App (phone)"]
     CPS(["Charge points"])
     NG(["Northgate Grid"])
     AT(["AssetTrack"])
@@ -66,6 +68,7 @@ flowchart LR
     TA -->|"Customer/Supplier"| CH
     DA -->|"Customer/Supplier"| CH
     CH -->|"Customer/Supplier, OHS/PL"| BI
+    CH -->|"Customer/Supplier, OHS/PL"| APP
     NG -->|"ACL"| SE
     AT -->|"ACL"| SE
     TP -->|"ACL"| BI
@@ -99,6 +102,7 @@ The team relationship comes first, because it decides which patterns are possibl
 | Driver Accounts | Charging | Upstream/downstream | Customer/Supplier | Token locks and refusals | 5.4 |
 | Charging | Billing | Upstream/downstream | Customer/Supplier; Open Host Service with a Published Language | `SessionCompleted` on the charging feed | 5.4, 5.5 |
 | Billing | Charging | Upstream/downstream | Customer/Supplier | The hold API: place hold, capture payment, void hold | 5.4 |
+| Charging | Driver App | Upstream/downstream | Customer/Supplier; Open Host Service with a Published Language; a thin Anticorruption Layer in the app | Commands with the app's command ids in; accepted versions, rejection codes, session cards and their pushes out | 19.1, 19.2 |
 | Charge points (vendor firmware) | Device Gateway | Upstream/downstream | Anticorruption Layer around a Big Ball of Mud | Protocol frames with vendor quirks | 5.6 |
 | Northgate Grid | Site Energy | Upstream/downstream | Anticorruption Layer | Demand-response signals | 5.6 |
 | AssetTrack | Site Energy | Upstream/downstream | Anticorruption Layer around a Big Ball of Mud | The site and connector export | 5.6 |
@@ -128,6 +132,18 @@ what the charging journey needs, such as idempotency keys.
 rule Charging must respect (a power allocation, a price, a token lock), and each answers
 Charging's requests in its own language. Charging is the customer whose needs shape their
 contracts.
+
+**Customer/Supplier: Charging upstream of the Driver App.** The driver app on a phone is a
+bounded context of its own (section 19.1), owned by the Mobile team. Its words are not
+Charging's: a command it holds is "pending" until the server accepts it, "failed to sync" when
+it could not be sent in time, and the phone is "offline" in a car park. Charging is the
+supplier, and its `/app/v1` endpoints and the hub at `/hubs/charging` are an Open Host Service
+for every app, speaking a Published Language of plain DTOs (`Ohmline.Charging.Client.Contracts`)
+that knows nothing of aggregates. The Mobile team is the customer: what its screens need, such
+as a change feed to catch up from, goes onto the Sessions team's backlog. The app keeps a thin
+Anticorruption Layer of its own: it turns the DTOs into its own view state, and the server's
+rejection codes into sentences for drivers. Nothing of the domain crosses: no aggregate, no
+event, no shared kernel type (ADR 0014).
 
 **Conformist: the roaming hub.** Roaming lets drivers from other operators charge at Ohmline
 sites. The hub has hundreds of members and will not change its protocol for one of them, and
@@ -170,6 +186,7 @@ relationship has no artifact, either the artifact is missing or the relationship
 | Driver Accounts to Charging | Customer/Supplier | `Ohmline.DriverAccounts.Contracts`, sent to the `id-token` shard region | 12.7 |
 | Charging to Billing | Customer/Supplier; Open Host Service, Published Language | `Ohmline.Charging.Contracts/Integration`, the outbox relay, the HTTP feed `GET /feeds/charging`, Billing's feed consumer, contract tests with golden files | 16.1, 16.2, 16.3, 16.10 |
 | Billing to Charging | Customer/Supplier | `Ohmline.Billing.Contracts` and the HTTP hold API, called by Charging's payment port through service discovery (`billing`) | 16.3, 16.5 |
+| Charging to Driver App | Customer/Supplier; Open Host Service, Published Language; the app's thin Anticorruption Layer | `Ohmline.Charging.Client.Contracts` (no references at all), the `/app/v1` endpoints and the hub, contract tests with golden files; in the app, `Ohmline.Mobile.Core`'s API client and `RejectionText`; ADR 0014 | 19.2, 19.4, 19.5 |
 | Charge points to Device Gateway | Anticorruption Layer | `Ohmline.DeviceGateway.Ocpp`: the frame parser and translator, with recorded frames per vendor | 16.6 |
 | AssetTrack to Site Energy | Anticorruption Layer | `Ohmline.SiteEnergy.Acl.AssetRegistry`; rules in `docs/acl/assettrack.md`; fixture `tools/legacy-assets/assettrack-export.csv` | 5.6, 6.7 |
 | Northgate Grid to Site Energy | Anticorruption Layer | `Ohmline.SiteEnergy.Acl.GridOperator`: a pure signal translator and a polling actor; `tools/Ohmline.FakeGridOperator` | 16.8 |

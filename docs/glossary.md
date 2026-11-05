@@ -116,6 +116,21 @@ of OCPP 1.6J. These words are the protocol's, and they stop at the gateway.
 | Remote start / remote stop | Ohmline asks a charge point to start or stop | `RemoteStart`, `RemoteStop` |
 | Heartbeat / boot notification | A liveness ping / the first message after a charge point connects | — |
 
+## Driver App
+
+The driver app on a phone (section 19.1): a context of its own, downstream of Charging. Its words
+describe the phone's view of a command and of the server's state; the server never uses them.
+
+| Term | Meaning | In code |
+|---|---|---|
+| Pending command | A command the driver gave that the server has not yet accepted or rejected: queued in the outbox, or being sent | `CommandStatus` cases `Queued`, `Sending` |
+| Outbox | The phone's durable list of commands it has to send; written before any network call. The phone's only durable record of intent | `SqliteOutbox` |
+| Syncing | Sending pending commands, or catching the cache up after the app was away | `OutboxDispatcher`, `FeedCatchUp` |
+| Failed to sync | A pending command that could not be sent within its maximum age of 24 hours; never sent again | `CommandStatus` case `FailedToSync` |
+| Offline | The phone has no usable connection. A hint that makes the app wait, never proof: only a send attempt shows whether the server can be reached | `IConnectivity.IsOnline`, `ScreenState` case `Offline` |
+| Read-model cache | The session cards the server last sent, kept on the phone. Disposable: delete it and fill it again from the server | `SqliteReadModelCache` |
+| Command id | The id the phone gives a command at the tap, a version 7 Guid; sending the command again with the same id is safe | `CommandId` on every request |
+
 ## External systems
 
 | Term | Meaning | In the sample |
@@ -139,3 +154,4 @@ These words caused arguments on the EventStorming wall (hotspot H1). Always qual
 | event | A domain event; an integration event; an EventStorming sticky; a .NET event; Northgate Grid's demand-response event | Qualify whenever two meanings are in play. Northgate Grid's is a "signal" |
 | version | An aggregate's sequence number; a manifest version (`.v2`); a tariff version; a release | Always qualify |
 | capacity | The grid connection limit; the effective capacity | A bare "capacity" is the effective capacity |
+| pending | A pending command (Driver App); a pending write in an actor's persist cycle | In the app, "pending" is always a command the server has not answered |
