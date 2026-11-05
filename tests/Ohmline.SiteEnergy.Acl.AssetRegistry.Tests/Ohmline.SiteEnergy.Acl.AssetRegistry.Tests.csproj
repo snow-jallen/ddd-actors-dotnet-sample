@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <!-- The full path is longer than a book line, so a wildcard names the one project. -->
+    <ProjectReference
+      Include="../../src/SiteEnergy/Ohmline.SiteEnergy.Acl.AssetRegistry/*.csproj" />
+  </ItemGroup>
+
+  <!-- The committed export is the fixture: the tests read the same file a person can open. -->
+  <ItemGroup>
+    <None Include="../../tools/legacy-assets/assettrack-export.csv"
+      Link="assettrack-export.csv" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The anticorruption layer between AssetTrack, the legacy asset registry, and Site Energy:
+    a pure translator from the nightly CSV export to site configurations (docs/acl/assettrack.md).
+    AssetTrack's words stop here.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="../../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
+    <ProjectReference Include="../Ohmline.SiteEnergy.Domain/Ohmline.SiteEnergy.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

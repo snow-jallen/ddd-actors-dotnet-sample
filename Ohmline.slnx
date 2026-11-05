@@ -34,6 +34,7 @@
     <Project Path="src/DriverAccounts/Ohmline.DriverAccounts.Domain/Ohmline.DriverAccounts.Domain.csproj" />
   </Folder>
   <Folder Name="/src/SiteEnergy/">
+    <Project Path="src/SiteEnergy/Ohmline.SiteEnergy.Acl.AssetRegistry/Ohmline.SiteEnergy.Acl.AssetRegistry.csproj" />
     <Project Path="src/SiteEnergy/Ohmline.SiteEnergy.Actors/Ohmline.SiteEnergy.Actors.csproj" />
     <Project Path="src/SiteEnergy/Ohmline.SiteEnergy.Api/Ohmline.SiteEnergy.Api.csproj" />
     <Project Path="src/SiteEnergy/Ohmline.SiteEnergy.Contracts/Ohmline.SiteEnergy.Contracts.csproj" />
@@ -48,5 +49,7 @@
     <Project Path="tests/Ohmline.ArchitectureTests/Ohmline.ArchitectureTests.csproj" />
     <Project Path="tests/Ohmline.Charging.Domain.Tests/Ohmline.Charging.Domain.Tests.csproj" />
     <Project Path="tests/Ohmline.SharedKernel.Tests/Ohmline.SharedKernel.Tests.csproj" />
+    <Project Path="tests/Ohmline.SiteEnergy.Acl.AssetRegistry.Tests/Ohmline.SiteEnergy.Acl.AssetRegistry.Tests.csproj" />
+    <Project Path="tests/Ohmline.SiteEnergy.Domain.Tests/Ohmline.SiteEnergy.Domain.Tests.csproj" />
   </Folder>
 </Solution>
