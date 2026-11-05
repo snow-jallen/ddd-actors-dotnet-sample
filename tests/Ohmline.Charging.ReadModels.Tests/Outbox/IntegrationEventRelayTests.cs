@@ -78,7 +78,6 @@ public sealed class IntegrationEventRelayTests(PostgresFixture postgres)
     private async Task<NpgsqlDataSource> ReadModelsAsync()
     {
         var database = await postgres.CreateDatabaseAsync(Ct);
-        await ReadModelSchema.EnsureAsync(database, Ct);
         return database;
     }
 

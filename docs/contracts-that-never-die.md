@@ -21,8 +21,9 @@ C# type name appears nowhere in the journal.
 ## What a row holds on PostgreSQL
 
 The SQLite tour of section 10.8 (`docs/journal-tour.md`) has the same columns, in PostgreSQL's
-types, as `autoInitialize` creates them (checked by `JournalInspectTests` in
-`Ohmline.IntegrationTests`):
+types (checked by `JournalInspectTests` in `Ohmline.IntegrationTests`). From section 20.8 the
+migrator makes the table from Akka.Persistence.Sql's published DDL, which also has a `tags`
+column that tag-table mode leaves empty; `autoInitialize` did not make one.
 
 | Column | Type | What it is | Contract? |
 |---|---|---|---|

@@ -73,7 +73,6 @@ public sealed class InMemoryRunnerTests(PostgresFixture postgres)
     private async Task<NpgsqlDataSource> ReadModelsAsync()
     {
         var database = await postgres.CreateDatabaseAsync(Ct);
-        await ReadModelSchema.EnsureAsync(database, Ct);
         await DeliveryLog.CreateTableAsync(database, Ct);
         return database;
     }

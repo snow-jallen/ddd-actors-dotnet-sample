@@ -32,6 +32,8 @@
     <ProjectReference
       Include="../../src/SiteEnergy/Ohmline.SiteEnergy.Domain/Ohmline.SiteEnergy.Domain.csproj" />
     <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
+    <!-- The schema, as the migrator makes it before any node or service starts (20.8). -->
+    <ProjectReference Include="../../src/Ohmline.Migrator/Ohmline.Migrator.csproj" />
   </ItemGroup>
 
 </Project>

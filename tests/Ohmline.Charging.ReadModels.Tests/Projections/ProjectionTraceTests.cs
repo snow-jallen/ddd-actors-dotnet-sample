@@ -49,7 +49,6 @@ public sealed class ProjectionTraceTests(PostgresFixture postgres)
 
         var probe = new TraceProbe();
         await using var database = await postgres.CreateDatabaseAsync(Ct);
-        await ReadModelSchema.EnsureAsync(database, Ct);
         await using (Runner(journal, database, probe).Start(journal.System.Materializer()))
         {
             var seen = await probe.Traced.Task.WaitAsync(TimeSpan.FromSeconds(10), Ct);

@@ -44,7 +44,6 @@ public sealed class SubscriberRunTests(PostgresFixture postgres)
         await journal.AskAsync<CommandReply>(session, Begin(), Ct);
         await journal.AskAsync<CommandReply>(session, new StopSession(Command, Session), Ct);
         await using var database = await postgres.CreateDatabaseAsync(Ct);
-        await ReadModelSchema.EnsureAsync(database, Ct);
 
         await using (Run(journal, database))
         {

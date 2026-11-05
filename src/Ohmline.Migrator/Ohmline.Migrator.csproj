@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    The one process that changes the schema of Ohmline's databases (section 20.8): a console
+    that applies the SQL scripts under Scripts/ with DbUp, each once and in order, records them
+    in the database's schemaversions table, grants the applications' roles what they need, and
+    exits. The node and Billing start only after it has finished, and never create a table.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="dbup-postgresql" />
+    <PackageReference Include="Npgsql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Ohmline.ServiceDefaults/Ohmline.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts/**/*.sql" />
+    <EmbeddedResource Include="Grants/*.sql" />
+  </ItemGroup>
+
+</Project>

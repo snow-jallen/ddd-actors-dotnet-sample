@@ -38,6 +38,7 @@ We will form the local cluster through a static seed:
   answers; the others keep trying the seed until it answers.
 - `node-2` and `node-3` wait for `node` to be healthy (`/health`: an Up member of the cluster),
   so that only one node creates the journal's tables at a time while `autoInitialize` is on.
+  From section 20.8 no node creates a table: `node` waits for the migrator to complete.
 - Outside Development, a node without seed nodes refuses to start (section 12.1).
 
 ## Consequences

@@ -12,14 +12,16 @@ namespace Ohmline.IntegrationTests;
 /// down; a new one on the same database is the same node after a restart. Neither Billing nor
 /// the Device Gateway is running: the journey's payments stay in memory, its chargers agree to
 /// everything, and a test reports the chargers' side itself (the system tests of section 16.9
-/// run them all).
+/// run them all). It connects as the container's superuser, unless the test gives it the
+/// connection string of another login (section 20.8).
 /// </summary>
-public sealed class OhmlineNode(PostgresFixture postgres) : WebApplicationFactory<Program>
+public sealed class OhmlineNode(PostgresFixture postgres, string? connectionString = null)
+    : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder) =>
         builder
             .UseEnvironment("Development")
-            .UseSetting("ConnectionStrings:ohmline", postgres.ConnectionString)
+            .UseSetting("ConnectionStrings:ohmline", connectionString ?? postgres.ConnectionString)
             .UseSetting("Akka:Remote:Port", "0")
             .ConfigureTestServices(services => services
                 .AddSingleton<IPaymentPort, InMemoryPaymentPort>()

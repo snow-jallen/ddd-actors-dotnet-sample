@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging.Abstractions;
+using Ohmline.Migrator;
 using Testcontainers.PostgreSql;
 using Testcontainers.Xunit;
 using Xunit.Sdk;
@@ -17,4 +19,12 @@ public sealed class PostgresFixture(IMessageSink sink)
         new PostgreSqlBuilder("postgres:17-alpine").WithDatabase("ohmline");
 
     public string ConnectionString => Container.GetConnectionString();
+
+    /// <summary>The container, then its schema, as the AppHost does it (section 20.8).</summary>
+    protected override async ValueTask InitializeAsync()
+    {
+        await base.InitializeAsync();
+        Migrations.Apply(MigrationTarget.Ohmline, ConnectionString, NullLogger.Instance)
+            .Successful.ShouldBeTrue();
+    }
 }

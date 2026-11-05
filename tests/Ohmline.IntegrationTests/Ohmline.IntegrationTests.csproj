@@ -20,6 +20,8 @@
     <ProjectReference Include="../../src/Mobile/Ohmline.Mobile.Core/Ohmline.Mobile.Core.csproj" />
     <!-- The journal read by hand, on PostgreSQL (section 20.1). -->
     <ProjectReference Include="../../tools/Ohmline.JournalInspect/Ohmline.JournalInspect.csproj" />
+    <!-- The schema, as the migrator makes it before any node or service starts (20.8). -->
+    <ProjectReference Include="../../src/Ohmline.Migrator/Ohmline.Migrator.csproj" />
   </ItemGroup>
 
 </Project>

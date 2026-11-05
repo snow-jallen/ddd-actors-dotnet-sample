@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The migrator against a real PostgreSQL 17 (Testcontainers): what it makes, that it makes it
+    once, that it adopts a schema the node made itself, and what the applications' roles may do.
+    The tests that need a container carry [Trait("Category", "Integration")].
+  -->
+
+  <ItemGroup>
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.XunitV3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Ohmline.Migrator/Ohmline.Migrator.csproj" />
+  </ItemGroup>
+
+</Project>

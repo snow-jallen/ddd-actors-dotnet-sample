@@ -49,8 +49,9 @@ public sealed class JournalInspectTests(PostgresFixture postgres, ITestOutputHel
 
     /// <summary>
     /// The same columns as on SQLite (section 10.8), in PostgreSQL's types: the payload is
-    /// <c>bytea</c>, <c>created</c> is still .NET ticks in a <c>bigint</c>, and in tag-table
-    /// mode there is no <c>tags</c> column here either.
+    /// <c>bytea</c>, <c>created</c> is still .NET ticks in a <c>bigint</c>. From section 20.8
+    /// the migrator makes the table from Akka.Persistence.Sql's published DDL, which has a
+    /// <c>tags</c> column that tag-table mode leaves empty.
     /// </summary>
     [Fact]
     public async Task The_journal_table_has_the_tour_s_columns_in_postgres_types()
@@ -80,13 +81,14 @@ public sealed class JournalInspectTests(PostgresFixture postgres, ITestOutputHel
         found.ShouldBe(
         [
             ("ordering", "bigint"),
-            ("created", "bigint"),
             ("deleted", "boolean"),
             ("persistence_id", "text"),
             ("sequence_number", "bigint"),
+            ("created", "bigint"),
+            ("tags", "text"),
             ("message", "bytea"),
-            ("manifest", "text"),
             ("identifier", "integer"),
+            ("manifest", "text"),
             ("writer_uuid", "text"),
         ]);
     }

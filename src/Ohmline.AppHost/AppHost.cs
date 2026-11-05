@@ -12,6 +12,15 @@ var postgres = builder.AddPostgres("postgres").WithImageTag("17");
 var ohmline = postgres.AddDatabase("ohmline");
 var billingDb = postgres.AddDatabase("billingdb", databaseName: "billing");
 
+// The schema of both databases, before anything uses them (section 20.8): a process that
+// applies the migrations and exits. The nodes and Billing start only once it has finished, and
+// only if it succeeded; neither creates a table of its own.
+var migrator = builder.AddProject<Projects.Ohmline_Migrator>("migrator")
+    .WithReference(ohmline)
+    .WithReference(billingDb, connectionName: "billing")
+    .WaitFor(ohmline)
+    .WaitFor(billingDb);
+
 // TallyPay, as the stand-in plays it: one request in ten fails, so the resilience handlers
 // and the idempotency keys have something to do (section 16.4).
 var fakePsp = builder.AddProject<Projects.Ohmline_FakePsp>("fakepsp", launchProfileName: null)
@@ -33,7 +42,7 @@ var billing = builder.AddProject<Projects.Ohmline_Billing>("billing")
     .WithHttpHealthCheck("/health/ready")
     .WithReference(billingDb, connectionName: "billing")
     .WithReference(fakePsp)
-    .WaitFor(billingDb);
+    .WaitForCompletion(migrator);
 
 // The nodes do not use their launch profile: it would give all three the same address. Each
 // declares an endpoint of its own instead (section 16.9).
@@ -43,7 +52,7 @@ var billing = builder.AddProject<Projects.Ohmline_Billing>("billing")
 // cluster; the others join through it, once it is healthy (an Up member, and the journal's
 // tables made). A node is a resource of its own because a replica made with WithReplicas gets
 // its remoting port only at run time, and a static seed must be known in advance (ADR 0010).
-var seed = Node("node", 0).WaitFor(ohmline);
+var seed = Node("node", 0).WaitForCompletion(migrator);
 Node("node-2", 1).WaitFor(seed);
 Node("node-3", 2).WaitFor(seed);
 

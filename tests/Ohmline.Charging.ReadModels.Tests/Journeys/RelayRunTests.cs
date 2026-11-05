@@ -42,7 +42,6 @@ public sealed class RelayRunTests(PostgresFixture postgres)
             session, new SuspendCharging(Command, Session, new ByEv()), Ct);
         await journal.AskAsync<CommandReply>(session, new StopSession(Command, Session), Ct);
         await using var database = await postgres.CreateDatabaseAsync(Ct);
-        await ReadModelSchema.EnsureAsync(database, Ct);
 
         var relay = new ProjectionRunner(
             journal.ReadJournal,

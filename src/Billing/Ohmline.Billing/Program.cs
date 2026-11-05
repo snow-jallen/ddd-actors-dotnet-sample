@@ -1,4 +1,3 @@
-using Npgsql;
 using Ohmline.Billing;
 using Ohmline.ServiceDefaults;
 
@@ -9,10 +8,6 @@ builder.Services.AddProblemDetails();
 builder.Services.AddBilling(builder.Configuration);
 
 var app = builder.Build();
-
-// Billing's tables before its first request; Chapter 20 hands this to the migrator.
-await BillingSchema.EnsureAsync(
-    app.Services.GetRequiredService<NpgsqlDataSource>(), CancellationToken.None);
 
 app.MapDefaultEndpoints();
 app.MapBillingEndpoints();

@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../Ohmline.Migrator/Ohmline.Migrator.csproj" />
     <ProjectReference Include="../Ohmline.Node/Ohmline.Node.csproj" />
     <ProjectReference Include="../Billing/Ohmline.Billing/Ohmline.Billing.csproj" />
     <ProjectReference Include="../../tools/Ohmline.FakePsp/Ohmline.FakePsp.csproj" />

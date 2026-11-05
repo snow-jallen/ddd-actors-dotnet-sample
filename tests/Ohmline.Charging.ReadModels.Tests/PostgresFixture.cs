@@ -1,4 +1,6 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
+using Ohmline.Migrator;
 using Testcontainers.PostgreSql;
 using Testcontainers.Xunit;
 using Xunit.Sdk;
@@ -8,7 +10,8 @@ namespace Ohmline.Charging.ReadModels.Tests;
 /// <summary>
 /// One PostgreSQL 17 container for the tests in <see cref="PostgresCollection"/>, started only
 /// when one of them runs, so the fast loop needs no container. Each test asks for a database of
-/// its own and never sees another test's rows.
+/// its own, with the schema the migrator makes (section 20.8), and never sees another test's
+/// rows.
 /// </summary>
 public sealed class PostgresFixture(IMessageSink sink)
     : ContainerFixture<PostgreSqlBuilder, PostgreSqlContainer>(sink)
@@ -24,9 +27,13 @@ public sealed class PostgresFixture(IMessageSink sink)
             await create.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        var connectionString =
-            new NpgsqlConnectionStringBuilder(Container.GetConnectionString()) { Database = name };
-        return NpgsqlDataSource.Create(connectionString.ConnectionString);
+        var connectionString = new NpgsqlConnectionStringBuilder(Container.GetConnectionString())
+        {
+            Database = name,
+        }.ConnectionString;
+        Migrations.Apply(MigrationTarget.Ohmline, connectionString, NullLogger.Instance)
+            .Successful.ShouldBeTrue();
+        return NpgsqlDataSource.Create(connectionString);
     }
 }
 

@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Ohmline.Charging.Actors.Journeys.Ports;
+using Ohmline.Migrator;
 using Ohmline.ServiceDefaults;
 using Testcontainers.PostgreSql;
 
@@ -39,7 +41,13 @@ public sealed class HealthTests : IAsyncLifetime
             .StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
-    public async ValueTask InitializeAsync() => await _postgres.StartAsync(Ct);
+    public async ValueTask InitializeAsync()
+    {
+        await _postgres.StartAsync(Ct);
+        Migrations.Apply(
+                MigrationTarget.Ohmline, _postgres.GetConnectionString(), NullLogger.Instance)
+            .Successful.ShouldBeTrue();
+    }
 
     public async ValueTask DisposeAsync() => await _postgres.DisposeAsync();
 

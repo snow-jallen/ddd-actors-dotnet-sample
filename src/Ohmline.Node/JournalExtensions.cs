@@ -44,7 +44,9 @@ public static class JournalExtensions
                 .WithSqlPersistence(
                     connectionString: connectionString,
                     providerName: provider,
-                    autoInitialize: true, // Creates missing tables (until section 20.8).
+                    // PostgreSQL's tables are the migrator's (section 20.8); only the single
+                    // development node's SQLite file is still made by the journal itself.
+                    autoInitialize: provider == ProviderName.SQLiteMS,
                     tagStorageMode: TagMode.TagTable,
                     journalBuilder: journal => journal
                         .AddChargingTagger()
