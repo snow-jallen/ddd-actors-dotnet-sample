@@ -3,6 +3,7 @@ using Akka.Persistence.Sql.Config;
 using Akka.Persistence.Sql.Hosting;
 using LinqToDB;
 using Ohmline.Charging.Actors;
+using Ohmline.Node;
 using Ohmline.SiteEnergy.Actors;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +22,7 @@ builder.Services.AddAkka("ohmline", akka => akka
         loggers.ClearLoggers();
         loggers.AddLoggerFactory(); // Akka.NET logs through Microsoft.Extensions.Logging.
     })
+    .WithOhmlineCluster(builder.Configuration, builder.Environment)
     // At most this many persistent actors replay their journals at once; the rest wait for a
     // permit, so a node restart does not stampede the database (section 11.3). 50 is Akka.NET's
     // default, written down here so that it is a decision and not an accident.

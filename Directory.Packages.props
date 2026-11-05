@@ -13,6 +13,8 @@
   <!-- Every Akka.* package uses Version="$(AkkaVersion)", so an upgrade is a one-line change. -->
   <ItemGroup Label="Akka.NET">
     <PackageVersion Include="Akka" Version="$(AkkaVersion)" />
+    <!-- Brings Akka.Cluster, Akka.Cluster.Sharding, Akka.Cluster.Tools and Akka.Remote.Hosting. -->
+    <PackageVersion Include="Akka.Cluster.Hosting" Version="$(AkkaVersion)" />
     <PackageVersion Include="Akka.Hosting" Version="$(AkkaVersion)" />
     <PackageVersion Include="Akka.Persistence.Hosting" Version="$(AkkaVersion)" />
     <!-- Not the deprecated Akka.Persistence.Sqlite/.PostgreSql/.SqlServer plugins. -->
