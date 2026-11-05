@@ -119,6 +119,14 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch05-s07` | 5.7 The executable context map and deployment topology | An artifact per relationship, ADR 0005, `ContextBoundaryTests` |
 | `ch05-s08` | 5.8 Distillation | The final `docs/vision.md`, `docs/highlighted-core.md` |
 | `ch05-s09` | 5.9 Large-scale structure | ADR 0006: responsibility layers and supervision |
+| `ch06-s01` | 6.1 Primitive obsession in charging: kW versus kWh versus A | `Energy`, `Power`, `Current`, `Voltage` and the `Dimensions` operators |
+| `ch06-s02` | 6.2 Smart constructors that return unions | `union ValidationError(OutOfRange, Malformed, Missing)`; `TryCreate` on every unit |
+| `ch06-s03` | 6.3 Money, currency and rounding | `Currency`, `Money`, `CurrencyMismatch`, `RoundingPolicy` |
+| `ch06-s04` | 6.4 Identity: strongly typed identifiers | `SiteId`, `ChargePointId`, `ConnectorId`, `SessionId`, `JourneyId`, `TokenUid` |
+| `ch06-s05` | 6.5 Meter readings: monotonic registers and time | `MeterReading`, `MeterError`, `MeterHistory`; `Ohmline.Charging.Domain.Tests` |
+| `ch06-s06` | 6.6 Entities inside an aggregate: a connector is a record, not an actor | `Connector` and `ConnectorComparer.ById` |
+| `ch06-s07` | 6.7 Value objects at the boundary: parsing a Big Ball of Mud | `SiteConfiguration`, the AssetTrack anticorruption layer and its tests |
+| `ch06-s08` | 6.8 Property-based tests for value objects | CsCheck 5.0.1, generators and property tests for units and money |
 
 ## Licence and disclaimers
 
