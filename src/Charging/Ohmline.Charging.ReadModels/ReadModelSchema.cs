@@ -22,9 +22,21 @@ public static class ReadModelSchema
             PRIMARY KEY (projection_id, tag)
         );
 
-        -- Section 14.3: when the last handled event was written to the journal.
-        ALTER TABLE read_models.projection_offsets
-            ADD COLUMN IF NOT EXISTS last_event_at timestamptz NULL;
+        -- Section 14.3: when the last handled event was written to the journal. Only when it
+        -- is missing: ALTER TABLE locks the offsets out even when it has nothing to add, and
+        -- a stream that starts late would deadlock with the streams already writing them.
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT FROM information_schema.columns
+                WHERE table_schema = 'read_models'
+                  AND table_name = 'projection_offsets'
+                  AND column_name = 'last_event_at') THEN
+                ALTER TABLE read_models.projection_offsets
+                    ADD COLUMN last_event_at timestamptz NULL;
+            END IF;
+        END
+        $$;
 
         CREATE TABLE IF NOT EXISTS read_models.session_history (
             session_id       uuid        PRIMARY KEY,
