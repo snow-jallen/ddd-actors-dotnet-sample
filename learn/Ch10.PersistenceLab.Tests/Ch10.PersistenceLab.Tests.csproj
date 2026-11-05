@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Learning tests for Akka.Persistence's four write calls, on tiny counters instead of
+    Ohmline's aggregates, so that nothing but the persistence semantics is in play. References
+    nothing from src/.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Akka.Persistence.TestKit.Xunit" />
+  </ItemGroup>
+
+</Project>

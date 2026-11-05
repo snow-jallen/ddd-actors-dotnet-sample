@@ -7,6 +7,7 @@
     <Project Path="learn/Ch02.Hosted/Ch02.Hosted.csproj" />
     <Project Path="learn/Ch03.ClosedLib/Ch03.ClosedLib.csproj" />
     <Project Path="learn/Ch03.LanguageLab.Tests/Ch03.LanguageLab.Tests.csproj" />
+    <Project Path="learn/Ch10.PersistenceLab.Tests/Ch10.PersistenceLab.Tests.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
