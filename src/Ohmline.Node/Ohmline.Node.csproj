@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    The node that runs Ohmline's actors: the composition root. It adds each bounded context's
+    actors to one ActorSystem with that context's AddXxxContext() extension, and owns what
+    every context shares: the clock, logging, configuration and, later, the journal and the
+    cluster. It holds no domain logic of its own.
+  -->
+
+  <ItemGroup>
+    <PackageReference Include="Akka.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference
+      Include="../Charging/Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
+  </ItemGroup>
+
+</Project>

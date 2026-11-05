@@ -6,6 +6,11 @@
   -->
 
   <ItemGroup>
+    <!-- Brings Akka.Persistence for the persistent actors and Akka.Hosting for the builder. -->
+    <PackageReference Include="Akka.Persistence.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../Ohmline.Charging.Domain/Ohmline.Charging.Domain.csproj" />
     <ProjectReference Include="../Ohmline.Charging.Contracts/Ohmline.Charging.Contracts.csproj" />
     <ProjectReference Include="../../Ohmline.ActorShell/Ohmline.ActorShell.csproj" />

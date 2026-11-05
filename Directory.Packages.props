@@ -14,6 +14,7 @@
   <ItemGroup Label="Akka.NET">
     <PackageVersion Include="Akka" Version="$(AkkaVersion)" />
     <PackageVersion Include="Akka.Hosting" Version="$(AkkaVersion)" />
+    <PackageVersion Include="Akka.Persistence.Hosting" Version="$(AkkaVersion)" />
   </ItemGroup>
 
   <ItemGroup Label="Hosting and Aspire">

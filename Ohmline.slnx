@@ -10,6 +10,7 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+    <Project Path="src/Ohmline.Node/Ohmline.Node.csproj" />
     <Project Path="src/Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
   </Folder>
   <Folder Name="/src/Billing/">

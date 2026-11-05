@@ -6,6 +6,10 @@
   -->
 
   <ItemGroup>
+    <PackageReference Include="Akka" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
   </ItemGroup>
 
