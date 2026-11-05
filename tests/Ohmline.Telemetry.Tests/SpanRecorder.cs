@@ -30,5 +30,28 @@ public sealed class SpanRecorder : IDisposable
     public IReadOnlyList<Activity> Trace(ActivityTraceId traceId) =>
         [.. _stopped.Where(span => span.TraceId == traceId)];
 
+    /// <summary>
+    /// The one span of <paramref name="source"/> in the trace, once it has stopped: a reply can
+    /// reach the test before the span it was sent from has ended.
+    /// </summary>
+    public async Task<Activity> SingleAsync(ActivityTraceId traceId, string source)
+    {
+        using var patience = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        while (true)
+        {
+            var spans = Trace(traceId).Where(span => span.Source.Name == source).ToList();
+            if (spans is [_] || patience.IsCancellationRequested)
+            {
+                return spans.ShouldHaveSingleItem();
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(10), CancellationToken.None);
+        }
+    }
+
+    /// <summary>Every span that ended in an error, whatever its trace.</summary>
+    public IReadOnlyList<Activity> Failed =>
+        [.. _stopped.Where(span => span.Status == ActivityStatusCode.Error)];
+
     public void Dispose() => _listener.Dispose();
 }

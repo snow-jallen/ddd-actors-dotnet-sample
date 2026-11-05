@@ -24,10 +24,11 @@ namespace Ohmline.ActorShell.Deciders;
 /// <remarks>
 /// A subclass supplies the replies, in its context's own wire vocabulary, and may answer
 /// queries. Queries are a message family of their own, never a <typeparamref name="TCommand"/>,
-/// so the command handler registered here never takes one.
+/// so the command handler registered here never takes one. A command sent with its trace is
+/// processed in a span of its own (<see cref="TracedPersistentActor"/>, section 17.5).
 /// </remarks>
 public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
-    : ReceivePersistentActor
+    : TracedPersistentActor
     where TDecider : IDecider<TState, TCommand, TEvent, TError>
     where TCommand : class
     where TEvent : class
@@ -88,10 +89,6 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     }
 
     public override string PersistenceId { get; }
-
-    /// <summary>A traced command (section 17.4) is handled as the command inside it.</summary>
-    protected override bool AroundReceive(Receive receive, object message) =>
-        base.AroundReceive(receive, TraceEnvelope.Unwrap(message));
 
     /// <summary>The fold of every event so far, changed only here, through Evolve.</summary>
     protected TState State { get; private set; } = TDecider.Initial;

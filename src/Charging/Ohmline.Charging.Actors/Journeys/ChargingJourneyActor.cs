@@ -33,7 +33,7 @@ namespace Ohmline.Charging.Actors.Journeys;
 /// may never come. The price is that a journey is never passivated for being idle: one that has
 /// nothing left to do passivates itself, and is forgotten.
 /// </remarks>
-public sealed class ChargingJourneyActor : ReceivePersistentActor, IWithTimers
+public sealed class ChargingJourneyActor : TracedPersistentActor, IWithTimers
 {
     /// <summary>Durable vocabulary: the shard type name and the persistence id prefix.</summary>
     public const string TypeName = "charging-journey";
@@ -131,10 +131,6 @@ public sealed class ChargingJourneyActor : ReceivePersistentActor, IWithTimers
     public override string PersistenceId { get; }
 
     public ITimerScheduler Timers { get; set; } = null!;
-
-    /// <summary>A traced message (section 17.4) is handled as the message inside it.</summary>
-    protected override bool AroundReceive(Receive receive, object message) =>
-        base.AroundReceive(receive, TraceEnvelope.Unwrap(message));
 
     /// <summary>Durable vocabulary: <c>charging-journey-{guid}</c>, for ever.</summary>
     public static string PersistenceIdOf(JourneyId journeyId) => $"{TypeName}-{journeyId}";

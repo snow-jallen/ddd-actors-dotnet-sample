@@ -31,7 +31,7 @@ namespace Ohmline.DeviceGateway.Connections;
 /// a new one. While a call's commands are on their way, other frames wait in the stash, so
 /// Charging hears a charger's reports in the order the charger sent them.
 /// </remarks>
-public sealed class ChargerConnectionActor : ReceiveActor, IWithTimers, IWithStash
+public sealed class ChargerConnectionActor : TracedReceiveActor, IWithTimers, IWithStash
 {
     private readonly IChargerLink _link;
     private readonly ChargerRegions _regions;
@@ -73,10 +73,6 @@ public sealed class ChargerConnectionActor : ReceiveActor, IWithTimers, IWithSta
             new ChargerConnectionActor(chargePointId, link, regions, options, clock));
 
     protected override void PreStart() => ExpectFrameWithinSilenceTimeout();
-
-    /// <summary>A traced message (section 17.4) is handled as the message inside it.</summary>
-    protected override bool AroundReceive(Receive receive, object message) =>
-        base.AroundReceive(receive, TraceEnvelope.Unwrap(message));
 
     /// <summary>Whatever was still waiting for the charger will not get an answer now.</summary>
     protected override void PostStop()
