@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Exhaustiveness is not negotiable, even when someone turns TreatWarningsAsErrors off
+         locally. CS8509: a switch expression misses a case. CS8655: it misses null. -->
+    <WarningsAsErrors>$(WarningsAsErrors);CS8509;CS8655;nullable</WarningsAsErrors>
     <IsPackable>false</IsPackable>
     <Deterministic>true</Deterministic>
     <!-- Reproducible old tags: the vulnerability audit runs as a separate CI job (ch21-s04),
