@@ -1,5 +1,7 @@
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.Charging.Domain.Sessions;
+using Ohmline.SharedKernel.Monetary;
 
 namespace Ohmline.Charging.Actors;
 
@@ -22,6 +24,21 @@ public static class ErrorMapping
             ChargePointError.ReservedForAnotherToken => "reserved-for-another-token",
             ChargePointError.ConnectorFaulted => "connector-faulted",
             null => throw DefaultError(nameof(ChargePointError)),
+        };
+
+        public CommandRejected ToReply() => new(error.Code, error.Message);
+    }
+
+    extension(SessionError error)
+    {
+        public string Code => error switch
+        {
+            SessionError.NotStarted => "not-started",
+            SessionError.AlreadyStarted => "already-started",
+            SessionError.AlreadyEnded => "already-ended",
+            SessionError.SpendCapNotPositive => "spend-cap-not-positive",
+            CurrencyMismatch => "currency-mismatch",
+            null => throw DefaultError(nameof(SessionError)),
         };
 
         public CommandRejected ToReply() => new(error.Code, error.Message);

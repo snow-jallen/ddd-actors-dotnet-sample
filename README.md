@@ -148,6 +148,16 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch09-s04` | 9.4 Model-based property tests for invariants | `DeciderProperties`, `AllocationsFit`, property tests for the three deciders |
 | `ch09-s05` | 9.5 Testing time | `ReservationExpiryTests`, `IdleFeeGraceTests`, `TouBoundaryTests` on a fake clock |
 | `ch09-s06` | 9.6 Testing translators and policies; DDD test smells | Table tests for the AssetTrack translator and the policies, `tests/README.md` |
+| `ch10-s01` | 10.1 What the shell owns; a composition root with Akka.Hosting | `src/Ohmline.Node` (`/alive`, `TimeProvider.System`), `AddChargingContext()` |
+| `ch10-s02` | 10.2 Protocol: commands in, replies out, and the union trap | `CommandAccepted`/`CommandRejected`, `GetChargePointStatus`, `ErrorMapping`, `SendExtensions.Send` |
+| `ch10-s03` | 10.3 Serialization before the first persisted event | `ManifestJsonSerializer`, `ChargingSerializer` (9101), `Golden`, `tests/golden/`, ADR 0007 |
+| `ch10-s04` | 10.4 ReceivePersistentActor: Decide, PersistAll, Evolve, reply | `ChargePointActor`, `ChargePointDirectory`, `ActorTestConfig`, the first shell tests |
+| `ch10-s05` | 10.5 While the write is in flight: the internal stash | `InFlightWriteTests` with a held journal write |
+| `ch10-s06` | 10.6 Persist, PersistAsync, PersistAll and DeferAsync | `learn/Ch10.PersistenceLab.Tests` |
+| `ch10-s07` | 10.7 Real storage: Akka.Persistence.Sql on SQLite | `WithSqlPersistence` on SQLite in the node, `NodeRestartTests` |
+| `ch10-s08` | 10.8 A guided tour of the journal | `JournalTourTests`, `JournalTourQueries`, `docs/journal-tour.md` |
+| `ch10-s09` | 10.9 One writer per persistence id: sequence numbers instead of locks | `TwoIncarnationsTests`; "Two writers" in `docs/journal-tour.md` |
+| `ch10-s10` | 10.10 A reusable DeciderActor and the other aggregates | `DeciderActor`, `ChargingSessionActor`, `SitePowerBudgetActor`, `SiteEnergySerializer` (9102) |
 
 ## Licence and disclaimers
 

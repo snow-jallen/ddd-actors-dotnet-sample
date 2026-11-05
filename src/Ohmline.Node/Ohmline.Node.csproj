@@ -16,6 +16,8 @@
   <ItemGroup>
     <ProjectReference
       Include="../Charging/Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
+    <ProjectReference
+      Include="../SiteEnergy/Ohmline.SiteEnergy.Actors/Ohmline.SiteEnergy.Actors.csproj" />
   </ItemGroup>
 
 </Project>

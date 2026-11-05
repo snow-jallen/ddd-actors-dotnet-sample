@@ -6,6 +6,10 @@
   -->
 
   <ItemGroup>
+    <PackageReference Include="Akka.Persistence.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../Ohmline.SiteEnergy.Domain/Ohmline.SiteEnergy.Domain.csproj" />
     <ProjectReference
       Include="../Ohmline.SiteEnergy.Contracts/Ohmline.SiteEnergy.Contracts.csproj" />

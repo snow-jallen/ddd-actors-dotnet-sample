@@ -1,9 +1,13 @@
 using System.Collections.Frozen;
+using System.Text.Json;
 using Akka.Actor;
 using Ohmline.ActorShell.Serialization;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.ChargePoints;
+using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.Charging.Domain.Sessions;
+using Ohmline.Tariffs.Contracts;
 
 namespace Ohmline.Charging.Actors.Serialization;
 
@@ -14,7 +18,7 @@ namespace Ohmline.Charging.Actors.Serialization;
 /// existing type gets a new manifest version, and the old line stays.
 /// </summary>
 public sealed class ChargingSerializer(ExtendedActorSystem system)
-    : ManifestJsonSerializer(system, Manifests)
+    : ManifestJsonSerializer(system, Manifests, AddKinds)
 {
     /// <summary>The name Akka.NET knows the serializer by, in configuration and logs.</summary>
     public const string Name = "charging";
@@ -25,6 +29,8 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         typeof(ChargePointCommand),
         typeof(ChargePointEvent),
         typeof(ChargePointQuery),
+        typeof(SessionCommand),
+        typeof(SessionEvent),
         typeof(ChargePointStatus),
         typeof(CommandReply),
     ];
@@ -53,6 +59,21 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         [typeof(ConnectorMadeUnavailable)] = "charging.connector-made-unavailable.v1",
         [typeof(ConnectorMadeAvailable)] = "charging.connector-made-available.v1",
 
+        [typeof(StartSession)] = "charging.start-session.v1",
+        [typeof(RecordMeterValue)] = "charging.record-meter-value.v1",
+        [typeof(SuspendCharging)] = "charging.suspend-charging.v1",
+        [typeof(ResumeCharging)] = "charging.resume-charging.v1",
+        [typeof(StopSession)] = "charging.stop-session.v1",
+
+        [typeof(SessionStarted)] = "charging.session-started.v1",
+        [typeof(MeterValueRecorded)] = "charging.meter-value-recorded.v1",
+        [typeof(MeterAnomalyDetected)] = "charging.meter-anomaly-detected.v1",
+        [typeof(ChargingSuspendedByEv)] = "charging.charging-suspended-by-ev.v1",
+        [typeof(ChargingSuspendedByCharger)] = "charging.charging-suspended-by-charger.v1",
+        [typeof(ChargingResumed)] = "charging.charging-resumed.v1",
+        [typeof(SpendCapReached)] = "charging.spend-cap-reached.v1",
+        [typeof(SessionEnded)] = "charging.session-ended.v1",
+
         [typeof(GetChargePointStatus)] = "charging.get-charge-point-status.v1",
         [typeof(ChargePointStatus)] = "charging.charge-point-status.v1",
 
@@ -62,4 +83,17 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
 
     /// <summary>Permanent: Ohmline's serializer ids are listed in ADR 0007.</summary>
     public override int Identifier => 9101;
+
+    /// <summary>The closed hierarchies inside Charging's messages, with permanent kinds.</summary>
+    private static void AddKinds(JsonSerializerOptions options)
+    {
+        options.AddClosedHierarchy<SuspendedBy>(
+            (typeof(ByEv), "by-ev"),
+            (typeof(ByCharger), "by-charger"));
+        options.AddClosedHierarchy<TariffComponent>(
+            (typeof(EnergyRate), "energy-rate"),
+            (typeof(TimeRate), "time-rate"),
+            (typeof(SessionFee), "session-fee"),
+            (typeof(IdleFee), "idle-fee"));
+    }
 }

@@ -11,7 +11,10 @@ namespace Ohmline.SiteEnergy.Contracts.Budgets;
 /// </summary>
 public closed record SitePowerBudgetCommand(CommandId CommandId, SiteId SiteId);
 
-/// <summary>The site's grid connection, safety margin, time zone and connectors.</summary>
+/// <summary>
+/// The site's grid connection, safety margin, time zone and connectors. Equal when the values
+/// are equal: a record alone would compare the array by reference.
+/// </summary>
 public sealed record ConfigureSite(
     CommandId CommandId,
     SiteId SiteId,
@@ -19,7 +22,19 @@ public sealed record ConfigureSite(
     Power SafetyMargin,
     string TimeZoneId,
     ImmutableArray<ConnectorLimits> Connectors)
-    : SitePowerBudgetCommand(CommandId, SiteId);
+    : SitePowerBudgetCommand(CommandId, SiteId)
+{
+    public bool Equals(ConfigureSite? other) =>
+        other is not null
+        && base.Equals(other)
+        && GridLimit == other.GridLimit
+        && SafetyMargin == other.SafetyMargin
+        && TimeZoneId == other.TimeZoneId
+        && Connectors.SequenceEqual(other.Connectors);
+
+    public override int GetHashCode() =>
+        HashCode.Combine(base.GetHashCode(), GridLimit, SafetyMargin, Connectors.Length);
+}
 
 /// <summary>A session on a connector at the site asks for power, up to what it can use.</summary>
 public sealed record RequestAllocation(

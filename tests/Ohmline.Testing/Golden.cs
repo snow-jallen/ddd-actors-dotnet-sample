@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -18,6 +19,7 @@ public static class Golden
     {
         WriteIndented = true,
         NewLine = "\n",
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, // Shows "+00:00" as written.
     };
 
     /// <summary>The folder that holds the golden files: <c>tests/golden</c>.</summary>

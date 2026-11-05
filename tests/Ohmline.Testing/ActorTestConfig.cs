@@ -39,9 +39,17 @@ public static class ActorTestConfig
     /// constructor that takes an <see cref="ActorSystemSetup"/>.
     /// </summary>
     public static ActorSystemSetup With(
-        params IEnumerable<Func<ExtendedActorSystem, SerializerDetails>> serializers) =>
-        BootstrapSetup.Create()
+        params IEnumerable<Func<ExtendedActorSystem, SerializerDetails>> serializers)
+    {
+        ExtendedActorSystem? started = null;
+        return BootstrapSetup.Create()
             .WithConfig(Config)
             .And(SerializationSetup.Create(system =>
-                serializers.Select(serializer => serializer(system)).ToImmutableHashSet()));
+            {
+                started = system;
+                return serializers.Select(serializer => serializer(system)).ToImmutableHashSet();
+            }))
+            .And(NewtonSoftJsonSerializerSetup.Create(settings =>
+                settings.Converters.Add(new BoundTypeJsonConverter(() => started))));
+    }
 }

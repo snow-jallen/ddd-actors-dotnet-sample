@@ -7,6 +7,9 @@
 
   <ItemGroup>
     <PackageReference Include="Akka" />
+    <!-- For Akka.Persistence (DeciderActor). Akka.Persistence is not pinned on its own in
+         Directory.Packages.props; it comes, at the same version, with the hosting package. -->
+    <PackageReference Include="Akka.Persistence.Hosting" />
   </ItemGroup>
 
   <ItemGroup>

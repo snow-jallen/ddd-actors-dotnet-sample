@@ -3,6 +3,7 @@ using Akka.Persistence.Sql.Config;
 using Akka.Persistence.Sql.Hosting;
 using LinqToDB;
 using Ohmline.Charging.Actors;
+using Ohmline.SiteEnergy.Actors;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +26,8 @@ builder.Services.AddAkka("ohmline", akka => akka
         providerName: ProviderName.SQLiteMS,
         autoInitialize: true, // Creates missing tables; Chapter 20 owns the schema instead.
         tagStorageMode: TagMode.TagTable)
-    .AddChargingContext());
+    .AddChargingContext()
+    .AddSiteEnergyContext());
 
 var app = builder.Build();
 

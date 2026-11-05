@@ -54,6 +54,7 @@
     <Project Path="tests/Ohmline.Charging.Domain.Tests/Ohmline.Charging.Domain.Tests.csproj" />
     <Project Path="tests/Ohmline.SharedKernel.Tests/Ohmline.SharedKernel.Tests.csproj" />
     <Project Path="tests/Ohmline.SiteEnergy.Acl.AssetRegistry.Tests/Ohmline.SiteEnergy.Acl.AssetRegistry.Tests.csproj" />
+    <Project Path="tests/Ohmline.SiteEnergy.Actors.Tests/Ohmline.SiteEnergy.Actors.Tests.csproj" />
     <Project Path="tests/Ohmline.SiteEnergy.Domain.Tests/Ohmline.SiteEnergy.Domain.Tests.csproj" />
     <Project Path="tests/Ohmline.Tariffs.Domain.Tests/Ohmline.Tariffs.Domain.Tests.csproj" />
     <Project Path="tests/Ohmline.Testing/Ohmline.Testing.csproj" />

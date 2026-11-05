@@ -1,7 +1,9 @@
 using System.Text.RegularExpressions;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Domain.ChargePoints;
+using Ohmline.Charging.Domain.Sessions;
 using Ohmline.SharedKernel.Identity;
+using Ohmline.SharedKernel.Monetary;
 
 namespace Ohmline.Charging.Actors.Tests;
 
@@ -56,7 +58,9 @@ public sealed partial class ErrorMappingTests
     [Fact]
     public void Every_code_is_distinct_and_written_in_kebab_case()
     {
-        var codes = Reasons.Values.Select(error => error.Code).ToList();
+        var codes = Reasons.Values.Select(error => error.Code)
+            .Concat(SessionReasons.Values.Select(error => error.Code))
+            .ToList();
 
         codes.ShouldBeUnique();
         codes.ShouldAllBe(code => KebabCase().IsMatch(code));
@@ -66,6 +70,46 @@ public sealed partial class ErrorMappingTests
     public void Given_a_default_reason_when_mapped_then_it_throws()
     {
         Should.Throw<InvalidOperationException>(() => default(ChargePointError).ToReply());
+    }
+
+    private static readonly SessionId Session = new(Guid.CreateVersion7(DateTimeOffset.UnixEpoch));
+
+    private static readonly Dictionary<string, SessionError> SessionReasons = new()
+    {
+        [nameof(SessionError.NotStarted)] = new SessionError.NotStarted(Session),
+        [nameof(SessionError.AlreadyStarted)] = new SessionError.AlreadyStarted(Session),
+        [nameof(SessionError.AlreadyEnded)] = new SessionError.AlreadyEnded(Session),
+        [nameof(SessionError.SpendCapNotPositive)] =
+            new SessionError.SpendCapNotPositive(new Money(0m, Currency.Usd)),
+        [nameof(CurrencyMismatch)] = new CurrencyMismatch(Currency.Usd, Currency.Eur),
+    };
+
+    public static readonly TheoryData<string, string> SessionCodes = new()
+    {
+        { nameof(SessionError.NotStarted), "not-started" },
+        { nameof(SessionError.AlreadyStarted), "already-started" },
+        { nameof(SessionError.AlreadyEnded), "already-ended" },
+        { nameof(SessionError.SpendCapNotPositive), "spend-cap-not-positive" },
+        { nameof(CurrencyMismatch), "currency-mismatch" },
+    };
+
+    [Theory]
+    [MemberData(nameof(SessionCodes))]
+    public void Given_a_session_reason_when_mapped_then_the_reply_carries_its_code_and_message(
+        string reason, string code)
+    {
+        var error = SessionReasons[reason];
+
+        error.ToReply().ShouldBe(new CommandRejected(code, error.Message));
+    }
+
+    [Fact]
+    public void Every_reason_a_session_can_give_has_a_row()
+    {
+        var cases = typeof(SessionError).GetConstructors()
+            .Select(constructor => constructor.GetParameters().Single().ParameterType.Name);
+
+        SessionReasons.Keys.ShouldBe(cases, ignoreOrder: true);
     }
 
     [GeneratedRegex("^[a-z]+(-[a-z]+)*$")]
