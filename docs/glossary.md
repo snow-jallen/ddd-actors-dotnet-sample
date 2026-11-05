@@ -74,6 +74,7 @@ The context that owns prices: versioned rules that the pricing analyst edits as 
 |---|---|---|
 | Tariff | Versioned pricing rules for a site: energy rate, time rate, session fee, idle fee, time-of-use bands, price cap | `Tariff`, `TariffComponent` |
 | Time-of-use (TOU) band | A rate that applies in a window of site-local time | `TimeOfUseBand` |
+| Site-local time | The time on the site's wall clock, in its time zone; derived from an instant, never the other way round, because of daylight saving | `SiteLocalTime` |
 | Idle fee | A per-minute fee once charging has stopped and the car is still plugged in, after a grace period | `IdleFee` |
 | Grace period | The minutes after charging stops during which no idle fee applies | `IdleFee` |
 | Price breakdown | The line items and total for one session | `PriceBreakdown` |

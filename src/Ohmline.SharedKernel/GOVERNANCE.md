@@ -73,6 +73,7 @@ and this version becomes the package version.
 | 2.4.0 | `IDecider<TState, TCommand, TEvent, TError>` and `Decider.Fold` | 7.6 |
 | 2.5.0 | `CommandId` in `Identity`: the id a sender gives a command, recorded by its events | 8.1 |
 | 2.6.0 | `ISpecification<T>`, `And`/`Or`/`Not` and their extension members in `Specifications` | 8.4 |
+| 2.7.0 | `SiteLocalTime` in `Time`: an instant on a site's wall clock, by IANA time zone id | 8.7 |
 
 ## How a change gets in
 

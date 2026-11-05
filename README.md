@@ -135,6 +135,13 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch07-s06` | 7.6 The Decider abstraction | `IDecider<TState, TCommand, TEvent, TError>`, `Decider.Fold` |
 | `ch07-s07` | 7.7 The ChargingSession aggregate | Session commands, events, `union SessionState(...)` and the `ChargingSession` decider |
 | `ch07-s08` | 7.8 The SitePowerBudget aggregate and the fair-share allocator | `FairShareAllocator`, `union AllocationDecision(...)` and the `SitePowerBudget` decider |
+| `ch08-s01` | 8.1 Domain events as facts experts care about | `CommandId` on every command; `CommandId` and `OccurredAt` stamped on every event |
+| `ch08-s02` | 8.2 Tariffs as a Knowledge Level | `Tariff`, `TariffComponent`, `TimeOfUseBand`; `TariffSnapshot` locked into `SessionStarted` |
+| `ch08-s03` | 8.3 Domain services: the price calculator | `PriceCalculator`, `SessionUsage`, `PriceBreakdown` |
+| `ch08-s04` | 8.4 Specifications: as classes and as patterns | `ISpecification<T>` with `And`/`Or`/`Not`; `IdleFeeApplies`, `RequiresPreAuthorization` |
+| `ch08-s05` | 8.5 Policies: 'whenever X then Y' as pure reactions | `ISessionPolicy`, `ReleaseOnSessionEnded`, `SpendCapPolicy`, `IdleFeePolicy`, `ChargingIntent` |
+| `ch08-s06` | 8.6 Refactoring toward deeper insight: who suspended the charge? | `SuspendedByEv` and `SuspendedByCharger` in place of `Suspended` |
+| `ch08-s07` | 8.7 Time in the domain: site-local time, time-of-use and DST | `SiteLocalTime`; pricing across Denver's daylight-saving changes |
 
 ## Licence and disclaimers
 

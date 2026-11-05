@@ -1,4 +1,5 @@
 using Ohmline.SharedKernel.Monetary;
+using Ohmline.SharedKernel.Time;
 using Ohmline.SharedKernel.Units;
 using Ohmline.Tariffs.Contracts;
 
@@ -14,14 +15,15 @@ public static class PriceCalculator
 {
     /// <summary>
     /// One line per component of the tariff that applies, in the tariff's order: energy and
-    /// time are split across the time-of-use bands in site-local time, minute by minute. Each
+    /// time are split across the time-of-use bands in site-local time, minute by minute. The
+    /// minutes are real ones, counted between instants, and only their band comes from the wall
+    /// clock, so a daylight-saving change moves the bands and never adds or loses a minute. Each
     /// line is rounded once with the tariff's rounding policy, then the price cap applies.
     /// </summary>
     public static PriceBreakdown Price(TariffSnapshot tariff, SessionUsage usage)
     {
-        var zone = TimeZoneInfo.FindSystemTimeZoneById(tariff.TimeZoneId);
         var portions = usage.Intervals
-            .SelectMany(interval => Portions(interval, tariff, zone))
+            .SelectMany(interval => Portions(interval, tariff))
             .ToList();
 
         var lines = tariff.Components
@@ -65,8 +67,7 @@ public static class PriceCalculator
     /// time, and an interval's energy is shared in proportion to time, so an interval that
     /// stays in one band keeps its energy exactly.
     /// </summary>
-    private static IEnumerable<Portion> Portions(
-        MeteredInterval interval, TariffSnapshot tariff, TimeZoneInfo zone)
+    private static IEnumerable<Portion> Portions(MeteredInterval interval, TariffSnapshot tariff)
     {
         var energyRates = tariff.Components.OfType<EnergyRate>().ToList();
         var timeRates = tariff.Components.OfType<TimeRate>().ToList();
@@ -74,7 +75,7 @@ public static class PriceCalculator
         return MinutesOf(interval)
             .GroupBy(minute =>
             {
-                var local = LocalTime(minute.Start, zone);
+                var local = SiteLocalTime.Of(minute.Start, tariff.TimeZoneId).TimeOfDay;
                 return (
                     Energy: RateAt(energyRates, rate => rate.Band, local),
                     Time: RateAt(timeRates, rate => rate.Band, local));
@@ -107,10 +108,6 @@ public static class PriceCalculator
         where TRate : class =>
         rates.FirstOrDefault(rate => bandOf(rate)?.Contains(localTime) == true)
         ?? rates.FirstOrDefault(rate => bandOf(rate) is null);
-
-    /// <summary>The wall-clock time at the site at that instant.</summary>
-    private static TimeOnly LocalTime(DateTimeOffset instant, TimeZoneInfo zone) =>
-        TimeOnly.FromDateTime(TimeZoneInfo.ConvertTime(instant, zone).DateTime);
 
     private static decimal Minutes(TimeSpan time) => (decimal)time.Ticks / TimeSpan.TicksPerMinute;
 
