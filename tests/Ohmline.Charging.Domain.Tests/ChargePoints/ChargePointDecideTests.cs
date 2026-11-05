@@ -134,11 +134,11 @@ public sealed class ChargePointDecideTests
     }
 
     [Fact]
-    public void Given_a_faulted_connector_when_reserved_then_the_fault_is_reported()
+    public void Given_a_connector_out_of_order_when_reserved_then_it_is_refused_as_out_of_order()
     {
-        Given("faulted")
+        Given("out of order")
             .When(new ReserveConnector(Command, Charger, 1, DriversCard))
-            .ThenRejects(new ChargePointError.ConnectorFaulted(1, "GroundFailure"));
+            .ThenRejects(new ChargePointError.ConnectorOutOfOrder(1, "GroundFailure"));
     }
 
     // CancelReservation
@@ -162,7 +162,7 @@ public sealed class ChargePointDecideTests
     [Theory]
     [InlineData("available")]
     [InlineData("occupied")]
-    [InlineData("faulted")]
+    [InlineData("out of order")]
     [InlineData("unavailable")]
     public void Given_no_reservation_when_cancelled_then_nothing_changes(string state)
     {
@@ -194,7 +194,7 @@ public sealed class ChargePointDecideTests
     [Theory]
     [InlineData("available")]
     [InlineData("occupied")]
-    [InlineData("faulted")]
+    [InlineData("out of order")]
     [InlineData("unavailable")]
     public void Given_no_reservation_when_a_stale_timer_fires_then_nothing_changes(string state)
     {
@@ -264,11 +264,11 @@ public sealed class ChargePointDecideTests
     }
 
     [Fact]
-    public void Given_a_faulted_connector_when_a_car_plugs_in_then_the_fault_is_reported()
+    public void Given_a_connector_out_of_order_when_a_car_plugs_in_then_it_is_refused()
     {
-        Given("faulted")
+        Given("out of order")
             .When(new OccupyConnector(Command, Charger, 1, Session, DriversCard))
-            .ThenRejects(new ChargePointError.ConnectorFaulted(1, "GroundFailure"));
+            .ThenRejects(new ChargePointError.ConnectorOutOfOrder(1, "GroundFailure"));
     }
 
     // ReleaseConnector
@@ -284,7 +284,7 @@ public sealed class ChargePointDecideTests
     [Theory]
     [InlineData("available")]
     [InlineData("reserved")]
-    [InlineData("faulted")]
+    [InlineData("out of order")]
     [InlineData("unavailable")]
     public void Given_no_car_plugged_in_when_released_then_nothing_changes(string state)
     {
@@ -293,35 +293,35 @@ public sealed class ChargePointDecideTests
             .ThenNothingChanges();
     }
 
-    // ReportConnectorFault and ClearConnectorFault
+    // ReportConnectorOutOfOrder and ReportConnectorRepaired
 
     [Theory]
     [InlineData("available")]
     [InlineData("reserved")]
     [InlineData("occupied")]
     [InlineData("unavailable")]
-    public void Given_a_connector_that_is_not_faulted_when_a_fault_is_reported_then_it_is_faulted(
+    public void Given_a_working_connector_when_reported_out_of_order_then_it_is_out_of_order(
         string state)
     {
         Given(state)
-            .When(new ReportConnectorFault(Command, Charger, 1, "PowerSwitchFailure"))
-            .Then(new ConnectorFaulted(Charger, 1, "PowerSwitchFailure").At(Morning));
+            .When(new ReportConnectorOutOfOrder(Command, Charger, 1, "PowerSwitchFailure"))
+            .Then(new ConnectorOutOfOrder(Charger, 1, "PowerSwitchFailure").At(Morning));
     }
 
     [Fact]
-    public void Given_a_faulted_connector_when_a_fault_is_reported_again_then_nothing_changes()
+    public void Given_a_connector_out_of_order_when_reported_again_then_nothing_changes()
     {
-        Given("faulted")
-            .When(new ReportConnectorFault(Command, Charger, 1, "GroundFailure"))
+        Given("out of order")
+            .When(new ReportConnectorOutOfOrder(Command, Charger, 1, "GroundFailure"))
             .ThenNothingChanges();
     }
 
     [Fact]
-    public void Given_a_faulted_connector_when_the_fault_is_cleared_then_it_is_cleared()
+    public void Given_a_connector_out_of_order_when_repaired_then_it_is_available()
     {
-        Given("faulted")
-            .When(new ClearConnectorFault(Command, Charger, 1))
-            .Then(new ConnectorFaultCleared(Charger, 1).At(Morning));
+        Given("out of order")
+            .When(new ReportConnectorRepaired(Command, Charger, 1))
+            .Then(new ConnectorRepaired(Charger, 1).At(Morning));
     }
 
     [Theory]
@@ -329,11 +329,11 @@ public sealed class ChargePointDecideTests
     [InlineData("reserved")]
     [InlineData("occupied")]
     [InlineData("unavailable")]
-    public void Given_a_connector_that_is_not_faulted_when_a_fault_is_cleared_then_nothing_changes(
+    public void Given_a_working_connector_when_reported_repaired_then_nothing_changes(
         string state)
     {
         Given(state)
-            .When(new ClearConnectorFault(Command, Charger, 1))
+            .When(new ReportConnectorRepaired(Command, Charger, 1))
             .ThenNothingChanges();
     }
 
@@ -367,16 +367,16 @@ public sealed class ChargePointDecideTests
     }
 
     [Fact]
-    public void Given_a_faulted_connector_when_operators_change_its_use_then_the_fault_is_reported()
+    public void Given_a_connector_out_of_order_when_operators_change_its_use_then_it_is_refused()
     {
-        var fault = new ChargePointError.ConnectorFaulted(1, "GroundFailure");
+        var outOfOrder = new ChargePointError.ConnectorOutOfOrder(1, "GroundFailure");
 
-        Given("faulted")
+        Given("out of order")
             .When(new MakeConnectorUnavailable(Command, Charger, 1))
-            .ThenRejects(fault);
-        Given("faulted")
+            .ThenRejects(outOfOrder);
+        Given("out of order")
             .When(new MakeConnectorAvailable(Command, Charger, 1))
-            .ThenRejects(fault);
+            .ThenRejects(outOfOrder);
     }
 
     [Fact]
@@ -410,7 +410,7 @@ public sealed class ChargePointDecideTests
             "available" => [],
             "reserved" => [new ConnectorReserved(Charger, 1, DriversCard, Expiry)],
             "occupied" => [new ConnectorOccupied(Charger, 1, Session, DriversCard)],
-            "faulted" => [new ConnectorFaulted(Charger, 1, "GroundFailure")],
+            "out of order" => [new ConnectorOutOfOrder(Charger, 1, "GroundFailure")],
             "unavailable" => [new ConnectorMadeUnavailable(Charger, 1)],
             _ => throw new ArgumentOutOfRangeException(nameof(connectorState)),
         };

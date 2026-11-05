@@ -38,8 +38,8 @@ public static class StatusMapping
                 number, maxPower, ConnectorStatus.Reserved, held.TokenUid, held.ExpiresAt),
             Occupied current => new(
                 number, maxPower, ConnectorStatus.Occupied, SessionId: current.SessionId),
-            Faulted fault => new(
-                number, maxPower, ConnectorStatus.Faulted, ErrorCode: fault.ErrorCode),
+            OutOfOrder outOfOrder => new(
+                number, maxPower, ConnectorStatus.OutOfOrder, ErrorCode: outOfOrder.ErrorCode),
             Unavailable => new(number, maxPower, ConnectorStatus.Unavailable),
             null => throw new InvalidOperationException("The connector state is default."),
         };

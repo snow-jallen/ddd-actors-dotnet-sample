@@ -92,8 +92,8 @@ internal static class ChargingSamples
         new ExpireReservation(Command, ChargePoint, 1),
         new OccupyConnector(Command, ChargePoint, 1, Session, Token),
         new ReleaseConnector(Command, ChargePoint, 1),
-        new ReportConnectorFault(Command, ChargePoint, 2, "GroundFailure"),
-        new ClearConnectorFault(Command, ChargePoint, 2),
+        new ReportConnectorOutOfOrder(Command, ChargePoint, 2, "GroundFailure"),
+        new ReportConnectorRepaired(Command, ChargePoint, 2),
         new MakeConnectorUnavailable(Command, ChargePoint, 2),
         new MakeConnectorAvailable(Command, ChargePoint, 2),
 
@@ -103,8 +103,8 @@ internal static class ChargingSamples
         Stamped(new ReservationExpired(ChargePoint, 1, Token)),
         Stamped(new ConnectorOccupied(ChargePoint, 1, Session, Token)),
         Stamped(new ConnectorReleased(ChargePoint, 1, Session)),
-        Stamped(new ConnectorFaulted(ChargePoint, 2, "GroundFailure")),
-        Stamped(new ConnectorFaultCleared(ChargePoint, 2)),
+        Stamped(new ConnectorOutOfOrder(ChargePoint, 2, "GroundFailure")),
+        Stamped(new ConnectorRepaired(ChargePoint, 2)),
         Stamped(new ConnectorMadeUnavailable(ChargePoint, 2)),
         Stamped(new ConnectorMadeAvailable(ChargePoint, 2)),
 
@@ -167,7 +167,7 @@ internal static class ChargingSamples
                 new ConnectorSnapshot.Available(1, new Power(22m)),
                 new ConnectorSnapshot.Reserved(2, new Power(22m), Token, TimeSpan.FromMinutes(10)),
                 new ConnectorSnapshot.Occupied(3, new Power(150m), Session),
-                new ConnectorSnapshot.Faulted(4, new Power(150m), "GroundFailure"),
+                new ConnectorSnapshot.OutOfOrder(4, new Power(150m), "GroundFailure"),
                 new ConnectorSnapshot.Unavailable(5, new Power(7.4m)),
             ])
         {

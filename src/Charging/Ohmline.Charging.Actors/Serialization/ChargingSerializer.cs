@@ -73,8 +73,10 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         [typeof(ExpireReservation)] = "charging.expire-reservation.v1",
         [typeof(OccupyConnector)] = "charging.occupy-connector.v1",
         [typeof(ReleaseConnector)] = "charging.release-connector.v1",
-        [typeof(ReportConnectorFault)] = "charging.report-connector-fault.v1",
-        [typeof(ClearConnectorFault)] = "charging.clear-connector-fault.v1",
+        // Renamed in section 20.7. Commands cross between two versions of the node in a rolling
+        // update, so they keep their manifests: the old names are only words on the wire.
+        [typeof(ReportConnectorOutOfOrder)] = "charging.report-connector-fault.v1",
+        [typeof(ReportConnectorRepaired)] = "charging.clear-connector-fault.v1",
         [typeof(MakeConnectorUnavailable)] = "charging.make-connector-unavailable.v1",
         [typeof(MakeConnectorAvailable)] = "charging.make-connector-available.v1",
 
@@ -84,8 +86,11 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         [typeof(ReservationExpired)] = "charging.reservation-expired.v1",
         [typeof(ConnectorOccupied)] = "charging.connector-occupied.v1",
         [typeof(ConnectorReleased)] = "charging.connector-released.v1",
-        [typeof(ConnectorFaulted)] = "charging.connector-faulted.v1",
-        [typeof(ConnectorFaultCleared)] = "charging.connector-fault-cleared.v1",
+        // Renamed in section 20.7: written under its new name, and read under its old one too
+        // (Upcasters). Every node must read the new manifest before any node writes it.
+        [typeof(ConnectorOutOfOrder)] = "charging.connector-out-of-order.v1",
+        // Renamed in section 20.7, but only in C#: the manifest stays.
+        [typeof(ConnectorRepaired)] = "charging.connector-fault-cleared.v1",
         [typeof(ConnectorMadeUnavailable)] = "charging.connector-made-unavailable.v1",
         [typeof(ConnectorMadeAvailable)] = "charging.connector-made-available.v1",
 
@@ -165,6 +170,7 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
         {
             ["charging.meter-value-recorded.v1"] = MeterValueRecordedV1.Upcaster,
             ["charging.charge-point-snapshot.v1"] = ChargePointSnapshotV1.Upcaster,
+            ["charging.connector-faulted.v1"] = Upcaster.Alias<ConnectorOutOfOrder>(),
         }.ToFrozenDictionary();
 
     /// <summary>Permanent: Ohmline's serializer ids are listed in ADR 0007.</summary>
@@ -185,7 +191,7 @@ public sealed class ChargingSerializer(ExtendedActorSystem system)
             (typeof(ConnectorSnapshot.Available), "available"),
             (typeof(ConnectorSnapshot.Reserved), "reserved"),
             (typeof(ConnectorSnapshot.Occupied), "occupied"),
-            (typeof(ConnectorSnapshot.Faulted), "faulted"),
+            (typeof(ConnectorSnapshot.OutOfOrder), "faulted"), // A kind is durable too.
             (typeof(ConnectorSnapshot.Unavailable), "unavailable"));
         options.AddClosedHierarchy<SessionPhaseSnapshot>(
             (typeof(SessionPhaseSnapshot.Active), "active"),

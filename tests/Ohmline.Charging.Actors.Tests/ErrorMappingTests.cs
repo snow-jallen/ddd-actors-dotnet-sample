@@ -23,8 +23,8 @@ public sealed partial class ErrorMappingTests
         [nameof(ChargePointError.ReservedForAnotherToken)] =
             new ChargePointError.ReservedForAnotherToken(
                 1, new DateTimeOffset(2026, 11, 4, 7, 55, 0, TimeSpan.Zero)),
-        [nameof(ChargePointError.ConnectorFaulted)] =
-            new ChargePointError.ConnectorFaulted(2, "GroundFailure"),
+        [nameof(ChargePointError.ConnectorOutOfOrder)] =
+            new ChargePointError.ConnectorOutOfOrder(2, "GroundFailure"),
     };
 
     public static readonly TheoryData<string, string> Codes = new()
@@ -34,7 +34,7 @@ public sealed partial class ErrorMappingTests
         { nameof(ChargePointError.UnknownConnector), "unknown-connector" },
         { nameof(ChargePointError.ConnectorUnavailable), "connector-unavailable" },
         { nameof(ChargePointError.ReservedForAnotherToken), "reserved-for-another-token" },
-        { nameof(ChargePointError.ConnectorFaulted), "connector-faulted" },
+        { nameof(ChargePointError.ConnectorOutOfOrder), "connector-faulted" },
     };
 
     [Theory]

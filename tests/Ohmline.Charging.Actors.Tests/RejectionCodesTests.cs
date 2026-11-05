@@ -25,7 +25,7 @@ public sealed class RejectionCodesTests
         new ChargePointError.UnknownConnector(3),
         new ChargePointError.ConnectorUnavailable(1),
         new ChargePointError.ReservedForAnotherToken(1, DateTimeOffset.UnixEpoch),
-        new ChargePointError.ConnectorFaulted(2, "GroundFailure"),
+        new ChargePointError.ConnectorOutOfOrder(2, "GroundFailure"),
     ];
 
     /// <summary>Every reason a session can refuse to stop with.</summary>

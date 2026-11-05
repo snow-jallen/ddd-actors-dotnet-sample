@@ -14,7 +14,7 @@ public static class DecisionTableCompileErrors
         (state, command) switch
         {
             (Occupied, ReleaseConnector) => "the session leaves the connector",
-            (Available or Reserved or Faulted, ReleaseConnector) => "nothing changes",
+            (Available or Reserved or OutOfOrder, ReleaseConnector) => "nothing changes",
             (_, not ReleaseConnector) => "another table",
             (null, _) => "a bug",
         };

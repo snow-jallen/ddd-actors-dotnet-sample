@@ -41,9 +41,9 @@ public sealed class ChargePointProtocolTests
     [Fact]
     public void Given_an_event_about_a_connector_then_it_is_a_charge_point_event()
     {
-        ChargePointEvent faulted = new ConnectorFaulted(Charger, 2, "GroundFailure");
+        ChargePointEvent outOfOrder = new ConnectorOutOfOrder(Charger, 2, "GroundFailure");
 
-        var connectorEvent = faulted.ShouldBeAssignableTo<ConnectorEvent>();
+        var connectorEvent = outOfOrder.ShouldBeAssignableTo<ConnectorEvent>();
         connectorEvent.ChargePointId.ShouldBe(Charger);
         connectorEvent.ConnectorNumber.ShouldBe(2);
     }

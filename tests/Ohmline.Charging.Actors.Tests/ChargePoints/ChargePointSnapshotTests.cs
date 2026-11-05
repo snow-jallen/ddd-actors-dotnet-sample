@@ -30,7 +30,7 @@ public sealed class ChargePointSnapshotTests(ITestOutputHelper output)
             Connector(1, new Available()),
             Connector(2, new Reserved(DriversCard, Morning.AddMinutes(15))),
             Connector(3, new Occupied(Session)),
-            Connector(4, new Faulted("GroundFailure")),
+            Connector(4, new OutOfOrder("GroundFailure")),
             Connector(5, new Unavailable()),
         ]));
         var snapshot = state.ToSnapshot(Morning.AddMinutes(5)).ShouldNotBeNull();
@@ -81,7 +81,7 @@ public sealed class ChargePointSnapshotTests(ITestOutputHelper output)
                 (1, new Available()),
                 (2, new Reserved(ChargingSamples.Token, ChargingSamples.At.AddMinutes(15))),
                 (3, new Occupied(ChargingSamples.Session)),
-                (4, new Faulted("GroundFailure")),
+                (4, new OutOfOrder("GroundFailure")),
                 (5, new Unavailable()),
             ]);
     }

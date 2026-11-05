@@ -23,7 +23,9 @@ public static class ErrorMapping
             ChargePointError.UnknownConnector => "unknown-connector",
             ChargePointError.ConnectorUnavailable => "connector-unavailable",
             ChargePointError.ReservedForAnotherToken => "reserved-for-another-token",
-            ChargePointError.ConnectorFaulted => "connector-faulted",
+            // The code apps already know (RejectionCodes): renaming the reason in section 20.7
+            // left it as it was.
+            ChargePointError.ConnectorOutOfOrder => "connector-faulted",
             null => throw DefaultError(nameof(ChargePointError)),
         };
 

@@ -70,15 +70,20 @@ public sealed record ReleaseConnector(
     : ConnectorCommand(CommandId, ChargePointId, ConnectorNumber);
 
 /// <summary>
-/// The charge point reports that a connector cannot be used. The error code is the charge
-/// point's own, such as <c>GroundFailure</c>, kept for the technician.
+/// The charge point reports that a connector is out of order. The error code is the charge
+/// point's own, such as <c>GroundFailure</c>, kept for the technician. Called
+/// <c>ReportConnectorFault</c> until section 20.7; a command crosses the wire between two
+/// versions of the node during a rolling update, so it keeps its manifest.
 /// </summary>
-public sealed record ReportConnectorFault(
+public sealed record ReportConnectorOutOfOrder(
     CommandId CommandId, ChargePointId ChargePointId, int ConnectorNumber, string ErrorCode)
     : ConnectorCommand(CommandId, ChargePointId, ConnectorNumber);
 
-/// <summary>The connector has been repaired and can be used again.</summary>
-public sealed record ClearConnectorFault(
+/// <summary>
+/// The connector has been repaired and can be used again. Called <c>ClearConnectorFault</c>
+/// until section 20.7, and still sent under its manifest.
+/// </summary>
+public sealed record ReportConnectorRepaired(
     CommandId CommandId, ChargePointId ChargePointId, int ConnectorNumber)
     : ConnectorCommand(CommandId, ChargePointId, ConnectorNumber);
 

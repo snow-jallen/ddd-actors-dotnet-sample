@@ -72,7 +72,9 @@ public static class OcppTranslator
 
     /// <summary>
     /// A status is a command only as a change: a fault, a repair, a car gone, a pause or a
-    /// resume of the session on the connector. The rest is remembered and answered.
+    /// resume of the session on the connector. The rest is remembered and answered. The charger
+    /// says <c>Faulted</c>, in OCPP's words; Charging hears that the connector is out of order,
+    /// in its own (section 20.7).
     /// </summary>
     private static Translation Status(
         Call call, StatusNotificationRequest status, ChargerContext context, CommandId commandId)
@@ -90,9 +92,9 @@ public static class OcppTranslator
         ChargingCommand? change = (before, status.Status, session) switch
         {
             (_, "Faulted", _) =>
-                new ReportConnectorFault(commandId, chargePoint, connector, status.ErrorCode),
+                new ReportConnectorOutOfOrder(commandId, chargePoint, connector, status.ErrorCode),
             ("Faulted", "Available", _) =>
-                new ClearConnectorFault(commandId, chargePoint, connector),
+                new ReportConnectorRepaired(commandId, chargePoint, connector),
             ("Finishing", "Available", _) =>
                 new ReleaseConnector(commandId, chargePoint, connector),
             (_, "SuspendedEV", { } suspended) =>

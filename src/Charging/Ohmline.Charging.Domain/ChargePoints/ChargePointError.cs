@@ -4,8 +4,8 @@ namespace Ohmline.Charging.Domain.ChargePoints;
 
 /// <summary>
 /// Why the charge point refused a command. The cases live inside the union because some of them
-/// share a name with an event: <c>ConnectorFaulted</c> is a fact the charge point records, and
-/// <c>ChargePointError.ConnectorFaulted</c> is a reason to refuse a driver.
+/// share a name with an event: <c>ConnectorOutOfOrder</c> is a fact the charge point records,
+/// and <c>ChargePointError.ConnectorOutOfOrder</c> is a reason to refuse a driver.
 /// </summary>
 public union ChargePointError(
     ChargePointError.NotRegistered,
@@ -13,7 +13,7 @@ public union ChargePointError(
     ChargePointError.UnknownConnector,
     ChargePointError.ConnectorUnavailable,
     ChargePointError.ReservedForAnotherToken,
-    ChargePointError.ConnectorFaulted)
+    ChargePointError.ConnectorOutOfOrder)
 {
     /// <summary>A sentence for logs and people. Code decides by the case, never by this.</summary>
     public string Message => this switch
@@ -26,8 +26,8 @@ public union ChargePointError(
         ReservedForAnotherToken error => FormattableString.Invariant(
             $"Connector {error.ConnectorNumber} is reserved for another driver until {
                 error.Until:u}."),
-        ConnectorFaulted error =>
-            $"Connector {error.ConnectorNumber} is faulted ({error.ErrorCode}).",
+        ConnectorOutOfOrder error =>
+            $"Connector {error.ConnectorNumber} is out of order ({error.ErrorCode}).",
         null => "This ChargePointError is default: it holds no case.",
     };
 
@@ -44,5 +44,5 @@ public union ChargePointError(
     /// <summary>Someone else holds the reservation; the driver learns when it runs out.</summary>
     public sealed record ReservedForAnotherToken(int ConnectorNumber, DateTimeOffset Until);
 
-    public sealed record ConnectorFaulted(int ConnectorNumber, string ErrorCode);
+    public sealed record ConnectorOutOfOrder(int ConnectorNumber, string ErrorCode);
 }

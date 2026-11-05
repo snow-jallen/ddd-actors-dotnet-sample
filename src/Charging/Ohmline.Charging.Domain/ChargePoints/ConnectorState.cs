@@ -7,7 +7,7 @@ namespace Ohmline.Charging.Domain.ChargePoints;
 /// reserved connector has a token and an expiry, and only an occupied one has a session. A
 /// connector that is available and still has a session cannot be written down.
 /// </summary>
-public union ConnectorState(Available, Reserved, Occupied, Faulted, Unavailable);
+public union ConnectorState(Available, Reserved, Occupied, OutOfOrder, Unavailable);
 
 /// <summary>Free for the next driver.</summary>
 public sealed record Available;
@@ -22,8 +22,11 @@ public sealed record Reserved(TokenUid TokenUid, DateTimeOffset ExpiresAt)
 /// <summary>A car is plugged in, and this session is using the connector.</summary>
 public sealed record Occupied(SessionId SessionId);
 
-/// <summary>The charge point reported a fault; the code is the charge point's own.</summary>
-public sealed record Faulted(string ErrorCode);
+/// <summary>
+/// The charge point reported the connector out of order; the code is the charge point's own.
+/// Operations said "faulted" until section 20.7.
+/// </summary>
+public sealed record OutOfOrder(string ErrorCode);
 
 /// <summary>Operators took the connector out of use.</summary>
 public sealed record Unavailable;

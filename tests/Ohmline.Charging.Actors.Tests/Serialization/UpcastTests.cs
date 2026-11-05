@@ -18,6 +18,16 @@ public sealed partial class UpcastTests(ITestOutputHelper output)
 {
     public static TheoryData<string> Upcast => new(ChargingSerializer.Upcasters.Keys.Order());
 
+    public static TheoryData<string> NewVersions => new(ChargingSerializer.Upcasters
+        .Where(pair => pair.Value.From != pair.Value.To)
+        .Select(pair => pair.Key)
+        .Order());
+
+    public static TheoryData<string> Renamed => new(ChargingSerializer.Upcasters
+        .Where(pair => pair.Value.From == pair.Value.To)
+        .Select(pair => pair.Key)
+        .Order());
+
     [Fact]
     public void Given_the_frozen_v1_bytes_of_a_reading_then_its_wh_are_read_as_kwh()
     {
@@ -49,7 +59,7 @@ public sealed partial class UpcastTests(ITestOutputHelper output)
     }
 
     [Theory]
-    [MemberData(nameof(Upcast))]
+    [MemberData(nameof(NewVersions))]
     public void Every_upcast_manifest_is_an_older_version_of_one_written_today(string manifest)
     {
         var upcaster = ChargingSerializer.Upcasters[manifest];
@@ -70,6 +80,20 @@ public sealed partial class UpcastTests(ITestOutputHelper output)
 
         Sys.Serialization.Deserialize(bytes, 9101, manifest)
             .ShouldBeOfType(ChargingSerializer.Upcasters[manifest].To);
+    }
+
+    /// <summary>
+    /// A type renamed under a new manifest (section 20.7) is written under the new one and read
+    /// under both: the old manifest is an alias, never written again.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Renamed))]
+    public void Every_renamed_manifest_is_read_as_the_type_that_now_has_another(string manifest)
+    {
+        var renamed = ChargingSerializer.Upcasters[manifest].To;
+
+        ChargingSerializer.Manifests[renamed].ShouldNotBe(manifest);
+        ChargingSerializer.Manifests.Values.ShouldNotContain(manifest);
     }
 
     [GeneratedRegex(@"^(?<name>charging\.[a-z0-9-]+)\.v(?<version>[1-9][0-9]*)$")]

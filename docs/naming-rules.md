@@ -30,7 +30,7 @@ use. When a rule here and a name in the code disagree, the code is wrong.
 
 | Banned | Why | Instead |
 |---|---|---|
-| `Update*` (`UpdateConnector`) | Says that data changes, not what the business wants | The intention: `OccupyConnector`, `ReportConnectorFault` |
+| `Update*` (`UpdateConnector`) | Says that data changes, not what the business wants | The intention: `OccupyConnector`, `ReportConnectorOutOfOrder` |
 | `Set*` (`SetStatus`) | A setter sent as a message: the rules live with the sender, and the aggregate becomes anemic | The intention, or the fact that caused it |
 | `*Changed` for a whole state (`ChargePointChanged`) | A state dump, not a fact; consumers have to diff | One event per fact |
 | `*Manager` (`SessionManager`) | Names a job title, not a concept; collects unrelated rules | The domain noun: `ChargingSession`, `ChargingJourney` |

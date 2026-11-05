@@ -21,7 +21,8 @@ public closed record ConnectorSnapshot(int Number, Power MaxPower)
     public sealed record Occupied(int Number, Power MaxPower, SessionId SessionId)
         : ConnectorSnapshot(Number, MaxPower);
 
-    public sealed record Faulted(int Number, Power MaxPower, string ErrorCode)
+    /// <summary>Out of order; its kind is still written <c>"faulted"</c> (section 20.7).</summary>
+    public sealed record OutOfOrder(int Number, Power MaxPower, string ErrorCode)
         : ConnectorSnapshot(Number, MaxPower);
 
     public sealed record Unavailable(int Number, Power MaxPower)

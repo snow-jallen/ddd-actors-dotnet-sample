@@ -63,17 +63,17 @@ public sealed class ChargePoint
                 NoChange,
             (Reserved held, ReserveConnector) => Reject(HeldForAnother(command, held)),
             (Occupied or Unavailable, ReserveConnector) => Reject(Unusable(command)),
-            (Faulted fault, ReserveConnector) => Reject(Broken(command, fault)),
+            (OutOfOrder outOfOrder, ReserveConnector) => Reject(Broken(command, outOfOrder)),
 
             (Reserved held, CancelReservation cancel) when held.TokenUid == cancel.TokenUid =>
                 Accept(new ReservationCancelled(
                     cancel.ChargePointId, cancel.ConnectorNumber, cancel.TokenUid)),
             (Reserved held, CancelReservation) => Reject(HeldForAnother(command, held)),
-            (Available or Occupied or Faulted or Unavailable, CancelReservation) => NoChange,
+            (Available or Occupied or OutOfOrder or Unavailable, CancelReservation) => NoChange,
 
             (Reserved held, ExpireReservation expire) when held.HasExpiredAt(context.Now) =>
                 Accept(Expiry(expire, held)),
-            (Available or Reserved or Occupied or Faulted or Unavailable, ExpireReservation) =>
+            (Available or Reserved or Occupied or OutOfOrder or Unavailable, ExpireReservation) =>
                 NoChange,
 
             (Available, OccupyConnector occupy) => Accept(Occupation(occupy)),
@@ -85,31 +85,33 @@ public sealed class ChargePoint
             (Occupied current, OccupyConnector occupy) when current.SessionId == occupy.SessionId =>
                 NoChange,
             (Occupied or Unavailable, OccupyConnector) => Reject(Unusable(command)),
-            (Faulted fault, OccupyConnector) => Reject(Broken(command, fault)),
+            (OutOfOrder outOfOrder, OccupyConnector) => Reject(Broken(command, outOfOrder)),
 
             (Occupied current, ReleaseConnector release) => Accept(new ConnectorReleased(
                 release.ChargePointId, release.ConnectorNumber, current.SessionId)),
-            (Available or Reserved or Faulted or Unavailable, ReleaseConnector) => NoChange,
+            (Available or Reserved or OutOfOrder or Unavailable, ReleaseConnector) => NoChange,
 
-            (Available or Reserved or Occupied or Unavailable, ReportConnectorFault report) =>
-                Accept(new ConnectorFaulted(
+            (Available or Reserved or Occupied or Unavailable, ReportConnectorOutOfOrder report) =>
+                Accept(new ConnectorOutOfOrder(
                     report.ChargePointId, report.ConnectorNumber, report.ErrorCode)),
-            (Faulted, ReportConnectorFault) => NoChange,
+            (OutOfOrder, ReportConnectorOutOfOrder) => NoChange,
 
-            (Faulted, ClearConnectorFault clear) => Accept(
-                new ConnectorFaultCleared(clear.ChargePointId, clear.ConnectorNumber)),
-            (Available or Reserved or Occupied or Unavailable, ClearConnectorFault) => NoChange,
+            (OutOfOrder, ReportConnectorRepaired repaired) => Accept(
+                new ConnectorRepaired(repaired.ChargePointId, repaired.ConnectorNumber)),
+            (Available or Reserved or Occupied or Unavailable, ReportConnectorRepaired) =>
+                NoChange,
 
             (Available or Reserved, MakeConnectorUnavailable close) => Accept(
                 new ConnectorMadeUnavailable(close.ChargePointId, close.ConnectorNumber)),
             (Unavailable, MakeConnectorUnavailable) => NoChange,
             (Occupied, MakeConnectorUnavailable) => Reject(Unusable(command)),
-            (Faulted fault, MakeConnectorUnavailable) => Reject(Broken(command, fault)),
+            (OutOfOrder outOfOrder, MakeConnectorUnavailable) =>
+                Reject(Broken(command, outOfOrder)),
 
             (Unavailable, MakeConnectorAvailable open) => Accept(
                 new ConnectorMadeAvailable(open.ChargePointId, open.ConnectorNumber)),
             (Available or Reserved or Occupied, MakeConnectorAvailable) => NoChange,
-            (Faulted fault, MakeConnectorAvailable) => Reject(Broken(command, fault)),
+            (OutOfOrder outOfOrder, MakeConnectorAvailable) => Reject(Broken(command, outOfOrder)),
 
             (null, _) => throw DefaultState(),
         };
@@ -165,10 +167,10 @@ public sealed class ChargePoint
     {
         ConnectorReserved reserved => new Reserved(reserved.TokenUid, reserved.ExpiresAt),
         ConnectorOccupied occupied => new Occupied(occupied.SessionId),
-        ConnectorFaulted faulted => new Faulted(faulted.ErrorCode),
+        ConnectorOutOfOrder outOfOrder => new OutOfOrder(outOfOrder.ErrorCode),
         ConnectorMadeUnavailable => new Unavailable(),
         ReservationCancelled or ReservationExpired or ConnectorReleased
-            or ConnectorFaultCleared or ConnectorMadeAvailable => new Available(),
+            or ConnectorRepaired or ConnectorMadeAvailable => new Available(),
     };
 
     /// <summary>The expiry is decided here, from the context's time, and recorded.</summary>
@@ -189,8 +191,8 @@ public sealed class ChargePoint
     private static ChargePointError Unusable(ConnectorCommand command) =>
         new ChargePointError.ConnectorUnavailable(command.ConnectorNumber);
 
-    private static ChargePointError Broken(ConnectorCommand command, Faulted fault) =>
-        new ChargePointError.ConnectorFaulted(command.ConnectorNumber, fault.ErrorCode);
+    private static ChargePointError Broken(ConnectorCommand command, OutOfOrder outOfOrder) =>
+        new ChargePointError.ConnectorOutOfOrder(command.ConnectorNumber, outOfOrder.ErrorCode);
 
     private static Result<ImmutableArray<ChargePointEvent>, ChargePointError> NoChange { get; } =
         Accept();

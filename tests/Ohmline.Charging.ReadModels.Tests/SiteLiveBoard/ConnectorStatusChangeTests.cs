@@ -14,8 +14,8 @@ public sealed class ConnectorStatusChangeTests
         { new ReservationCancelled(Charger, 2, DriversCard), "available" },
         { new ReservationExpired(Charger, 2, DriversCard), "available" },
         { new ConnectorReleased(Charger, 2, Session), "available" },
-        { new ConnectorFaulted(Charger, 2, "GroundFailure"), "faulted" },
-        { new ConnectorFaultCleared(Charger, 2), "available" },
+        { new ConnectorOutOfOrder(Charger, 2, "GroundFailure"), "faulted" },
+        { new ConnectorRepaired(Charger, 2), "available" },
         { new ConnectorMadeUnavailable(Charger, 2), "unavailable" },
         { new ConnectorMadeAvailable(Charger, 2), "available" },
     };

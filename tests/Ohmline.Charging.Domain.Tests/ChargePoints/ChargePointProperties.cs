@@ -33,8 +33,8 @@ public sealed class ChargePointProperties
             new OccupyConnector(Command, Charger, connector, driver.Session, driver.Token)),
         Connectors.Select(connector => new ReleaseConnector(Command, Charger, connector)),
         Connectors.Select(connector =>
-            new ReportConnectorFault(Command, Charger, connector, "GroundFailure")),
-        Connectors.Select(connector => new ClearConnectorFault(Command, Charger, connector)),
+            new ReportConnectorOutOfOrder(Command, Charger, connector, "GroundFailure")),
+        Connectors.Select(connector => new ReportConnectorRepaired(Command, Charger, connector)),
         Connectors.Select(connector => new MakeConnectorUnavailable(Command, Charger, connector)),
         Connectors.Select(connector => new MakeConnectorAvailable(Command, Charger, connector)),
         Gen.Const(Registration));

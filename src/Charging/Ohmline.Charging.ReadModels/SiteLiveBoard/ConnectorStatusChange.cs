@@ -34,8 +34,8 @@ public sealed record ConnectorStatusChange(
             ConnectorOccupied occupied =>
                 [Of(occupied, ConnectorStatus.Occupied, occupied.SessionId.Value)],
             ConnectorReleased released => [Of(released, ConnectorStatus.Available)],
-            ConnectorFaulted faulted => [Of(faulted, ConnectorStatus.Faulted)],
-            ConnectorFaultCleared cleared => [Of(cleared, ConnectorStatus.Available)],
+            ConnectorOutOfOrder outOfOrder => [Of(outOfOrder, ConnectorStatus.OutOfOrder)],
+            ConnectorRepaired repaired => [Of(repaired, ConnectorStatus.Available)],
             ConnectorMadeUnavailable closed => [Of(closed, ConnectorStatus.Unavailable)],
             ConnectorMadeAvailable opened => [Of(opened, ConnectorStatus.Available)],
         };

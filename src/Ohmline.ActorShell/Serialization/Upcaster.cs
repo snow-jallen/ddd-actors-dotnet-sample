@@ -24,6 +24,14 @@ public abstract class Upcaster
         where TNew : class =>
         new Typed<TOld, TNew>(upcast);
 
+    /// <summary>
+    /// For a type that was renamed under a new manifest (section 20.7): the same shape, read
+    /// under the manifest it was stored with.
+    /// </summary>
+    public static Upcaster Alias<T>()
+        where T : class =>
+        new Typed<T, T>(stored => stored);
+
     /// <summary>Converts what was read from the old JSON into today's type.</summary>
     public abstract object Upcast(object old);
 

@@ -37,10 +37,11 @@ The context that runs charge points, connectors, reservations and charging sessi
 | Term | Meaning | In code |
 |---|---|---|
 | Charging session (session) | One charge on one connector, from start to end. OCPP calls it a "transaction"; inside Charging it is always a session | `SessionId`, `ChargingSession` |
-| Connector status | Available, Reserved, Occupied, Faulted or Unavailable | `ConnectorState` |
+| Connector status | Available, Reserved, Occupied, Out of order or Unavailable | `ConnectorState` |
 | Reservation | A claim on a connector for one token until it expires. Not a payment hold | `ReserveConnector`, `ConnectorReserved`, `ReservationExpired` |
 | Occupied | A car is plugged into the connector | `OccupyConnector`, `ConnectorOccupied` |
-| Fault | The charge point reports that a connector cannot be used | `ReportConnectorFault`, `ConnectorFaulted` |
+| Out of order | The charge point reports that a connector cannot be used, with its own error code; it takes no reservation and no session until it is repaired. Called "faulted" until section 20.7; the stored and published names keep the old word (`charging.connector-faulted.v1` is still read, the status value and the rejection code stay `faulted` and `connector-faulted`) | `ReportConnectorOutOfOrder`, `ConnectorOutOfOrder`, `OutOfOrder` |
+| Repaired | An out-of-order connector works again (OCPP: a `Faulted` connector reports `Available`) | `ReportConnectorRepaired`, `ConnectorRepaired` |
 | Unavailable | Operators took a working connector out of use, for maintenance or a closed bay; it takes no reservation and no session until they put it back | `MakeConnectorUnavailable`, `ConnectorMadeUnavailable` |
 | Meter reading | The charge point's cumulative energy register (Wh) with a timestamp; it never decreases | `MeterReading` |
 | Meter anomaly | A meter reading that breaks the rules, such as a register that went backwards. Recorded, never rejected | `MeterAnomalyDetected` |
@@ -115,6 +116,7 @@ of OCPP 1.6J. These words are the protocol's, and they stop at the gateway.
 | Charging profile | A power limit sent to a charge point; the OCPP action `SetChargingProfile` keeps its external name | `SetChargingProfile` |
 | Remote start / remote stop | Ohmline asks a charge point to start or stop | `RemoteStart`, `RemoteStop` |
 | Heartbeat / boot notification | A liveness ping / the first message after a charge point connects | — |
+| `Faulted` (status) | The charge point's word for a connector that cannot be used; back to `Available` once repaired | `ReportConnectorOutOfOrder`, `ReportConnectorRepaired` |
 
 ## Driver App
 

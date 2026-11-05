@@ -125,8 +125,8 @@ public sealed class OcppTranslatorTests
     public static TheoryData<string?, string, string, string?> Statuses => new()
     {
         // status before, status now, error code, then
-        { null, "Faulted", "GroundFailure", "ReportConnectorFault GroundFailure" },
-        { "Faulted", "Available", "NoError", "ClearConnectorFault" },
+        { null, "Faulted", "GroundFailure", "ReportConnectorOutOfOrder GroundFailure" },
+        { "Faulted", "Available", "NoError", "ReportConnectorRepaired" },
         { "Finishing", "Available", "NoError", "ReleaseConnector" },
         { "Charging", "SuspendedEV", "NoError", "SuspendCharging ByEv" },
         { "Charging", "SuspendedEVSE", "NoError", "SuspendCharging ByCharger" },
@@ -161,7 +161,7 @@ public sealed class OcppTranslatorTests
             .Value.ShouldBeOfType<Translated>();
 
         Sent(translated).ShouldBe(
-            [new ReportConnectorFault(Command, Charger, 2, "GroundFailure")]);
+            [new ReportConnectorOutOfOrder(Command, Charger, 2, "GroundFailure")]);
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public sealed class OcppTranslatorTests
 
     private static string Show(object command) => command switch
     {
-        ReportConnectorFault fault => $"ReportConnectorFault {fault.ErrorCode}",
+        ReportConnectorOutOfOrder fault => $"ReportConnectorOutOfOrder {fault.ErrorCode}",
         SuspendCharging suspend => $"SuspendCharging {suspend.By.GetType().Name}",
         _ => command.GetType().Name,
     };

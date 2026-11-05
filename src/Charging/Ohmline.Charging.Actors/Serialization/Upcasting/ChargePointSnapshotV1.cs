@@ -58,7 +58,7 @@ internal sealed record ChargePointSnapshotV1(
             "reserved" => new ConnectorSnapshot.Reserved(
                 Number, MaxPower, Required(TokenUid), Required(ExpiresAt) - takenAt),
             "occupied" => new ConnectorSnapshot.Occupied(Number, MaxPower, Required(SessionId)),
-            "faulted" => new ConnectorSnapshot.Faulted(Number, MaxPower, Required(ErrorCode)),
+            "faulted" => new ConnectorSnapshot.OutOfOrder(Number, MaxPower, Required(ErrorCode)),
             "unavailable" => new ConnectorSnapshot.Unavailable(Number, MaxPower),
             _ => throw new System.Text.Json.JsonException(
                 $"A v1 charge point snapshot has no connector kind '{Kind}'."),

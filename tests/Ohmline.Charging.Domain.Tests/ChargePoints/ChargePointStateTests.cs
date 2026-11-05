@@ -32,7 +32,7 @@ public sealed class ChargePointStateTests
         Describe(new Reserved(DriversCard, expiry))
             .ShouldBe("reserved for 04A2B3C4D5E6F7 until 08:07");
         Describe(new Occupied(Session)).ShouldBe($"occupied by session {Session}");
-        Describe(new Faulted("GroundFailure")).ShouldBe("faulted: GroundFailure");
+        Describe(new OutOfOrder("GroundFailure")).ShouldBe("out of order: GroundFailure");
         Describe(new Unavailable()).ShouldBe("unavailable");
         Describe(default(ConnectorState)).ShouldBe("unknown");
     }
@@ -85,7 +85,7 @@ public sealed class ChargePointStateTests
         Available => "available",
         Reserved reserved => $"reserved for {reserved.TokenUid} until {reserved.ExpiresAt:HH:mm}",
         Occupied occupied => $"occupied by session {occupied.SessionId}",
-        Faulted faulted => $"faulted: {faulted.ErrorCode}",
+        OutOfOrder outOfOrder => $"out of order: {outOfOrder.ErrorCode}",
         Unavailable => "unavailable",
         null => "unknown",
     };

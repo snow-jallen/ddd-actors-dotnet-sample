@@ -52,8 +52,8 @@ public static class ChargePointSnapshotMapping
                 connector.Id.Number, connector.MaxPower, held.TokenUid, held.ExpiresAt - takenAt),
             Occupied occupied => new ConnectorSnapshot.Occupied(
                 connector.Id.Number, connector.MaxPower, occupied.SessionId),
-            Faulted fault => new ConnectorSnapshot.Faulted(
-                connector.Id.Number, connector.MaxPower, fault.ErrorCode),
+            OutOfOrder outOfOrder => new ConnectorSnapshot.OutOfOrder(
+                connector.Id.Number, connector.MaxPower, outOfOrder.ErrorCode),
             Unavailable =>
                 new ConnectorSnapshot.Unavailable(connector.Id.Number, connector.MaxPower),
             null => throw new InvalidOperationException("The connector's state is default."),
@@ -66,7 +66,7 @@ public static class ChargePointSnapshotMapping
             ConnectorSnapshot.Reserved held =>
                 new Reserved(held.TokenUid, takenAt + held.ExpiresIn),
             ConnectorSnapshot.Occupied occupied => new Occupied(occupied.SessionId),
-            ConnectorSnapshot.Faulted fault => new Faulted(fault.ErrorCode),
+            ConnectorSnapshot.OutOfOrder outOfOrder => new OutOfOrder(outOfOrder.ErrorCode),
             ConnectorSnapshot.Unavailable => new Unavailable(),
         };
 }

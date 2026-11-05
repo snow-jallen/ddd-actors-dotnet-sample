@@ -26,8 +26,8 @@ public sealed class ChargePointEvolveTests
         new ReservationExpired(Charger, 1, SomeoneElsesCard),
         new ConnectorOccupied(Charger, 1, Session, DriversCard),
         new ConnectorReleased(Charger, 1, Session),
-        new ConnectorFaulted(Charger, 2, "GroundFailure"),
-        new ConnectorFaultCleared(Charger, 2),
+        new ConnectorOutOfOrder(Charger, 2, "GroundFailure"),
+        new ConnectorRepaired(Charger, 2),
         new ConnectorMadeUnavailable(Charger, 2),
         new ConnectorMadeAvailable(Charger, 2),
         new ConnectorOccupied(Charger, 2, NextSession, SomeoneElsesCard),
@@ -52,8 +52,8 @@ public sealed class ChargePointEvolveTests
     [InlineData("expired")]
     [InlineData("occupied")]
     [InlineData("released")]
-    [InlineData("faulted")]
-    [InlineData("fault cleared")]
+    [InlineData("out of order")]
+    [InlineData("repaired")]
     [InlineData("made unavailable")]
     [InlineData("made available")]
     public void Given_a_connector_event_when_evolved_then_the_connector_takes_its_next_state(
@@ -68,9 +68,9 @@ public sealed class ChargePointEvolveTests
             "occupied" => (new ConnectorOccupied(Charger, 1, Session, DriversCard),
                 new Occupied(Session)),
             "released" => (new ConnectorReleased(Charger, 1, Session), new Available()),
-            "faulted" => (new ConnectorFaulted(Charger, 1, "GroundFailure"),
-                new Faulted("GroundFailure")),
-            "fault cleared" => (new ConnectorFaultCleared(Charger, 1), new Available()),
+            "out of order" => (new ConnectorOutOfOrder(Charger, 1, "GroundFailure"),
+                new OutOfOrder("GroundFailure")),
+            "repaired" => (new ConnectorRepaired(Charger, 1), new Available()),
             "made unavailable" => (new ConnectorMadeUnavailable(Charger, 1), new Unavailable()),
             "made available" => (new ConnectorMadeAvailable(Charger, 1), new Available()),
             _ => throw new ArgumentOutOfRangeException(nameof(happened)),
@@ -106,7 +106,7 @@ public sealed class ChargePointEvolveTests
             .ShouldBe(ChargePointState.Initial);
         ChargePoint.Evolve(registered, Registration with { ConnectorMaxPowers = [] })
             .ShouldBe(registered);
-        ChargePoint.Evolve(registered, new ConnectorFaulted(Charger, 9, "GroundFailure"))
+        ChargePoint.Evolve(registered, new ConnectorOutOfOrder(Charger, 9, "GroundFailure"))
             .ShouldBe(registered);
         ChargePoint.Evolve(registered, new ConnectorReleased(Charger, 1, Session))
             .ShouldBe(registered);
@@ -134,7 +134,7 @@ public sealed class ChargePointEvolveTests
             new RegisterChargePoint(Command, Charger, Depot, [new(50m), new(22m)]),
             new ReserveConnector(Command, Charger, 1, DriversCard),
             new OccupyConnector(Command, Charger, 1, Session, DriversCard),
-            new ReportConnectorFault(Command, Charger, 2, "GroundFailure"),
+            new ReportConnectorOutOfOrder(Command, Charger, 2, "GroundFailure"),
             new OccupyConnector(Command, Charger, 2, NextSession, SomeoneElsesCard),
             new ReleaseConnector(Command, Charger, 1),
         ];

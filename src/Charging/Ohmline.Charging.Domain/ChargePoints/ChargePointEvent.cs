@@ -69,11 +69,21 @@ public sealed record ConnectorReleased(
     ChargePointId ChargePointId, int ConnectorNumber, SessionId SessionId)
     : ConnectorEvent(ChargePointId, ConnectorNumber);
 
-public sealed record ConnectorFaulted(
+/// <summary>
+/// The charge point reported the connector out of order, with its own error code. Called
+/// <c>ConnectorFaulted</c> until operations stopped saying "fault" (section 20.7): the events
+/// stored under that name, as <c>charging.connector-faulted.v1</c>, are read as this one.
+/// </summary>
+public sealed record ConnectorOutOfOrder(
     ChargePointId ChargePointId, int ConnectorNumber, string ErrorCode)
     : ConnectorEvent(ChargePointId, ConnectorNumber);
 
-public sealed record ConnectorFaultCleared(ChargePointId ChargePointId, int ConnectorNumber)
+/// <summary>
+/// The connector was repaired and works again. Called <c>ConnectorFaultCleared</c> until section
+/// 20.7; only the type was renamed: it is still written as
+/// <c>charging.connector-fault-cleared.v1</c>.
+/// </summary>
+public sealed record ConnectorRepaired(ChargePointId ChargePointId, int ConnectorNumber)
     : ConnectorEvent(ChargePointId, ConnectorNumber);
 
 public sealed record ConnectorMadeUnavailable(ChargePointId ChargePointId, int ConnectorNumber)
