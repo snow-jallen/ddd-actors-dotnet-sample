@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Charging's read side against real journals: the read journal over a temporary SQLite file,
+    written by Charging's own actors and taggers (section 13.3).
+  -->
+
+  <ItemGroup>
+    <!-- The generic host, to start Charging as the node does. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Akka.Persistence.Sql.Hosting" />
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference
+      Include="../../src/Charging/Ohmline.Charging.ReadModels/Ohmline.Charging.ReadModels.csproj" />
+    <!-- Only to write events the way the node does: through the shard regions. -->
+    <ProjectReference
+      Include="../../src/Charging/Ohmline.Charging.Actors/Ohmline.Charging.Actors.csproj" />
+    <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
+  </ItemGroup>
+
+</Project>
