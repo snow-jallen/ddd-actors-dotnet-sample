@@ -60,6 +60,8 @@
     <PackageVersion Include="Akka.Hosting.TestKit" Version="$(AkkaVersion)" />
     <PackageVersion Include="Akka.Persistence.TestKit.Xunit" Version="$(AkkaVersion)" />
     <PackageVersion Include="Akka.TestKit.Xunit" Version="$(AkkaVersion)" />
+    <!-- Spans exported into a list, for assertions on whole traces (section 17.8). -->
+    <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.20.1" />
     <!-- The whole AppHost in a test: containers, processes and their endpoints (16.9). -->
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.6.4" />
     <PackageVersion Include="CsCheck" Version="5.0.1" />

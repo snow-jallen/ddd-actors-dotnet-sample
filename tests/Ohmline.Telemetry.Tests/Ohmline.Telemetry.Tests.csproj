@@ -2,18 +2,25 @@
 
   <!--
     Ohmline's traces as a test sees them (Chapter 17): what reaches an actor through its
-    mailbox, the envelope that carries a trace there, and the shape of a whole trace. Spans
-    are recorded in memory by an ActivityListener; nothing is exported.
+    mailbox, the envelope that carries a trace there, and the shape of a whole trace. Most
+    tests record spans with an ActivityListener; TraceShapeTests run the node as it runs, on
+    PostgreSQL in a container ([Trait("Category", "Integration")]), and read what its
+    OpenTelemetry SDK exports, into memory.
   -->
 
   <ItemGroup>
     <PackageReference Include="Akka.TestKit.Xunit" />
     <!-- A scriptable journal: a write held back on purpose, so commands are stashed (17.6). -->
     <PackageReference Include="Akka.Persistence.TestKit.Xunit" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.XunitV3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../../src/Ohmline.ActorShell/Ohmline.ActorShell.csproj" />
+    <ProjectReference Include="../../src/Ohmline.Node/Ohmline.Node.csproj" />
     <ProjectReference Include="../Ohmline.Testing/Ohmline.Testing.csproj" />
   </ItemGroup>
 
