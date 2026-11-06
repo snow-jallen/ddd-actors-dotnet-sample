@@ -18,6 +18,9 @@ it. Start with [the domain primer](docs/ohmline-primer.md) if the domain is new 
   expected: there is no `ch01-s01` because section 1.1 has no code.
 - Commit subjects repeat the section title (`ch01-s02: Meet Ohmline: one charge, told end to end`),
   and every commit has a `Book-Section: chNN-sMM` trailer.
+- Section 21.9, release day, is told in Conventional Commits (`feat(charging): ...`,
+  `chore(main): release 1.0.0`, `chore(deploy): ...`), and the release commit also carries the
+  version tag `v1.0.0`. MinVer reads only `v` tags; the `chNN-sMM` tags never set a version.
 
 ## Following along with tags
 
@@ -248,6 +251,16 @@ Later chapters add branches next to `main`. None of them is ever merged.
 | `ch20-s08` | 20.8 Owning the journal schema: migrations | `src/Ohmline.Migrator` (DbUp), least-privilege roles, `WaitForCompletion(migrator)` |
 | `ch20-s09` | 20.9 Rebuilding read models and versioning the Published Language | `session-history-v2` beside v1, `SessionHistoryVersion`, `SessionCompletedV2` beside v1 |
 | `ch20-s10` | 20.10 Retention, privacy and backups | `docs/runbooks/retention.md`, `docs/runbooks/backup-restore.md`, `PersonalDataTests` |
+| `ch21-s01` | 21.1 SemVer at three layers | ADR 0016; the published contracts packable with package validation |
+| `ch21-s02` | 21.2 Versions from git with MinVer, and the AppVersion trap | MinVer 8.0.0, `OhmlineAppVersion` (MAJOR.MINOR.PATCH for the cluster); branch `wrong/ch21-s02-minver-appversion` |
+| `ch21-s03` | 21.3 Conventional Commits and release-please | `release-please.yml`, `release-please-config.json`, `.release-please-manifest.json` (0.9.0), `docs/contributing.md` |
+| `ch21-s04` | 21.4 CI that builds every tag | `packages.lock.json` everywhere, `.github/workflows/ci.yml` (build, tests, Android, audit, `verify-tags.sh`) |
+| `ch21-s05` | 21.5 Container images from the SDK | `build/Containers.targets`: `ohmline/*` images, MinVer tags, user 1654; ghcr.io on release |
+| `ch21-s06` | 21.6 Kubernetes topology for an Akka cluster | `ClusterFormation`, Akka.Management bootstrap and a lease-majority SBR on Kubernetes, `deploy/k8s` |
+| `ch21-s07` | 21.7 Anatomy of a rolling update | `ShutdownBudget`, the gateway's `ConnectionDrain` with reconnect hints, `docs/runbooks/rolling-update.md`, `reconnect-storm` |
+| `ch21-s08` | 21.8 Feature flags without breaking replay; blue/green done right | `DecisionContext.Features`, `SessionStarted.PricingModel`, ADR 0017, `docs/runbooks/blue-green.md` |
+| `ch21-s09` | 21.9 Release day, end to end | `feat(charging): idle fee cap per tariff`, `CHANGELOG.md`, tag `v1.0.0`, the prod overlay at 1.0.0 |
+| `ch21-s10` | 21.10 Upgrading the platform: Akka.NET 1.5 to 1.6 | On branch `upgrade/akka-1.6` only: Akka.NET 1.6.0-beta5, pinned serializer bindings, `docs/upgrade-akka-1.6.md` |
 
 ## Licence and disclaimers
 
