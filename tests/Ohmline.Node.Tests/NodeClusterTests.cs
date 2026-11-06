@@ -1,4 +1,5 @@
 using Akka.Cluster;
+using Ohmline.ActorShell.Clustering;
 
 namespace Ohmline.Node.Tests;
 
@@ -26,5 +27,13 @@ public sealed class NodeClusterTests(ITestOutputHelper output) : ShardedNode(out
             .ShouldBe("keep-majority");
         config.GetTimeSpan("akka.cluster.split-brain-resolver.stable-after")
             .ShouldBe(TimeSpan.FromSeconds(20));
+    }
+
+    [Fact]
+    public void Given_the_node_then_the_cluster_sees_its_release_as_its_app_version()
+    {
+        var release = OhmlineAppVersion.Of(typeof(Program).Assembly);
+
+        Cluster.Get(Sys).SelfMember.AppVersion.ToString().ShouldBe(release);
     }
 }

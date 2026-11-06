@@ -45,7 +45,11 @@ builder.Services.AddAkka("ohmline", akka => akka
         // Akka.Actor.ActorSystem, whatever actor wrote it (section 18.4).
         loggers.AddLoggerFactory();
     })
-    .WithOhmlineCluster(builder.Configuration, builder.Environment, ClusterRoles.Charging)
+    .WithOhmlineCluster(
+        builder.Configuration,
+        builder.Environment,
+        ClusterRoles.Charging,
+        OhmlineAppVersion.Of(typeof(Program).Assembly))
     // Dead letters, actors' lifecycles and the shard regions' size (section 18.2).
     .WithShellMetrics()
     .WithShardStats()

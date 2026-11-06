@@ -61,7 +61,11 @@ public abstract class ShardedNode(ITestOutputHelper output)
             })
             .Build();
         builder
-            .WithOhmlineCluster(settings, new Development(), ClusterRoles.Charging)
+            .WithOhmlineCluster(
+                settings,
+                new Development(),
+                ClusterRoles.Charging,
+                OhmlineAppVersion.Of(typeof(Program).Assembly))
             .AddChargingContext()
             .AddSiteEnergyContext()
             .AddDriverAccountsContext()

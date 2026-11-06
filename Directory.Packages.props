@@ -66,6 +66,8 @@
   </ItemGroup>
 
   <ItemGroup Label="Build and release">
+    <!-- Versions from vX.Y.Z git tags, in every project (Directory.Build.props, section 21.2). -->
+    <PackageVersion Include="MinVer" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup Label="Testing">

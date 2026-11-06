@@ -29,7 +29,11 @@ builder.Services.AddAkka("ohmline", akka => akka
         loggers.ClearLoggers();
         loggers.AddLoggerFactory();
     })
-    .WithOhmlineCluster(builder.Configuration, builder.Environment, ClusterRoles.Gateway)
+    .WithOhmlineCluster(
+        builder.Configuration,
+        builder.Environment,
+        ClusterRoles.Gateway,
+        OhmlineAppVersion.Of(typeof(Program).Assembly))
     .WithShellMetrics() // Dead letters and actors' lifecycles; it hosts no shard (section 18.2).
     // Operators' commands (pbm): cluster and sharding, on the loopback interface only, never
     // Petabridge.Cmd's default 0.0.0.0. Reached with port forwarding (section 18.8).

@@ -1,4 +1,17 @@
 <Project>
   <!-- Build checks that run after every project file has been read. -->
   <Import Project="$(MSBuildThisFileDirectory)build/DomainPurity.targets" />
+
+  <!--
+    The version a node gives the cluster (section 21.2): MAJOR.MINOR.PATCH of the release. Not
+    the assembly version, which MinVer sets to MAJOR.0.0.0, so that every 1.x release would look
+    the same to Akka.NET; and never the pre-release part, because Akka.NET cannot parse a dotted
+    one such as 1.4.3-alpha.0.1 and the node would not start. OhmlineAppVersion reads it.
+  -->
+  <Target Name="OhmlineAppVersion" AfterTargets="MinVer">
+    <ItemGroup>
+      <AssemblyMetadata Include="OhmlineAppVersion"
+                        Value="$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)" />
+    </ItemGroup>
+  </Target>
 </Project>

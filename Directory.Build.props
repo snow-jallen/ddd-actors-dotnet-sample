@@ -21,6 +21,16 @@
     <Company>Ohmline</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+  <!--
+    Versions come from git (section 21.2): MinVer reads the latest vX.Y.Z tag, so a release is a
+    tag and never an edit. The book's chNN-sMM tags have no v, and MinVer ignores them.
+  -->
+  <PropertyGroup>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MinVer" PrivateAssets="all" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>

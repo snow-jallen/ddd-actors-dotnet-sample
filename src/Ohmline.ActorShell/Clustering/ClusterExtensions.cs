@@ -25,10 +25,15 @@ public static class ClusterExtensions
         /// (<see cref="ClusterRoles"/>), the seed nodes in <c>Akka:Cluster:SeedNodes</c>, and the
         /// split-brain resolver written down rather than inherited. A development node without
         /// seed nodes joins itself and is a cluster of one; any other node without them is a
-        /// configuration mistake and does not start.
+        /// configuration mistake and does not start. The app version is the release's
+        /// <c>MAJOR.MINOR.PATCH</c> (<see cref="OhmlineAppVersion"/>), never Akka.NET's default,
+        /// the entry assembly's version, which MinVer leaves at <c>MAJOR.0.0</c>.
         /// </summary>
         public AkkaConfigurationBuilder WithOhmlineCluster(
-            IConfiguration configuration, IHostEnvironment environment, string role)
+            IConfiguration configuration,
+            IHostEnvironment environment,
+            string role,
+            string appVersion)
         {
             var hostname = configuration["Akka:Remote:Hostname"] ?? "localhost";
             var port = configuration.GetValue<int>("Akka:Remote:Port");
@@ -47,6 +52,7 @@ public static class ClusterExtensions
                 .WithClustering(new ClusterOptions
                 {
                     Roles = [role],
+                    AppVersion = appVersion,
                     SeedNodes = seedNodes,
                     // Akka.NET's defaults since 1.5.2, made explicit: after 20 s without a
                     // change in reachability, the side with most nodes downs the other side.
