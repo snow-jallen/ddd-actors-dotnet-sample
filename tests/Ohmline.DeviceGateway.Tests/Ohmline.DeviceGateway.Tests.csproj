@@ -2,7 +2,8 @@
 
   <!--
     The connection actor between a charger and Charging, with test probes as Charging's
-    regions, the tariff book and the pub-sub mediator, and a recording link as the WebSocket.
+    regions, the tariff book and the pub-sub mediator, and a recording link as the WebSocket;
+    and the gateway's host, stopping with chargers connected.
   -->
 
   <ItemGroup>
@@ -11,6 +12,8 @@
 
   <ItemGroup>
     <PackageReference Include="Akka.TestKit.Xunit" />
+    <!-- The gateway's host in memory, for its way out (section 21.7). -->
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
   </ItemGroup>
 

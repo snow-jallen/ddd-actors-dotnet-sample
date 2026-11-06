@@ -13,6 +13,16 @@
           "xunit.v3.extensibility.core": "3.2.2"
         }
       },
+      "Microsoft.AspNetCore.Mvc.Testing": {
+        "type": "Direct",
+        "requested": "[11.0.0-rc.3.26522.148, )",
+        "resolved": "11.0.0-rc.3.26522.148",
+        "contentHash": "JsNB7TjADypnQTzP3m31oJvTlJuYlHJaHB1KLAiwFaEMt4GRXedOuVK56dZT2K+RnzGmszwXo/8burbLP5mDCA==",
+        "dependencies": {
+          "Microsoft.AspNetCore.TestHost": "11.0.0-rc.3.26522.148",
+          "Microsoft.Extensions.DependencyModel": "11.0.0-rc.3.26522.148"
+        }
+      },
       "Microsoft.Extensions.TimeProvider.Testing": {
         "type": "Direct",
         "requested": "[10.11.0, )",
@@ -278,6 +288,11 @@
         "resolved": "2.23.0",
         "contentHash": "nWArUZTdU7iqZLycLKWe0TDms48KKGE6pONH2terYNa8REXiqixrMOkf1sk5DHGMaUTqONU2YkS4SAXBhLStgw=="
       },
+      "Microsoft.AspNetCore.TestHost": {
+        "type": "Transitive",
+        "resolved": "11.0.0-rc.3.26522.148",
+        "contentHash": "O9Rj97afDrRc0BSBwjkPz5UIXzNWLFFuTgBJtYumTzgs4Kk6Q3zb8i7XolTVoVWXkIBgDkHP3tRtOpUEP6YnvA=="
+      },
       "Microsoft.Bcl.AsyncInterfaces": {
         "type": "Transitive",
         "resolved": "6.0.0",
@@ -297,6 +312,11 @@
         "type": "Transitive",
         "resolved": "10.11.0",
         "contentHash": "h/sovspxVmT2DTIbWORMG0Gi3zVcPQzNl3kbwtpo0LoUXYbe2+66wQqZYwaF2ZWKN8HDdHv5yoc7d0DbDBBlnA=="
+      },
+      "Microsoft.Extensions.DependencyModel": {
+        "type": "Transitive",
+        "resolved": "11.0.0-rc.3.26522.148",
+        "contentHash": "JgKGNlnZpIFZ9KQfxRcU2Q86+KGbgU2jPNFvu4wBX5rWa56R1ZsjqWzpxUi5PxrSovys+i5MRkELS5jXgPUYiQ=="
       },
       "Microsoft.Extensions.Diagnostics.ExceptionSummarization": {
         "type": "Transitive",

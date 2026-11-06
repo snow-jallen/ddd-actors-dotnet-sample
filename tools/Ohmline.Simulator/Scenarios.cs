@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Net.WebSockets;
+using Ohmline.DeviceGateway.Ocpp.Frames;
 using Ohmline.DeviceGateway.Ocpp.Messages;
 
 namespace Ohmline.Simulator;
@@ -16,6 +18,12 @@ public static class Scenarios
 
     private static readonly TimeSpan Patience = TimeSpan.FromSeconds(90);
 
+    /// <summary>
+    /// How soon a charger reconnects when nothing tells it otherwise: what many chargers do, and
+    /// what makes every charger of a gateway that was cut off come back in the same second.
+    /// </summary>
+    private static readonly TimeSpan NoHint = TimeSpan.FromSeconds(1);
+
     public static Task<ScenarioResult> RunAsync(
         SimulatorOptions options, int number, CancellationToken cancellationToken) =>
         options.Scenario switch
@@ -24,6 +32,8 @@ public static class Scenarios
                 options, number, cancellationToken),
             SimulatorOptions.Fault => FaultAsync(options, number, cancellationToken),
             SimulatorOptions.Disconnect => DisconnectAsync(options, number, cancellationToken),
+            SimulatorOptions.ReconnectStorm => ReconnectStormAsync(
+                options, number, cancellationToken),
             var other => throw new ArgumentException($"There is no scenario '{other}'."),
         };
 
@@ -77,6 +87,74 @@ public static class Scenarios
             var (session, _) = await ChargeAsync(charger, driver, token, cancellationToken);
             charger.Drop();
             return new ScenarioResult(charger.ChargePointId, session, "disconnected");
+        }
+    }
+
+    /// <summary>
+    /// A charger that stays connected while the gateway is restarted, as in a rolling update
+    /// (section 21.7). Whenever the gateway closes its connection, it waits as long as the
+    /// close frame's reconnect hint asks, or a second without one, and connects again with a
+    /// boot notification and its status, as a charger does after every reconnection. Each
+    /// reconnection is printed with its time, so a run with many chargers shows whether they
+    /// came back spread out or all in the same second. Runs for <c>--duration</c> seconds.
+    /// </summary>
+    public static async Task<ScenarioResult> ReconnectStormAsync(
+        SimulatorOptions options, int number, CancellationToken cancellationToken)
+    {
+        var (charger, _, _) = await ArriveAsync(options, number, cancellationToken);
+        using var running = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        running.CancelAfter(options.Duration);
+        var reconnections = 0;
+        try
+        {
+            while (true)
+            {
+                var close = await charger.Closed.WaitAsync(running.Token);
+                await charger.DisposeAsync();
+                var hint = ReconnectHint.Of(close.Status, close.Description);
+                await Task.Delay(hint ?? NoHint, running.Token);
+                charger = await ReconnectAsync(options, charger.ChargePointId, running.Token);
+                reconnections++;
+                Console.WriteLine(
+                    $"{DateTimeOffset.Now:HH:mm:ss} {charger.ChargePointId} reconnected, " +
+                    (hint is { } wait ? $"as asked, after {wait.TotalSeconds:0} s" : "at once"));
+            }
+        }
+        catch (OperationCanceledException) when (running.IsCancellationRequested)
+        {
+            // The run is over.
+        }
+        finally
+        {
+            await charger.DisposeAsync();
+        }
+
+        return new ScenarioResult(
+            charger.ChargePointId, null, $"reconnected {reconnections} time(s)");
+    }
+
+    /// <summary>Connects until a gateway accepts, a second apart: one may be draining.</summary>
+    private static async Task<SimulatedCharger> ReconnectAsync(
+        SimulatorOptions options, string chargePointId, CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            var charger = new SimulatedCharger(chargePointId);
+            try
+            {
+                await charger.ConnectAsync(options.Gateway, cancellationToken);
+                await charger.CallAsync(
+                    OcppActions.BootNotification,
+                    new BootNotificationRequest("Ohmline", "Simulator", "16.7"),
+                    cancellationToken);
+                await charger.StatusAsync(1, "Available", cancellationToken);
+                return charger;
+            }
+            catch (Exception refused) when (refused is WebSocketException or TimeoutException)
+            {
+                await charger.DisposeAsync();
+                await Task.Delay(NoHint, cancellationToken);
+            }
         }
     }
 

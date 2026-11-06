@@ -5,7 +5,7 @@ using Ohmline.ActorShell.Clustering;
 
 namespace Ohmline.ActorShell.Tests.Clustering;
 
-/// <summary>How a node finds its cluster, from its configuration (sections 12.1 and 21.6).</summary>
+/// <summary>How a node finds its cluster, from its configuration (sections 12.1, 21.6).</summary>
 public sealed class ClusterFormationTests
 {
     [Fact]

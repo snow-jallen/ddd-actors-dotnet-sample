@@ -49,4 +49,12 @@ internal static partial class GatewayLog
         "{ChargePointId} sent nothing for {SilenceTimeout}; its connection is closed")]
     public static partial void Silent(
         this ILogger log, ChargePointId chargePointId, TimeSpan silenceTimeout);
+
+    [LoggerMessage(2010, LogLevel.Information,
+        "Draining {Connections} charger connections over {DrainWindow}")]
+    public static partial void Draining(this ILogger log, int connections, TimeSpan drainWindow);
+
+    [LoggerMessage(2011, LogLevel.Information,
+        "{Connections} charger connections closed in {Elapsed}")]
+    public static partial void Drained(this ILogger log, int connections, TimeSpan elapsed);
 }

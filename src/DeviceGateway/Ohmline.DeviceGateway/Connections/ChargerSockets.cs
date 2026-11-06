@@ -43,12 +43,20 @@ public static class ChargerSockets
         IRequiredActor<ChargingSessionRegion> sessions,
         IRequiredActor<TariffBookProxy> tariffBook,
         IOptions<GatewayOptions> options,
+        OpenConnections open,
         TimeProvider clock,
         ILogger<ChargerConnectionActor> log)
     {
         if (!http.WebSockets.IsWebSocketRequest)
         {
             return TypedResults.BadRequest("A charger connects with a WebSocket.");
+        }
+
+        if (!open.Accepting)
+        {
+            // This node is draining (section 21.7): the charger tries again, elsewhere.
+            http.Response.Headers.RetryAfter = "5";
+            return TypedResults.StatusCode(StatusCodes.Status503ServiceUnavailable);
         }
 
         if (ChargePointId.TryCreate(chargePointId) is not Ok<ChargePointId> { Value: var id })
@@ -61,6 +69,7 @@ public static class ChargerSockets
             : null;
         using var socket = await http.WebSockets.AcceptWebSocketAsync(subprotocol);
         var link = new WebSocketLink(socket);
+        using var tracked = open.Add(id, link);
         var regions = new ChargerRegions(
             chargePoints.ActorRef,
             sessions.ActorRef,

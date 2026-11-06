@@ -1,3 +1,4 @@
+using Akka.Actor;
 using Akka.Cluster;
 using Ohmline.ActorShell.Clustering;
 
@@ -35,5 +36,15 @@ public sealed class NodeClusterTests(ITestOutputHelper output) : ShardedNode(out
         var release = OhmlineAppVersion.Of(typeof(Program).Assembly);
 
         Cluster.Get(Sys).SelfMember.AppVersion.ToString().ShouldBe(release);
+    }
+
+    [Fact]
+    public void Given_the_node_then_its_shutdown_tasks_fit_in_the_host_s_shutdown_timeout()
+    {
+        var shutdown = CoordinatedShutdown.Get(Sys);
+
+        shutdown.TotalTimeout.ShouldBeLessThanOrEqualTo(ShutdownBudget.HostShutdownTimeout);
+        shutdown.Timeout(CoordinatedShutdown.PhaseClusterShardingShutdownRegion)
+            .ShouldBe(TimeSpan.FromSeconds(6));
     }
 }
