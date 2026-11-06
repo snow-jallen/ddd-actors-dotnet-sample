@@ -15,9 +15,24 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    outputs:
+      release-created: ${{ steps.release.outputs.release_created }}
+      tag-name: ${{ steps.release.outputs.tag_name }}
     steps:
       - uses: googleapis/release-please-action@v5.0.0
         id: release
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  # The release PR was merged and tagged: build and test the tag, then publish its images to
+  # ghcr.io (section 21.5).
+  release:
+    needs: release-please
+    if: needs.release-please.outputs.release-created == 'true'
+    uses: ./.github/workflows/ci.yml
+    with:
+      release-tag: ${{ needs.release-please.outputs.tag-name }}
+    permissions:
+      contents: read
+      packages: write

@@ -11,6 +11,11 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
+  <!-- Its container image, ohmline/migrator (section 21.5, build/Containers.targets). -->
+  <PropertyGroup>
+    <ContainerRepository>ohmline/migrator</ContainerRepository>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="dbup-postgresql" />
     <PackageReference Include="Npgsql" />

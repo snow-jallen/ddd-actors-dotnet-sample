@@ -6,6 +6,11 @@
     proxies, and holds no aggregate (section 16.7).
   -->
 
+  <!-- Its container image, ohmline/gateway (section 21.5, build/Containers.targets). -->
+  <PropertyGroup>
+    <ContainerRepository>ohmline/gateway</ContainerRepository>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Akka.Cluster.Hosting" />
     <!-- pbm's host and its cluster and sharding palettes, for operators (section 18.8). -->

@@ -5,6 +5,11 @@
     (ADR 0004). It reads Charging's Published Language and serves its own contracts.
   -->
 
+  <!-- Its container image, ohmline/billing (section 21.5, build/Containers.targets). -->
+  <PropertyGroup>
+    <ContainerRepository>ohmline/billing</ContainerRepository>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- Billing's state is rows in its own database, written with plain SQL (section 16.3). -->
     <PackageReference Include="Npgsql" />

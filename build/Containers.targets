@@ -1,0 +1,29 @@
+<Project>
+
+  <!--
+    Container images from the SDK (section 21.5), for every project that names a
+    ContainerRepository: dotnet publish -t:PublishContainer, no Dockerfile. The base image is the
+    SDK's choice for the project, mcr.microsoft.com/dotnet/aspnet for a web project, at the
+    project's runtime version.
+  -->
+
+  <!-- The base images' non-root user, app, written down: an image never runs as root. -->
+  <PropertyGroup Condition="'$(ContainerRepository)' != ''">
+    <ContainerUser>1654</ContainerUser>
+  </PropertyGroup>
+
+  <!--
+    The image is tagged with MinVer's version and nothing else: 1.0.0 for a release,
+    1.0.1-alpha.0.3 between releases. Never latest, which names a different image every day,
+    and never a tag that moves. A property set in the project file would be read before MinVer
+    runs, so the tag is set by a target after it.
+  -->
+  <Target Name="OhmlineImageTags"
+          AfterTargets="MinVer"
+          Condition="'$(ContainerRepository)' != ''">
+    <PropertyGroup>
+      <ContainerImageTags>$(MinVerVersion)</ContainerImageTags>
+    </PropertyGroup>
+  </Target>
+
+</Project>

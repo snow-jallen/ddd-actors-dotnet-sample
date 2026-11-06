@@ -7,6 +7,11 @@
     holds no domain logic of its own.
   -->
 
+  <!-- Its container image, ohmline/node (section 21.5, build/Containers.targets). -->
+  <PropertyGroup>
+    <ContainerRepository>ohmline/node</ContainerRepository>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Akka.Cluster.Hosting" />
     <PackageReference Include="Akka.Persistence.Hosting" />
