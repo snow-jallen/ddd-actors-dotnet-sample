@@ -1,0 +1,384 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net11.0": {
+      "Akka.Cluster.Hosting": {
+        "type": "Direct",
+        "requested": "[1.5.73, )",
+        "resolved": "1.5.73",
+        "contentHash": "w5676GzQE7T6t0QGTZL3KGbxYJ1HoAM4VVPLlpFNbCWfTA+sl7489kmnD10E46hSEWQ5ag05rwoUUyxXE6qOaQ==",
+        "dependencies": {
+          "Akka.Cluster.Sharding": "1.5.73",
+          "Akka.DistributedData": "1.5.73",
+          "Akka.Persistence.Hosting": "1.5.73",
+          "Akka.Remote.Hosting": "1.5.73"
+        }
+      },
+      "MinVer": {
+        "type": "Direct",
+        "requested": "[8.0.0, )",
+        "resolved": "8.0.0",
+        "contentHash": "AJy/KVjXgUbgjf6HiI8wAk4DSSq0SCmvXQF8aU6IB+pnIQq+YJvofvMczug2hqO8yEvnQY557ryew66KPpyCsA=="
+      },
+      "Akka.Analyzers": {
+        "type": "Transitive",
+        "resolved": "0.3.3",
+        "contentHash": "SaS6yojDwqmy8PFCML8hiXlnSOQpO7adzrosTLbDD9paVAJk4WufteGbPhbiXiu2m4JscNhSM5joFeR9IZpF8g=="
+      },
+      "Akka.Cluster": {
+        "type": "Transitive",
+        "resolved": "1.5.73",
+        "contentHash": "H4cNkzwbxAlxgi8NDYcIcQBSY3GoG9lxCuPEWdNmikn+TgUlflrTzl4bdl2gmiiybcP8glKcmYhSQ5jWEqLNYQ==",
+        "dependencies": {
+          "Akka.Coordination": "1.5.73",
+          "Akka.Remote": "1.5.73"
+        }
+      },
+      "Akka.Cluster.Sharding": {
+        "type": "Transitive",
+        "resolved": "1.5.73",
+        "contentHash": "7eGX2cM+PN41kOvVYmKPo6WYGm+v153SAg/QQli1GV1yNUPFGfYMYYaF/bMg2wyrHHfsZaYVrzumxh+mRFwVWA==",
+        "dependencies": {
+          "Akka.Cluster.Tools": "1.5.73",
+          "Akka.Coordination": "1.5.73",
+          "Akka.DistributedData": "1.5.73",
+          "Akka.DistributedData.LightningDB": "1.5.73",
+          "Akka.Persistence": "1.5.73"
+        }
+      },
+      "Akka.Cluster.Tools": {
+        "type": "Transitive",
+        "resolved": "1.5.73",
+        "contentHash": "GJYJh8VpWIsTCYMFO1t0dT/XA2fKGfvIDpi6qYqV4bsxkF/qlmYiDM0U0kfYmFFOM+s41sEm17Z3xrfBWUJP9g==",
+        "dependencies": {
+          "Akka.Cluster": "1.5.73",
+          "Akka.Coordination": "1.5.73",
+          "Akka.Discovery": "1.5.73"
+        }
+      },
+      "Akka.Coordination": {
+        "type": "Transitive",
+        "resolved": "1.5.73",
+        "contentHash": "0bn5/p2RoVdoCyNvE+LNhvfYcFVweI8JBNie8vL+XuHBHlrkk9p738x9q4/xiRSnMLFIoqdKtxfxNhMS9K3Mig==",
+        "dependencies": {
+          "Akka": "1.5.73"
+        }
+      },
+      "Akka.DependencyInjection": {
+        "type": "Transitive",
+        "resolved": "1.5.73",
+        "contentHash": "dBqN35kaK/gXuvVbhnihK6lB40zCd6PwjrkXFiIC2poALlwyHZCdlGPpjiRVZqJgGTUJzshb7T/OT1Aw7Eu2Qw==",
+        "dependencies": {
+          "Akka": "1.5.73"
+        }
+      },
+      "Akka.Discovery": {
+        "type": "Transitive",
+        "resolved": "1.5.73",
+        "contentHash": "iPZde3kS1WrIkyKeJEqtQDnzjmC0zqbmqLwRft4Q9KYBSAWM/9xIMgimuqWzr44eNV6YZS6LX4xkpkfgv7JaFA==",
+        "dependencies": {
+          "Akka": "1.5.73"
+        }
+      },
+      "Akka.DistributedData": {
+        "type": "Transitive",
+        "resolved": "1.5.73",
+        "contentHash": "iZcWObxHCLxLIU/YiGnzh5ofP++b5xUZ2UdCY8L5qu/V4/dyXsK9biPpeQJOabph723yhSfqHVx4RfOXQWwVVA==",
+        "dependencies": {
+          "Akka.Cluster": "1.5.73"
+        }
+      },
+      "Akka.DistributedData.LightningDB": {
+        "type": "Transitive",
+        "resolved": "1.5.73",
+        "contentHash": "vTsq1apYvGkqH3out6MDUbvcXD7CLK5KUyRQUFuYTXQb1vlOjKHZ29/u9XkgYASSVlcJx77aNtJr7qiuWXzcHg==",
+        "dependencies": {
+          "Akka.DistributedData": "1.5.73",
+          "LightningDB": "0.16.0"
+        }
+      },
+      "Akka.Persistence": {
+        "type": "Transitive",
+        "resolved": "1.5.73",
+        "contentHash": "MxMuAHUvGKIlFHcciwL7t8G8c4iVRyuD8LYKt047eFxdoe+CbubUQGOucTZRyLA4Uec3RLP6jEua5dAfmK57+A==",
+        "dependencies": {
+          "Akka": "1.5.73",
+          "Google.Protobuf": "3.26.1"
+        }
+      },
+      "Akka.Remote": {
+        "type": "Transitive",
+        "resolved": "1.5.73",
+        "contentHash": "VvzN0zWapAdiW9Mn5XFm+27O1aJDpaxfg7C/VyzGjpIHq41qtMPb3EwJBx6qdm0/zSvgNHkDmm4r7soUyTuyXg==",
+        "dependencies": {
+          "Akka": "1.5.73",
+          "DotNetty.Handlers": "0.7.6",
+          "Google.Protobuf": "3.26.1"
+        }
+      },
+      "Akka.Remote.Hosting": {
+        "type": "Transitive",
+        "resolved": "1.5.73",
+        "contentHash": "pWZjYWacmt8TrQy51zDA18ykedQ02tQio5iiLna/3A+dKLYEhVaUjn0M3VLdN3SwTrhsMivSBBAoS4Ji0YNROA==",
+        "dependencies": {
+          "Akka.Hosting": "1.5.73",
+          "Akka.Remote": "1.5.73"
+        }
+      },
+      "Akka.Streams": {
+        "type": "Transitive",
+        "resolved": "1.5.73",
+        "contentHash": "nqLVy9JFcifnXvzJPWzmHD0siU6NUukx1q5uHlOYyFp5iCM/n/QYhp4euhn07sLY7rD8HHr7QmNV2iB1A5jP+g==",
+        "dependencies": {
+          "Akka": "1.5.73",
+          "Google.Protobuf": "3.26.1",
+          "Reactive.Streams": "1.0.4"
+        }
+      },
+      "DotNetty.Buffers": {
+        "type": "Transitive",
+        "resolved": "0.7.6",
+        "contentHash": "JVYypDugRG4m3hbS0drCC79vX93zqjn5w+U4ti/KXjTIzcQ/UVHrCgs7ZgJfWRUQLfgfQB0daYQtE18lKD8pHg==",
+        "dependencies": {
+          "DotNetty.Common": "0.7.6"
+        }
+      },
+      "DotNetty.Codecs": {
+        "type": "Transitive",
+        "resolved": "0.7.6",
+        "contentHash": "XBZy/m3+V8PBUHHHbFKaRBE0+knTCitcE8oKCQn4jZybH25mCZ1vTwj3BRuPYdNpzh74Op32Hj4ZXF+DMx/oAg==",
+        "dependencies": {
+          "DotNetty.Buffers": "0.7.6",
+          "DotNetty.Common": "0.7.6",
+          "DotNetty.Transport": "0.7.6"
+        }
+      },
+      "DotNetty.Common": {
+        "type": "Transitive",
+        "resolved": "0.7.6",
+        "contentHash": "dmK8Njfh2Y4qnz99lLK0evoc46FPL5WOnHMLlavNZ6zqC5/bKgqGsJFoXbhVPkSYDp58g2euI64dhY0cvOUOZQ==",
+        "dependencies": {
+          "Microsoft.Extensions.Logging": "5.0.0"
+        }
+      },
+      "DotNetty.Handlers": {
+        "type": "Transitive",
+        "resolved": "0.7.6",
+        "contentHash": "6sSMp0Md8DbpyOAV9IjiR30uzaLrxAbJTcwFFpMJM1+EJhvPz6Ywt0RqoV6+lseq6zqBjMq2jbPTKcqPoqNYIA==",
+        "dependencies": {
+          "DotNetty.Buffers": "0.7.6",
+          "DotNetty.Codecs": "0.7.6",
+          "DotNetty.Common": "0.7.6",
+          "DotNetty.Transport": "0.7.6"
+        }
+      },
+      "DotNetty.Transport": {
+        "type": "Transitive",
+        "resolved": "0.7.6",
+        "contentHash": "EVQ5FihFPdWmw7v6l/4iyMepj49vZT11kWQNJ0ApC4KzkdJJ6LM/7NDUgghyxbO0e25nfQRtkGLP5EZAEo7QDA==",
+        "dependencies": {
+          "DotNetty.Buffers": "0.7.6",
+          "DotNetty.Common": "0.7.6"
+        }
+      },
+      "Google.Protobuf": {
+        "type": "Transitive",
+        "resolved": "3.26.1",
+        "contentHash": "CHZX8zXqhF/fdUtd+AYzew8T2HFkAoe5c7lbGxZY/qryAlQXckDvM5BfOJjXlMS7kyICqQTMszj4w1bX5uBJ/w=="
+      },
+      "LightningDB": {
+        "type": "Transitive",
+        "resolved": "0.16.0",
+        "contentHash": "nwv4HpV9rc5NMjHJdWqOZGzGgCZH1/NTL+GeNHMUB2O0nbS+N8+qIKYATZJ9DL51SaHPnV7eYy29ITy0R02evA=="
+      },
+      "Microsoft.Extensions.Configuration": {
+        "type": "Transitive",
+        "resolved": "9.0.0",
+        "contentHash": "YIMO9T3JL8MeEXgVozKt2v79hquo/EFtnY0vgxmLnUvk1Rei/halI7kOWZL2RBeV9FMGzgM9LZA8CVaNwFMaNA=="
+      },
+      "Microsoft.Extensions.Configuration.Binder": {
+        "type": "Transitive",
+        "resolved": "9.0.0",
+        "contentHash": "RiScL99DcyngY9zJA2ROrri7Br8tn5N4hP4YNvGdTN/bvg1A3dwvDOxHnNZ3Im7x2SJ5i4LkX1uPiR/MfSFBLQ=="
+      },
+      "Microsoft.Extensions.DependencyInjection": {
+        "type": "Transitive",
+        "resolved": "9.0.0",
+        "contentHash": "MCPrg7v3QgNMr0vX4vzRXvkNGgLg8vKWX0nKCWUxu2uPyMsaRgiRc1tHBnbTcfJMhMKj2slE/j2M9oGkd25DNw=="
+      },
+      "Microsoft.Extensions.Diagnostics.HealthChecks": {
+        "type": "Transitive",
+        "resolved": "9.0.0",
+        "contentHash": "cxsK9/Dx7Ka9sfiA1nY8XlSzIaWff5FNRw0+ls8yR+aGzmnah5JGKsTHgQrehjMwGAVud/pjiUZ9MWizfUSkTQ==",
+        "dependencies": {
+          "Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions": "9.0.0"
+        }
+      },
+      "Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions": {
+        "type": "Transitive",
+        "resolved": "9.0.0",
+        "contentHash": "H1IbHm/MnUgEV0N07WrkPBIIoX7isP6IPaqUdZ3CwbMcUVDGIu+okamW28kyDRfIiZqbTbyHuNIkr4ZSHPyvDw=="
+      },
+      "Microsoft.Extensions.Logging": {
+        "type": "Transitive",
+        "resolved": "9.0.0",
+        "contentHash": "crjWyORoug0kK7RSNJBTeSE6VX8IQgLf3nUpTB9m62bPXp/tzbnOsnbe8TXEG0AASNaKZddnpHKw7fET8E++Pg==",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "9.0.0"
+        }
+      },
+      "Microsoft.Extensions.Logging.Configuration": {
+        "type": "Transitive",
+        "resolved": "9.0.0",
+        "contentHash": "H05HiqaNmg6GjH34ocYE9Wm1twm3Oz2aXZko8GTwGBzM7op2brpAA8pJ5yyD1OpS1mXUtModBYOlcZ/wXeWsSg==",
+        "dependencies": {
+          "Microsoft.Extensions.Configuration": "9.0.0",
+          "Microsoft.Extensions.Configuration.Binder": "9.0.0",
+          "Microsoft.Extensions.Logging": "9.0.0",
+          "Microsoft.Extensions.Options.ConfigurationExtensions": "9.0.0"
+        }
+      },
+      "Microsoft.Extensions.ObjectPool": {
+        "type": "Transitive",
+        "resolved": "6.0.36",
+        "contentHash": "WHwL2Src2pAiLGEmzq6htW+jeKIkrifT3Q6nZROY6EG8EbSGli//XpAh9WpITRsTda3VVUBegvc2QdBWyNn+zg=="
+      },
+      "Microsoft.Extensions.Options.ConfigurationExtensions": {
+        "type": "Transitive",
+        "resolved": "9.0.0",
+        "contentHash": "Ob3FXsXkcSMQmGZi7qP07EQ39kZpSBlTcAZLbJLdI4FIf0Jug8biv2HTavWmnTirchctPlq9bl/26CXtQRguzA==",
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Binder": "9.0.0"
+        }
+      },
+      "Microsoft.Win32.SystemEvents": {
+        "type": "Transitive",
+        "resolved": "6.0.0",
+        "contentHash": "hqTM5628jSsQiv+HGpiq3WKBl2c8v1KZfby2J6Pr7pEPlK9waPdgEO6b8A/+/xn/yZ9ulv8HuqK71ONy2tg67A=="
+      },
+      "Newtonsoft.Json": {
+        "type": "Transitive",
+        "resolved": "13.0.1",
+        "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
+      },
+      "OpenTelemetry": {
+        "type": "Transitive",
+        "resolved": "1.12.0",
+        "contentHash": "aIEu2O3xFOdwIVH0AJsIHPIMH1YuX18nzu7BHyaDNQ6NWSk4Zyrs9Pp6y8SATuSbvdtmvue4mj/QZ3838srbwA==",
+        "dependencies": {
+          "Microsoft.Extensions.Logging.Configuration": "9.0.0",
+          "OpenTelemetry.Api.ProviderBuilderExtensions": "1.12.0"
+        }
+      },
+      "OpenTelemetry.Api": {
+        "type": "Transitive",
+        "resolved": "1.15.3",
+        "contentHash": "fX+fkCysfPut+qCcT3bKqyX4QN9Saf4CgX8HLOHywEVD+Xr7sULtfuypITpoDysjx8R59dn/3mWhgimMH8cm/g=="
+      },
+      "OpenTelemetry.Api.ProviderBuilderExtensions": {
+        "type": "Transitive",
+        "resolved": "1.12.0",
+        "contentHash": "t6Vk1143BfiisCWYbRcyzkAuN6Aq5RkYtfOSMoqCIRMvtN9p1e1xzc0nWQ+fccNGOVgHn3aMK5xFn2+iWMcr8A==",
+        "dependencies": {
+          "OpenTelemetry.Api": "1.12.0"
+        }
+      },
+      "Reactive.Streams": {
+        "type": "Transitive",
+        "resolved": "1.0.4",
+        "contentHash": "k5lcLBmVAcc1OMGsLa5cxdzJazNx9haOb9GUINx+DulBqEvRAHCgxhDWcJjm44Pe633xwdKOOYGQhPSdj944IA=="
+      },
+      "System.Configuration.ConfigurationManager": {
+        "type": "Transitive",
+        "resolved": "6.0.1",
+        "contentHash": "jXw9MlUu/kRfEU0WyTptAVueupqIeE3/rl0EZDMlf8pcvJnitQ8HeVEp69rZdaStXwTV72boi/Bhw8lOeO+U2w==",
+        "dependencies": {
+          "System.Security.Cryptography.ProtectedData": "6.0.0",
+          "System.Security.Permissions": "6.0.0"
+        }
+      },
+      "System.Drawing.Common": {
+        "type": "Transitive",
+        "resolved": "6.0.0",
+        "contentHash": "NfuoKUiP2nUWwKZN6twGqXioIe1zVD0RIj2t976A+czLHr2nY454RwwXs6JU9Htc6mwqL6Dn/nEL3dpVf2jOhg==",
+        "dependencies": {
+          "Microsoft.Win32.SystemEvents": "6.0.0"
+        }
+      },
+      "System.Security.Cryptography.ProtectedData": {
+        "type": "Transitive",
+        "resolved": "6.0.0",
+        "contentHash": "rp1gMNEZpvx9vP0JW0oHLxlf8oSiQgtno77Y4PLUBjSiDYoD77Y8uXHr1Ea5XG4/pIKhqAdxZ8v8OTUtqo9PeQ=="
+      },
+      "System.Security.Permissions": {
+        "type": "Transitive",
+        "resolved": "6.0.0",
+        "contentHash": "T/uuc7AklkDoxmcJ7LGkyX1CcSviZuLCa4jg3PekfJ7SU0niF0IVTXwUiNVP9DSpzou2PpxJ+eNY2IfDM90ZCg==",
+        "dependencies": {
+          "System.Windows.Extensions": "6.0.0"
+        }
+      },
+      "System.Windows.Extensions": {
+        "type": "Transitive",
+        "resolved": "6.0.0",
+        "contentHash": "IXoJOXIqc39AIe+CIR7koBtRGMiCt/LPM3lI+PELtDIy9XdyeSrwXFdWV9dzJ2Awl0paLWUaknLxFQ5HpHZUog==",
+        "dependencies": {
+          "System.Drawing.Common": "6.0.0"
+        }
+      },
+      "ohmline.actorshell": {
+        "type": "Project",
+        "dependencies": {
+          "Akka": "[1.5.73, )",
+          "Akka.Cluster.Hosting": "[1.5.73, )",
+          "Akka.Persistence.Hosting": "[1.5.73, )",
+          "Ohmline.SharedKernel": "[1.0.0, )"
+        }
+      },
+      "ohmline.sharedkernel": {
+        "type": "Project"
+      },
+      "ohmline.siteenergy.contracts": {
+        "type": "Project",
+        "dependencies": {
+          "Ohmline.SharedKernel": "[1.0.0, )"
+        }
+      },
+      "Akka": {
+        "type": "CentralTransitive",
+        "requested": "[1.5.73, )",
+        "resolved": "1.5.73",
+        "contentHash": "llceOuVtuaVF11csQAVkAvJ9SLzDDgTrnqxt6sLQ4GMrzbVPl3VtwjMZt3swHJdHq+pNLUZ+TK6M5E28XFSrrw==",
+        "dependencies": {
+          "Akka.Analyzers": "0.3.3",
+          "Microsoft.Extensions.ObjectPool": "6.0.36",
+          "Newtonsoft.Json": "13.0.1",
+          "System.Configuration.ConfigurationManager": "6.0.1"
+        }
+      },
+      "Akka.Hosting": {
+        "type": "CentralTransitive",
+        "requested": "[1.5.73, )",
+        "resolved": "1.5.73",
+        "contentHash": "hNusiiMsuo6nDmydBdOO6x+jK7ARFMIJv/tq8sNTdJRBjNxb67VGlQ4RX6sip3RcXXrmsk2qytXik5n5/VG9Sg==",
+        "dependencies": {
+          "Akka.DependencyInjection": "1.5.73",
+          "Akka.Streams": "1.5.73",
+          "Microsoft.Extensions.Diagnostics.HealthChecks": "9.0.0",
+          "OpenTelemetry": "1.12.0",
+          "OpenTelemetry.Api": "1.15.3"
+        }
+      },
+      "Akka.Persistence.Hosting": {
+        "type": "CentralTransitive",
+        "requested": "[1.5.73, )",
+        "resolved": "1.5.73",
+        "contentHash": "w9jfLihjlBZ1o+mmKZClU2hwrNugm80hzxXD5iqkMZf4WOSsQn+v0NMn6ocucjM6+3f8mhMlXJIBYb6ugzDYsQ==",
+        "dependencies": {
+          "Akka.Hosting": "1.5.73",
+          "Akka.Persistence": "1.5.73"
+        }
+      }
+    }
+  }
+}

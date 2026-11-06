@@ -13,6 +13,9 @@
     <!-- Reproducible old tags: the vulnerability audit runs as a separate CI job (ch21-s04),
          not in every build. -->
     <NuGetAudit>false</NuGetAudit>
+    <!-- Every project's resolved package graph, committed as packages.lock.json: CI restores in
+         locked mode and fails if a restore would resolve anything else (section 21.4). -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <!-- What every package Ohmline publishes says about itself. Only the published contracts are
        packed (section 21.1); every other project keeps IsPackable false. -->

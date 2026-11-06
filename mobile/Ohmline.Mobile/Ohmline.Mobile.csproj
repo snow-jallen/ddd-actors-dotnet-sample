@@ -20,12 +20,19 @@
     <WindowsPackageType>None</WindowsPackageType>
   </PropertyGroup>
 
+  <!--
+    The target frameworks depend on the machine, and so does the lock file (section 21.4): each
+    OS restores into a lock file of its own, so a build on a Mac never rewrites the one that CI
+    restores in locked mode on Linux, packages.lock.json.
+  -->
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('osx'))">
     <TargetFrameworks>$(TargetFrameworks);net11.0-ios;net11.0-maccatalyst</TargetFrameworks>
+    <NuGetLockFilePath>packages.macos.lock.json</NuGetLockFilePath>
   </PropertyGroup>
 
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('windows'))">
     <TargetFrameworks>$(TargetFrameworks);net11.0-windows10.0.19041.0</TargetFrameworks>
+    <NuGetLockFilePath>packages.windows.lock.json</NuGetLockFilePath>
   </PropertyGroup>
 
   <!-- The oldest platform versions the app runs on; API 24 is the .NET 11 minimum. -->
