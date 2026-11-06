@@ -22,6 +22,18 @@ public sealed class AppVersionTests
         AppVersion.Create(appVersion).ToString().ShouldBe(appVersion);
     }
 
+    /// <summary>
+    /// Fails on this branch: between releases MinVer's version is a dotted pre-release, and the
+    /// node and the gateway stop at startup with Akka.NET's ArgumentOutOfRangeException.
+    /// </summary>
+    [Fact]
+    public void Demonstrates_minver_s_whole_version_is_not_an_app_version_akka_can_parse()
+    {
+        var appVersion = OhmlineAppVersion.Of(Built);
+
+        Should.NotThrow(() => AppVersion.Create(appVersion));
+    }
+
     [Fact]
     public void MinVer_s_assembly_version_names_only_the_major_version()
     {

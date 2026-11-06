@@ -24,9 +24,9 @@ public static class OhmlineAppVersion
         var version = assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
             .LastOrDefault(metadata => metadata.Key == MetadataKey)?.Value;
 
-        return IsMajorMinorPatch(version)
-            ? version
-            : throw new InvalidOperationException(
+        // WRONG: whatever the build wrote goes to Akka.NET unchecked.
+        return version
+            ?? throw new InvalidOperationException(
                 $"{assembly.GetName().Name} has the app version '{version}', not " +
                 "MAJOR.MINOR.PATCH. Directory.Build.targets writes it from MinVer's version.");
     }

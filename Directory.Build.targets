@@ -3,15 +3,13 @@
   <Import Project="$(MSBuildThisFileDirectory)build/DomainPurity.targets" />
 
   <!--
-    The version a node gives the cluster (section 21.2): MAJOR.MINOR.PATCH of the release. Not
-    the assembly version, which MinVer sets to MAJOR.0.0.0, so that every 1.x release would look
-    the same to Akka.NET; and never the pre-release part, because Akka.NET cannot parse a dotted
-    one such as 1.4.3-alpha.0.1 and the node would not start. OhmlineAppVersion reads it.
+    WRONG (section 21.2): the assembly version is stuck at MAJOR.0.0.0 under MinVer, so give the
+    cluster MinVer's whole version instead. Between releases that is a dotted pre-release such
+    as 0.0.0-alpha.0.165, which Akka.NET cannot parse: the node does not start.
   -->
   <Target Name="OhmlineAppVersion" AfterTargets="MinVer">
     <ItemGroup>
-      <AssemblyMetadata Include="OhmlineAppVersion"
-                        Value="$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)" />
+      <AssemblyMetadata Include="OhmlineAppVersion" Value="$(MinVerVersion)" />
     </ItemGroup>
   </Target>
 </Project>
