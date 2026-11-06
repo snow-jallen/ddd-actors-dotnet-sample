@@ -50,6 +50,7 @@ The context that runs charge points, connectors, reservations and charging sessi
 | Suspended by EV / by charger | Charging paused while the car stays plugged in: by the car (full, or its own schedule; the driver is idle and the idle fee applies after the grace period) or by the charge point at Ohmline's request (a curtailment; no idle fee). Split in section 8.6 | `SuspendedByEv`, `SuspendedByCharger`, `SuspendCharging` with `ByEv` or `ByCharger` |
 | Spend cap | The most the driver pre-authorized; reaching it stops charging | `SpendCapReached` |
 | Tariff snapshot | The version of the site's tariff copied into a session when it starts; later tariff changes never affect that session | `TariffSnapshot` |
+| Pricing model | How a session's fees apply, chosen when it starts and recorded in its start: `standard`, or `dynamic-idle-fee` for the pilot in which the idle fee starts after half the grace period. Chosen by a feature flag, read only by Decide (section 21.8) | `PricingModel`, `SessionStarted.PricingModel` |
 | Charging journey | The process from "start charging" to a settled payment, across several contexts | `ChargingJourney`, `JourneyId` |
 
 ## Site Energy

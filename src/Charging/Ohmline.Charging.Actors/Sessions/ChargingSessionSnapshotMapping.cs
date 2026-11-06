@@ -42,6 +42,7 @@ public static class ChargingSessionSnapshotMapping
                 snapshot.SpendCap)
             {
                 PhaseCount = snapshot.PhaseCount ?? SessionTerms.AssumedPhaseCount,
+                PricingModel = snapshot.PricingModel ?? PricingModel.Standard,
             };
             return snapshot.Phase switch
             {
@@ -68,5 +69,6 @@ public static class ChargingSessionSnapshotMapping
             phase)
         {
             PhaseCount = terms.PhaseCount,
+            PricingModel = terms.PricingModel,
         };
 }

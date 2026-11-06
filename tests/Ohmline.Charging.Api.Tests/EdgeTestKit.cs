@@ -27,8 +27,9 @@ public abstract class EdgeTestKit(ITestOutputHelper output)
     protected FakeTimeProvider Clock { get; } = new(Morning);
 
     /// <summary>
-    /// Three seconds: long enough for a probe's answer on a machine running the whole suite,
-    /// and only the test that waits for a 504 waits for it.
+    /// Three seconds: long enough for a probe's answer on a machine running the whole suite
+    /// (500 ms timed out now and then from Chapter 21's test count on), and only the test that
+    /// waits for a 504 waits for it.
     /// </summary>
     protected static IOptions<ChargingApiOptions> Options { get; } =
         Microsoft.Extensions.Options.Options.Create(

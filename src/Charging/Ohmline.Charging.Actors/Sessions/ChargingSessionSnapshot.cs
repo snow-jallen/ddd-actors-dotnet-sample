@@ -36,6 +36,12 @@ public sealed record ChargingSessionSnapshot(
     /// </summary>
     public int? PhaseCount { get; init; }
 
+    /// <summary>
+    /// How the session's fees apply (section 21.8). Optional: a snapshot stored before it
+    /// existed has none, and the session is standard.
+    /// </summary>
+    public string? PricingModel { get; init; }
+
     public bool Equals(ChargingSessionSnapshot? other) =>
         other is not null
         && SessionId == other.SessionId
@@ -46,6 +52,7 @@ public sealed record ChargingSessionSnapshot(
         && SpendCap == other.SpendCap
         && Phase == other.Phase
         && PhaseCount == other.PhaseCount
+        && PricingModel == other.PricingModel
         && RecentCommands.SequenceEqual(other.RecentCommands);
 
     public override int GetHashCode() => HashCode.Combine(SessionId, Phase);

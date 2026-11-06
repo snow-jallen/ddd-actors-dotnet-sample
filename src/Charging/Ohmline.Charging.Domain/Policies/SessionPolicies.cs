@@ -13,13 +13,16 @@ public sealed class SessionPolicies(ImmutableArray<ISessionPolicy> policies) : I
 {
     /// <summary>
     /// The policies for a session under these terms: every session releases what it held and
-    /// stops at its spend cap, and the idle fee is watched only if the tariff has one.
+    /// stops at its spend cap, and the idle fee is watched only if the tariff has one, as the
+    /// session's pricing model applies it.
     /// </summary>
     public static SessionPolicies For(SessionTerms terms) => new(
     [
         new ReleaseOnSessionEnded(),
         new SpendCapPolicy(),
-        .. terms.Tariff.Components.OfType<IdleFee>().Select(fee => new IdleFeePolicy(fee)),
+        .. terms.IdleFee is { } fee
+            ? [new IdleFeePolicy(fee)]
+            : ImmutableArray<ISessionPolicy>.Empty,
     ]);
 
     public ImmutableArray<ChargingIntent> React(SessionEvent @event) =>

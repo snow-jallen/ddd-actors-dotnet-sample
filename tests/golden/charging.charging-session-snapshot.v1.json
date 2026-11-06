@@ -79,5 +79,6 @@
     "since": "2026-11-04T07:52:00-07:00"
   },
   "recentCommands": [],
-  "phaseCount": 3
+  "phaseCount": 3,
+  "pricingModel": "dynamic-idle-fee"
 }

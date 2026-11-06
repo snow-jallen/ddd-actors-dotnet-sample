@@ -22,7 +22,7 @@ public sealed class OlderShapeTests(ITestOutputHelper output)
         var read = Read<SessionStarted>("charging.session-started.v1");
 
         read.PhaseCount.ShouldBeNull();
-        read.ShouldBe(Sample<SessionStarted>() with { PhaseCount = null });
+        read.ShouldBe(Sample<SessionStarted>() with { PhaseCount = null, PricingModel = null });
     }
 
     [Fact]
@@ -38,9 +38,11 @@ public sealed class OlderShapeTests(ITestOutputHelper output)
     {
         var read = Read<ChargingSessionSnapshot>("charging.charging-session-snapshot.v1");
 
-        read.ShouldBe(Sample<ChargingSessionSnapshot>() with { PhaseCount = null });
-        read.ToState().Value.ShouldBeOfType<SuspendedByEv>().Terms.PhaseCount
-            .ShouldBe(SessionTerms.AssumedPhaseCount);
+        read.ShouldBe(
+            Sample<ChargingSessionSnapshot>() with { PhaseCount = null, PricingModel = null });
+        var terms = read.ToState().Value.ShouldBeOfType<SuspendedByEv>().Terms;
+        terms.PhaseCount.ShouldBe(SessionTerms.AssumedPhaseCount);
+        terms.PricingModel.ShouldBe(PricingModel.Standard);
     }
 
     private T Read<T>(string manifest)

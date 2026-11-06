@@ -40,6 +40,13 @@ public static class ServiceDefaultsExtensions
     /// </summary>
     public const string OhmlineTelemetry = "Ohmline.*";
 
+    /// <summary>
+    /// Microsoft.FeatureManagement's source: a span per evaluation of a flag whose telemetry is
+    /// on, with the flag and its outcome (section 21.8). A canary's traces then say which
+    /// flags were on when they were decided.
+    /// </summary>
+    public const string FeatureManagementTelemetry = "Microsoft.FeatureManagement";
+
     /// <summary>Where the exporter sends to; Aspire sets it for every project it runs.</summary>
     public const string OtlpEndpointKey = "OTEL_EXPORTER_OTLP_ENDPOINT";
 
@@ -91,7 +98,7 @@ public static class ServiceDefaultsExtensions
                         new("deployment.environment.name", builder.Environment.EnvironmentName),
                     ]))
                 .WithTracing(tracing => tracing
-                    .AddSource(OhmlineTelemetry)
+                    .AddSource(OhmlineTelemetry, FeatureManagementTelemetry)
                     .AddAspNetCoreInstrumentation(aspNetCore =>
                         aspNetCore.Filter = context => !IsProbe(context.Request.Path))
                     .AddHttpClientInstrumentation())

@@ -6,6 +6,7 @@ using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.Sessions;
 using Ohmline.SharedKernel;
+using Ohmline.SharedKernel.Deciders;
 using Ohmline.SharedKernel.Identity;
 
 namespace Ohmline.Charging.Actors.Sessions;
@@ -21,25 +22,46 @@ public sealed class ChargingSessionActor
     public const string TypeName = "charging-session";
 
     private readonly ChargingMetrics _metrics;
+    private readonly IFeatureFlagSource _features;
 
-    public ChargingSessionActor(SessionId sessionId, TimeProvider clock, ChargingMetrics metrics)
-        : base(TypeName, sessionId.ToString(), clock) =>
+    public ChargingSessionActor(
+        SessionId sessionId,
+        TimeProvider clock,
+        ChargingMetrics metrics,
+        IFeatureFlagSource features)
+        : base(TypeName, sessionId.ToString(), clock)
+    {
         _metrics = metrics;
+        _features = features;
+    }
 
     public static string PersistenceIdOf(SessionId sessionId) => $"{TypeName}-{sessionId}";
 
     /// <summary>
-    /// For a test that starts the actor itself, with a clock of its choosing, and instruments
-    /// of its choosing or none a host collects. In a node, the shard region has the container
-    /// make it (section 12.3).
+    /// For a test that starts the actor itself, with a clock of its choosing, instruments of
+    /// its choosing or none a host collects, and feature flags of its choosing or none on. In
+    /// a node, the shard region has the container make it (section 12.3).
     /// </summary>
     public static Props Props(
-        SessionId sessionId, TimeProvider clock, ChargingMetrics? metrics = null)
+        SessionId sessionId,
+        TimeProvider clock,
+        ChargingMetrics? metrics = null,
+        IFeatureFlagSource? features = null)
     {
         var instruments = metrics ?? ChargingMetrics.Unhosted;
+        var flags = features ?? IFeatureFlagSource.None;
         return Akka.Actor.Props.Create(() =>
-            new ChargingSessionActor(sessionId, clock, instruments));
+            new ChargingSessionActor(sessionId, clock, instruments, flags));
     }
+
+    /// <summary>
+    /// A session that starts is told which feature flags are on (section 21.8), read in the
+    /// shell, in this turn, from what the host last evaluated. No other command needs them, and
+    /// recovery never comes here: the started event says what the flags decided.
+    /// </summary>
+    protected override DecisionContext ContextFor(
+        SessionCommand command, DecisionContext context) =>
+        command is StartSession ? context with { Features = _features.Current } : context;
 
     protected override object Accepted(long version) => new CommandAccepted(version);
 

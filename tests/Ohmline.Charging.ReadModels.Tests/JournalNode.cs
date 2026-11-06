@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using Ohmline.ActorShell.Clustering;
+using Ohmline.ActorShell.Deciders;
 using Ohmline.Charging.Actors;
 using Ohmline.Charging.Actors.Diagnostics;
 using Ohmline.Testing;
@@ -51,6 +52,7 @@ internal sealed class JournalNode : IAsyncDisposable
         builder.Logging.ClearProviders();
         builder.Services.AddSingleton(clock);
         builder.Services.AddSingleton<ChargingMetrics>();
+        builder.Services.AddSingleton(IFeatureFlagSource.None); // Every flag off.
         if (readModels is not null)
         {
             builder.Services.AddSingleton(readModels);

@@ -17,6 +17,8 @@
     <PackageReference Include="Akka.Persistence.Hosting" />
     <PackageReference Include="Akka.Persistence.Sql.Hosting" />
     <PackageReference Include="Microsoft.Data.Sqlite" />
+    <!-- Feature flags for the deciders, evaluated outside the actors (section 21.8). -->
+    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" />
     <!-- PostgreSQL, when ConnectionStrings:ohmline is set (sections 12.10 and 13.6). -->
     <PackageReference Include="Npgsql" />
     <!-- pbm's host and its cluster and sharding palettes, for operators (section 18.8). -->

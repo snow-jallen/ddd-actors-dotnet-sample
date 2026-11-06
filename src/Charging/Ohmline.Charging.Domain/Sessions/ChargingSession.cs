@@ -34,7 +34,7 @@ public sealed class ChargingSession
         SessionState state, SessionCommand command, DecisionContext context) =>
         (state, command) switch
         {
-            (NoSession, StartSession start) => Start(start),
+            (NoSession, StartSession start) => Start(start, context.Features),
             (NoSession, RecordMeterValue or SuspendCharging or ResumeCharging or StopSession) =>
                 Reject(new SessionError.NotStarted(command.SessionId)),
             (Active or SuspendedByEv or SuspendedByCharger or Ended, StartSession) =>
@@ -110,8 +110,12 @@ public sealed class ChargingSession
         Decider.Fold<ChargingSession, SessionState, SessionCommand, SessionEvent, SessionError>(
             events);
 
-    /// <summary>The factory: the terms are checked once, here, and locked in the event.</summary>
-    private static Result<ImmutableArray<SessionEvent>, SessionError> Start(StartSession start) =>
+    /// <summary>
+    /// The factory: the terms are checked once, here, and locked in the event, with the pricing
+    /// model that the flags of the day chose (section 21.8).
+    /// </summary>
+    private static Result<ImmutableArray<SessionEvent>, SessionError> Start(
+        StartSession start, FeatureFlags features) =>
         start switch
         {
             { SpendCap.Amount: <= 0m } =>
@@ -126,7 +130,10 @@ public sealed class ChargingSession
                 start.Tariff,
                 start.SpendCap,
                 start.MeterStartWh,
-                start.PhaseCount)),
+                start.PhaseCount,
+                features.IsEnabled(ChargingFeatures.DynamicIdleFee)
+                    ? PricingModel.DynamicIdleFee
+                    : PricingModel.Standard)),
         };
 
     private static Result<ImmutableArray<SessionEvent>, SessionError> Record(
@@ -179,14 +186,16 @@ public sealed class ChargingSession
         new(recorded.Register, recorded.MeasuredAt);
 
     /// <summary>
-    /// The terms the session started with. A session stored before the phase count was
-    /// recorded has none, and gets the assumed one: Evolve fills the gap, Decide never sees it.
+    /// The terms the session started with. A session stored before the phase count or the
+    /// pricing model was recorded has none, and gets the assumed one: Evolve fills the gap,
+    /// Decide never sees it. Never a feature flag: the event says what the flag decided.
     /// </summary>
     private static SessionTerms Terms(SessionStarted started) =>
         new(started.SessionId, started.SiteId, started.ConnectorId, started.TokenUid,
             started.Tariff, started.SpendCap)
         {
             PhaseCount = started.PhaseCount ?? SessionTerms.AssumedPhaseCount,
+            PricingModel = started.PricingModel ?? PricingModel.Standard,
         };
 
     private static Result<ImmutableArray<SessionEvent>, SessionError> NoChange { get; } =

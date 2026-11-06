@@ -28,6 +28,11 @@ public closed record SessionEvent(SessionId SessionId)
 /// The phases the car charges on, added in section 20.2. Optional, with a default, because
 /// every session started before then was stored without it, and those events are read for ever.
 /// </param>
+/// <param name="PricingModel">
+/// How the session's fees apply (<see cref="Sessions.PricingModel"/>), added in section 21.8:
+/// the outcome of a feature flag on the day the session started, recorded so that replaying it
+/// never asks the flag again. A session stored before then has none, and is standard.
+/// </param>
 public sealed record SessionStarted(
     SessionId SessionId,
     SiteId SiteId,
@@ -36,7 +41,8 @@ public sealed record SessionStarted(
     TariffSnapshot Tariff,
     Money SpendCap,
     long MeterStartWh,
-    int? PhaseCount = null)
+    int? PhaseCount = null,
+    string? PricingModel = null)
     : SessionEvent(SessionId);
 
 /// <summary>

@@ -175,6 +175,14 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
     {
     }
 
+    /// <summary>
+    /// The context the decider decides this command in: the clock's reading, and nothing else
+    /// unless a subclass adds to it, such as the feature flags a command depends on (section
+    /// 21.8). Called for commands only, never during recovery.
+    /// </summary>
+    protected virtual DecisionContext ContextFor(TCommand command, DecisionContext context) =>
+        context;
+
     /// <summary>Called once all stored events are replayed, before the first command.</summary>
     protected virtual void OnRecovered()
     {
@@ -292,7 +300,8 @@ public abstract class DeciderActor<TDecider, TState, TCommand, TEvent, TError>
             return;
         }
 
-        var decision = TDecider.Decide(State, command, DecisionContext.From(_clock));
+        var context = ContextFor(command, DecisionContext.From(_clock));
+        var decision = TDecider.Decide(State, command, context);
         OnDecided(command, decision);
         switch (decision)
         {

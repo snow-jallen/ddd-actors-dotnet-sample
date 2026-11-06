@@ -405,6 +405,11 @@
           "Microsoft.Extensions.Compliance.Abstractions": "10.11.0"
         }
       },
+      "Microsoft.FeatureManagement": {
+        "type": "Transitive",
+        "resolved": "4.8.0",
+        "contentHash": "p1dzpXano+DTet2/hQGb+J91QonETabPYmO5BdqpsWOPq2C3WsWbm1BICTNlWqL81EVGrRrjpQh9mRNX55ZKmQ=="
+      },
       "Microsoft.Testing.Extensions.Telemetry": {
         "type": "Transitive",
         "resolved": "2.5.1",
@@ -835,6 +840,7 @@
           "Akka.Persistence.Hosting": "[1.5.73, )",
           "Akka.Persistence.Sql.Hosting": "[1.5.73, )",
           "Microsoft.Data.Sqlite": "[10.0.14, )",
+          "Microsoft.FeatureManagement.AspNetCore": "[4.8.0, )",
           "Npgsql": "[10.0.3, )",
           "Ohmline.Charging.Actors": "[1.0.0, )",
           "Ohmline.Charging.Api": "[1.0.0, )",
@@ -1089,6 +1095,15 @@
         "contentHash": "l1jvoPCZYEZOE2JZzcnzHLo1BBN/s+Azj8+FX0WRbqHoJY7QVq7cvTHasDWi1pixr0dXxbyC4HKt68Xm2KKpqQ==",
         "dependencies": {
           "Microsoft.Extensions.ServiceDiscovery.Abstractions": "10.11.0"
+        }
+      },
+      "Microsoft.FeatureManagement.AspNetCore": {
+        "type": "CentralTransitive",
+        "requested": "[4.8.0, )",
+        "resolved": "4.8.0",
+        "contentHash": "LBKVCjgNvJYtIiKb1IoXyuyzpZPmfVxnlDB0ByZ774EB1hNQLQlMQ9juZpJ3fRgEYodYs7aa7WKVvWshHx1CbQ==",
+        "dependencies": {
+          "Microsoft.FeatureManagement": "4.8.0"
         }
       },
       "Npgsql": {

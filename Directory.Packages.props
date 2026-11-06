@@ -58,6 +58,8 @@
     <PackageVersion Include="Petabridge.Cmd.Cluster" Version="1.5.2" />
     <PackageVersion Include="Petabridge.Cmd.Cluster.Sharding" Version="1.5.2" />
     <PackageVersion Include="Petabridge.Cmd.Host" Version="1.5.2" />
+    <!-- Feature flags, evaluated by the node's host and never by an actor (section 21.8). -->
+    <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.8.0" />
   </ItemGroup>
 
   <ItemGroup Label="Mobile">

@@ -26,6 +26,20 @@ public sealed record SessionTerms(
     /// <summary>How many phases the car charges on: one or three.</summary>
     public int PhaseCount { get; init; } = AssumedPhaseCount;
 
+    /// <summary>How the fees apply (section 21.8): standard unless recorded otherwise.</summary>
+    public string PricingModel { get; init; } = Sessions.PricingModel.Standard;
+
+    /// <summary>
+    /// The tariff's idle fee as this session applies it, if the tariff has one: under the
+    /// dynamic idle fee pilot, with half its grace period.
+    /// </summary>
+    public IdleFee? IdleFee => Tariff.Components.OfType<IdleFee>().SingleOrDefault() switch
+    {
+        { } fee when PricingModel == Sessions.PricingModel.DynamicIdleFee =>
+            fee with { GracePeriod = fee.GracePeriod / 2 },
+        var fee => fee,
+    };
+
     /// <summary>
     /// The most the energy delivered so far can cost: every kWh at the tariff's highest energy
     /// rate, plus the session fee. The spend cap is checked against this, so a session stops

@@ -131,7 +131,8 @@ internal static class ChargingSamples
             Tariff,
             SpendCap,
             MeterStartWh: 18_204_000,
-            PhaseCount: 3)),
+            PhaseCount: 3,
+            PricingModel: PricingModel.DynamicIdleFee)),
         Stamped(new MeterValueRecorded(
             Session, Energy.FromWattHours(18_210_350), At.AddMinutes(10), Phase: null)),
         Stamped(new MeterAnomalyDetected(
@@ -186,6 +187,7 @@ internal static class ChargingSamples
                 Since: At.AddMinutes(12)))
         {
             PhaseCount = 3,
+            PricingModel = PricingModel.DynamicIdleFee,
         },
 
         new ReviseChargePointListing(

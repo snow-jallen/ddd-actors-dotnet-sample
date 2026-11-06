@@ -36,6 +36,7 @@ builder.AddServiceDefaults();
 builder.Services.AddOhmlineReadModels(builder.Configuration);
 builder.Services.AddJourneyPorts(); // Billing, and the Device Gateway's charge points.
 builder.Services.AddGridOperator(builder.Configuration); // Northgate's signals, if enabled.
+builder.Services.AddFeatureFlags(); // Evaluated here, decided in Decide, recorded in events.
 // Within the pod's 35 s grace period: 30 s for the host's services, coordinated shutdown and
 // the shards' hand-off among them (section 21.7).
 builder.Services.Configure<HostOptions>(host =>

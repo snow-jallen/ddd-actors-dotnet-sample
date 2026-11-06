@@ -1,9 +1,11 @@
 using Microsoft.Extensions.Time.Testing;
+using Ohmline.ActorShell.Deciders;
 using Ohmline.Charging.Actors.Sessions;
 using Ohmline.Charging.Actors.Tests.Serialization;
 using Ohmline.Charging.Contracts;
 using Ohmline.Charging.Contracts.Sessions;
 using Ohmline.Charging.Domain.Sessions;
+using Ohmline.SharedKernel.Deciders;
 using Ohmline.SharedKernel.Identity;
 using Ohmline.SharedKernel.Units;
 using Ohmline.Testing;
@@ -88,6 +90,39 @@ public sealed class ChargingSessionActorTests(ITestOutputHelper output)
             .When(new SuspendCharging(Command, Session, new ByEv()))
             .ThenAsync<CommandRejected>(rejected => rejected.Code.ShouldBe("already-ended"));
 
+    [Fact]
+    public async Task Given_the_dynamic_idle_fee_on_when_a_session_starts_then_it_is_recorded()
+    {
+        var flagOn = IFeatureFlagSource.Of(ChargingFeatures.DynamicIdleFee);
+        var begin = Begin();
+
+        await Shell(
+                ChargingSessionActor.Props(Session, _clock, features: flagOn),
+                ChargingSessionActor.PersistenceIdOf(Session))
+            .Given()
+            .When(begin)
+            .ThenAsync(
+                new CommandAccepted(1),
+                Started(by: begin.CommandId, pricingModel: PricingModel.DynamicIdleFee));
+    }
+
+    /// <summary>
+    /// The flags cannot even be read: recovery folds the recorded pricing model, and a command
+    /// other than a start never asks for them (section 21.8).
+    /// </summary>
+    [Fact]
+    public async Task Given_a_pilot_session_when_it_recovers_and_meters_then_no_flag_is_read()
+    {
+        var meter = new RecordMeterValue(Command, Session, 1_207_400, Later);
+
+        await Shell(
+                ChargingSessionActor.Props(Session, _clock, features: new UnreadableFlags()),
+                ChargingSessionActor.PersistenceIdOf(Session))
+            .Given(Started(pricingModel: PricingModel.DynamicIdleFee))
+            .When(meter)
+            .ThenAsync(new CommandAccepted(2), Metered(by: meter.CommandId));
+    }
+
     private static StartSession Begin() => new(
         Command,
         Session,
@@ -98,15 +133,19 @@ public sealed class ChargingSessionActorTests(ITestOutputHelper output)
         ChargingSamples.SpendCap,
         MeterStartWh: 1_200_000);
 
-    private static SessionEvent Started(CommandId? by = null) => Stamped(new SessionStarted(
-        Session,
-        Depot,
-        ChargingSamples.Connector,
-        DriversCard,
-        ChargingSamples.Tariff,
-        ChargingSamples.SpendCap,
-        MeterStartWh: 1_200_000),
-        by: by);
+    private static SessionEvent Started(
+        CommandId? by = null, string pricingModel = PricingModel.Standard) =>
+        Stamped(
+            new SessionStarted(
+                Session,
+                Depot,
+                ChargingSamples.Connector,
+                DriversCard,
+                ChargingSamples.Tariff,
+                ChargingSamples.SpendCap,
+                MeterStartWh: 1_200_000,
+                PricingModel: pricingModel),
+            by: by);
 
     private static SessionEvent Metered(CommandId? by = null) =>
         Stamped(new MeterValueRecorded(Session, Energy.FromWattHours(1_207_400), Later), by: by);
@@ -114,4 +153,11 @@ public sealed class ChargingSessionActorTests(ITestOutputHelper output)
     private static SessionEvent Stamped(
         SessionEvent @event, DateTimeOffset? at = null, CommandId? by = null) =>
         @event with { CommandId = by ?? Command, OccurredAt = at ?? Morning };
+}
+
+/// <summary>A flag source that fails the test the moment anything reads it.</summary>
+internal sealed class UnreadableFlags : IFeatureFlagSource
+{
+    public FeatureFlags Current =>
+        throw new InvalidOperationException("Only a session that starts reads the flags.");
 }

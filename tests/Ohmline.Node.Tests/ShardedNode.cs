@@ -7,6 +7,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Time.Testing;
 using Ohmline.ActorShell.Clustering;
+using Ohmline.ActorShell.Deciders;
 using Ohmline.Charging.Actors;
 using Ohmline.Charging.Actors.Diagnostics;
 using Ohmline.Charging.Actors.Journeys.Ports;
@@ -42,6 +43,7 @@ public abstract class ShardedNode(ITestOutputHelper output)
         base.ConfigureServices(context, services);
         services.AddSingleton<TimeProvider>(Clock);
         services.AddSingleton<ChargingMetrics>();
+        services.AddSingleton(IFeatureFlagSource.None); // Every flag off.
         services.AddSingleton<SiteEnergyMetrics>();
         // Neither Billing nor the gateway is in the test: payments in memory, and chargers that
         // agree to everything, behind the journey's ports.

@@ -22,7 +22,8 @@ public sealed class ChargingSessionTests
     private static readonly DateTimeOffset Later = Morning.AddMinutes(30);
 
     private static readonly SessionStarted Started = new(
-        Session, Depot, Connector, DriversCard, Tariff, Cap, 1_200_000)
+        Session, Depot, Connector, DriversCard, Tariff, Cap, 1_200_000,
+        PricingModel: PricingModel.Standard)
     {
         CommandId = Command,
         OccurredAt = Morning,
