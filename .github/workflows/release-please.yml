@@ -1,0 +1,23 @@
+# Opens and updates the release PR on every push to main, from the Conventional Commits since
+# the last release (section 21.3). Merging the PR updates CHANGELOG.md and
+# .release-please-manifest.json and tags the merge commit vX.Y.Z; MinVer reads the version from
+# that tag, so no project file ever holds a version number.
+name: release-please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v5.0.0
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
