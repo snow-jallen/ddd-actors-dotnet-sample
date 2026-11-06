@@ -5,6 +5,16 @@
     Contracts reference the shared kernel and nothing else.
   -->
 
+  <!--
+    Packed because Charging's contracts carry its tariff snapshot (StartSession): a package of
+    theirs depends on a package of ours, under the same SemVer rules (ADR 0016).
+  -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <Description>Tariff snapshot, commands and replies of Ohmline's Tariffs.</Description>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="../../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
   </ItemGroup>

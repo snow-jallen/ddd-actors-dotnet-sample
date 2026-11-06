@@ -2,4 +2,14 @@
 
   <!-- The shared kernel is pure: the base class library only, and no package references. -->
 
+  <!--
+    Packed, because every published contract package depends on it: its public API follows the
+    same SemVer rules as theirs (ADR 0016), and package validation checks them on every pack.
+  -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <Description>Ohmline's shared kernel: units, money, identifiers and Result.</Description>
+  </PropertyGroup>
+
 </Project>

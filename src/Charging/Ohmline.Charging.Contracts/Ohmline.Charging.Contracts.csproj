@@ -7,6 +7,16 @@
     (Customer/Supplier, section 8.2). Nothing else.
   -->
 
+  <!--
+    A package for the teams that send these commands (ADR 0016): strict SemVer on its public API,
+    which package validation checks on every pack against the last published version.
+  -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <Description>Commands, replies and integration events of Ohmline's Charging.</Description>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="../../Ohmline.SharedKernel/Ohmline.SharedKernel.csproj" />
     <ProjectReference

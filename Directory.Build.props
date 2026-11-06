@@ -14,6 +14,13 @@
          not in every build. -->
     <NuGetAudit>false</NuGetAudit>
   </PropertyGroup>
+  <!-- What every package Ohmline publishes says about itself. Only the published contracts are
+       packed (section 21.1); every other project keeps IsPackable false. -->
+  <PropertyGroup>
+    <Authors>Ohmline</Authors>
+    <Company>Ohmline</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>

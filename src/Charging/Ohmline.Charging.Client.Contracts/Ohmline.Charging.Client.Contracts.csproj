@@ -12,4 +12,15 @@
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
+  <!--
+    Packed for client teams (ADR 0016). Its fourth audience is the app builds already in the
+    stores, which the server keeps serving: package validation catches a breaking change to the
+    API; the golden files in Ohmline.ContractTests catch one to the JSON.
+  -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <Description>The plain DTOs and JSON context of Charging's /app/v1 client API.</Description>
+  </PropertyGroup>
+
 </Project>
