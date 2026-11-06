@@ -1,0 +1,30 @@
+# Production (section 21.6). The image tags are the only lines a release changes: the release
+# job sets them to the version it published (section 21.9), with
+#   kustomize edit set image ghcr.io/ohmline/node:X.Y.Z
+# and the same for gateway, billing and migrator. Never latest.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ohmline
+resources:
+  - ../../base
+images:
+  - name: ghcr.io/ohmline/node
+    newTag: 0.9.0
+  - name: ghcr.io/ohmline/gateway
+    newTag: 0.9.0
+  - name: ghcr.io/ohmline/billing
+    newTag: 0.9.0
+  - name: ghcr.io/ohmline/migrator
+    newTag: 0.9.0
+replicas:
+  - name: node
+    count: 3
+  - name: gateway
+    count: 2
+patches:
+  # Five contact points at most; a new cluster waits for three of them before it forms.
+  - target: { kind: ConfigMap, name: ohmline-settings }
+    patch: |-
+      - op: replace
+        path: /data/Ohmline__Kubernetes__RequiredContactPoints
+        value: "3"

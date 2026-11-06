@@ -129,6 +129,15 @@
           "LightningDB": "0.16.0"
         }
       },
+      "Akka.Http.Shim": {
+        "type": "Transitive",
+        "resolved": "1.5.73",
+        "contentHash": "gW4MtN0OA1UBY4kyDAkyNbOww5xaZYqbaAnXmNMacr74Q7s2N0HnDxEj1jNRUM5JbsQaCqqJ63F6n+ZkROKbqg==",
+        "dependencies": {
+          "Akka": "1.5.73",
+          "Ceen.Httpd": "0.9.9"
+        }
+      },
       "Akka.Persistence": {
         "type": "Transitive",
         "resolved": "1.5.73",
@@ -166,6 +175,11 @@
           "Google.Protobuf": "3.26.1",
           "Reactive.Streams": "1.0.4"
         }
+      },
+      "Ceen.Httpd": {
+        "type": "Transitive",
+        "resolved": "0.9.9",
+        "contentHash": "nzjWihqdQBJUrGlDWx4711aG5A2P0Pmz/5n5RCsTZUdOUfZZdk3lPHVI+1rtwSzt9F4REZ05nF765nFp8YzYGg=="
       },
       "DotNetty.Buffers": {
         "type": "Transitive",
@@ -210,10 +224,24 @@
           "DotNetty.Common": "0.7.6"
         }
       },
+      "Fractions": {
+        "type": "Transitive",
+        "resolved": "7.3.0",
+        "contentHash": "2bETFWLBc8b7Ut2SVi+bxhGVwiSpknHYGBh2PADyGWONLkTxT7bKyDRhF8ao+XUv90tq8Fl7GTPxSI5bacIRJw=="
+      },
       "Google.Protobuf": {
         "type": "Transitive",
         "resolved": "3.26.1",
         "contentHash": "CHZX8zXqhF/fdUtd+AYzew8T2HFkAoe5c7lbGxZY/qryAlQXckDvM5BfOJjXlMS7kyICqQTMszj4w1bX5uBJ/w=="
+      },
+      "KubernetesClient": {
+        "type": "Transitive",
+        "resolved": "17.0.14",
+        "contentHash": "FMGWjGtN8WEUKAAQxs96PK2tYvPrvwhoJzay/6HiByVTvHoJ0i9u7ykvYb7E3vLTSlfv26Q2Ktxr41zYCppu8A==",
+        "dependencies": {
+          "Fractions": "7.3.0",
+          "YamlDotNet": "16.3.0"
+        }
       },
       "LightningDB": {
         "type": "Transitive",
@@ -390,11 +418,19 @@
           "System.Drawing.Common": "6.0.0"
         }
       },
+      "YamlDotNet": {
+        "type": "Transitive",
+        "resolved": "16.3.0",
+        "contentHash": "SgMOdxbz8X65z8hraIs6hOEdnkH6hESTAIUa7viEngHOYaH+6q5XJmwr1+yb9vJpNQ19hCQY69xbFsLtXpobQA=="
+      },
       "ohmline.actorshell": {
         "type": "Project",
         "dependencies": {
           "Akka": "[1.5.73, )",
           "Akka.Cluster.Hosting": "[1.5.73, )",
+          "Akka.Coordination.KubernetesApi": "[1.5.73, )",
+          "Akka.Discovery.KubernetesApi": "[1.5.73, )",
+          "Akka.Management": "[1.5.73, )",
           "Akka.Persistence.Hosting": "[1.5.73, )",
           "Ohmline.SharedKernel": "[1.0.0, )"
         }
@@ -501,6 +537,31 @@
           "System.Configuration.ConfigurationManager": "6.0.1"
         }
       },
+      "Akka.Coordination.KubernetesApi": {
+        "type": "CentralTransitive",
+        "requested": "[1.5.73, )",
+        "resolved": "1.5.73",
+        "contentHash": "ZGrKNd5zLKLJU+E1QkMIv/FVVnohExKoY/sAhjEjhDWwtBijKDFvwILFnFuUgTbwDgXvp6lssPIh8pvd1KCVYg==",
+        "dependencies": {
+          "Akka.Cluster.Hosting": "1.5.73",
+          "Akka.Coordination": "1.5.73",
+          "Akka.Hosting": "1.5.73",
+          "KubernetesClient": "17.0.14",
+          "OpenTelemetry.Api": "1.15.3"
+        }
+      },
+      "Akka.Discovery.KubernetesApi": {
+        "type": "CentralTransitive",
+        "requested": "[1.5.73, )",
+        "resolved": "1.5.73",
+        "contentHash": "yC42NcvEevhGebpfvHwSDvy7VxUxLpWJrZPpOCnmt20v2R8/3X+dKheYmLoEdYTkCK5mh/eo2Zt4+yM1A2E2RQ==",
+        "dependencies": {
+          "Akka.Discovery": "1.5.73",
+          "Akka.Hosting": "1.5.73",
+          "KubernetesClient": "17.0.14",
+          "OpenTelemetry.Api": "1.15.3"
+        }
+      },
       "Akka.Hosting": {
         "type": "CentralTransitive",
         "requested": "[1.5.73, )",
@@ -510,6 +571,20 @@
           "Akka.DependencyInjection": "1.5.73",
           "Akka.Streams": "1.5.73",
           "OpenTelemetry": "1.12.0",
+          "OpenTelemetry.Api": "1.15.3"
+        }
+      },
+      "Akka.Management": {
+        "type": "CentralTransitive",
+        "requested": "[1.5.73, )",
+        "resolved": "1.5.73",
+        "contentHash": "RPZAYvCuFNFQ9fbxu8zcAsOzcGzzBIHTV95eLSRQuSz2uzsDuF8CImoig2DZdn95O/R/jRMOWPzNkd1jDuMLsg==",
+        "dependencies": {
+          "Akka": "1.5.73",
+          "Akka.Cluster": "1.5.73",
+          "Akka.Discovery": "1.5.73",
+          "Akka.Hosting": "1.5.73",
+          "Akka.Http.Shim": "1.5.73",
           "OpenTelemetry.Api": "1.15.3"
         }
       },

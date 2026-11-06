@@ -1,0 +1,21 @@
+# A small Ohmline for development and review (section 21.6): one pod of each, in its own
+# namespace. A brand-new cluster forms from the node and the gateway, the two contact points
+# the base requires. kubectl apply -k deploy/k8s/overlays/dev
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ohmline-dev
+resources:
+  - ../../base
+replicas:
+  - name: node
+    count: 1
+  - name: gateway
+    count: 1
+  - name: billing
+    count: 1
+patches:
+  - target: { kind: ConfigMap, name: ohmline-settings }
+    patch: |-
+      - op: replace
+        path: /data/ASPNETCORE_ENVIRONMENT
+        value: Staging

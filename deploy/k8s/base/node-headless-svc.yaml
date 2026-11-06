@@ -1,0 +1,16 @@
+# The cluster's pods, the nodes' and the gateway's, by address: no virtual IP and no load
+# balancing. publishNotReadyAddresses, because a pod becomes ready only once it has joined the
+# cluster, and it can join only once the others can reach it: without it, the first pods of a
+# new cluster would wait for each other for ever.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ohmline-akka
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    akka-cluster: ohmline
+  ports:
+    - { name: management, port: 8558 }
+    - { name: remoting, port: 4053 }

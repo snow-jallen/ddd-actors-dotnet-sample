@@ -1,0 +1,11 @@
+# Where chargers connect: ws://<gateway>/ocpp/{chargePointId}. An ingress or a load balancer in
+# front of it is the platform's choice; it must allow WebSocket upgrades and long idle times.
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  selector:
+    app.kubernetes.io/name: gateway
+  ports:
+    - { name: http, port: 8080, targetPort: http }

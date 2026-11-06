@@ -1,0 +1,71 @@
+# The charging nodes (section 21.6). A Deployment, not a StatefulSet: a pod has no identity worth
+# keeping, because the aggregates' identity is in the journal and sharding places them. One new
+# pod joins before an old one leaves (maxSurge 1, maxUnavailable 0), so each pod's shards move
+# once per rolling update, and coordinated shutdown has 35 seconds to hand them off.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: node
+        akka-cluster: ohmline
+    spec:
+      serviceAccountName: ohmline-akka
+      terminationGracePeriodSeconds: 35
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: node
+          image: ghcr.io/ohmline/node:0.9.0
+          ports:
+            - { name: http, containerPort: 8080 }
+            - { name: remoting, containerPort: 4053 }
+            - { name: management, containerPort: 8558 }
+          envFrom:
+            - configMapRef:
+                name: ohmline-settings
+          env:
+            - name: Akka__Remote__PublicHostname
+              valueFrom:
+                fieldRef: { fieldPath: status.podIP }
+            - name: POD_NAME
+              valueFrom:
+                fieldRef: { fieldPath: metadata.name }
+            - name: OTEL_SERVICE_NAME
+              value: node
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.instance.id=$(POD_NAME)
+            - name: ConnectionStrings__ohmline
+              valueFrom:
+                secretKeyRef: { name: ohmline-db, key: ohmline }
+          # Ready: an Up member of the cluster that reaches the journal's database. Live: the
+          # actor system runs; never a dependency, or a database outage restarts every pod.
+          readinessProbe:
+            httpGet: { path: /health/ready, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet: { path: /health/live, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            requests: { cpu: 500m, memory: 512Mi }
+            limits: { memory: 2Gi }

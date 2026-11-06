@@ -1,0 +1,22 @@
+# Ohmline on Kubernetes (section 21.6): what every environment shares. An overlay sets the
+# namespace, the image tags and the replicas. The lease CRD is not here: it is installed once
+# per cluster, by whoever administers it (../crds/).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ohmline
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: ohmline
+resources:
+  - namespace.yaml
+  - rbac.yaml
+  - configmap.yaml
+  - migrator-job.yaml
+  - node-deployment.yaml
+  - node-headless-svc.yaml
+  - node-svc.yaml
+  - gateway-deployment.yaml
+  - gateway-svc.yaml
+  - billing-deployment.yaml
+  - billing-svc.yaml
+  - pdb.yaml

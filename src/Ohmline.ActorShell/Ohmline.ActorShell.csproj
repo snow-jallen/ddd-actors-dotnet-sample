@@ -12,6 +12,10 @@
     <PackageReference Include="Akka.Persistence.Hosting" />
     <!-- For sharding: the message extractor and the shard options every region starts from. -->
     <PackageReference Include="Akka.Cluster.Hosting" />
+    <!-- How a node finds the cluster on Kubernetes, and the lease its downing relies on. -->
+    <PackageReference Include="Akka.Coordination.KubernetesApi" />
+    <PackageReference Include="Akka.Discovery.KubernetesApi" />
+    <PackageReference Include="Akka.Management" />
   </ItemGroup>
 
   <ItemGroup>

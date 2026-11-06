@@ -1,0 +1,21 @@
+# A node drain or a cluster upgrade takes at most one node pod and one gateway pod at a time,
+# so the cluster never loses its majority to voluntary disruption.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: node
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: gateway
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gateway

@@ -1,0 +1,20 @@
+# Settings every Ohmline pod reads as environment variables. Connection strings are not here:
+# they come from the secrets ohmline-db (the applications' least-privilege roles) and
+# ohmline-db-owner (the migrator's), which are created outside this repo (README.md).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ohmline-settings
+data:
+  ASPNETCORE_ENVIRONMENT: Production
+  # Cluster bootstrap from the Kubernetes API, and the lease-majority split-brain resolver.
+  OHMLINE_KUBERNETES: "true"
+  Ohmline__Kubernetes__RequiredContactPoints: "2"
+  # Akka.Remote binds every interface; each pod advertises its own IP (status.podIP).
+  Akka__Remote__Hostname: 0.0.0.0
+  Akka__Remote__Port: "4053"
+  # Service discovery: what Aspire passes locally, written down for the cluster's services.
+  services__node__http__0: http://node:8080
+  services__billing__http__0: http://billing:8080
+  Ohmline__Billing__TallyPay__BaseAddress: https://api.tallypay.example
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector.observability:4317

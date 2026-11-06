@@ -1,0 +1,36 @@
+# The schema, before anything uses it (section 20.8): DbUp applies the scripts that are new and
+# exits. A finished job is deleted after ten minutes, so the next release can apply its own;
+# the node and Billing stay unready until their tables exist.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrator
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: migrator
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: migrator
+          image: ghcr.io/ohmline/migrator:0.9.0
+          envFrom:
+            - configMapRef:
+                name: ohmline-settings
+          env:
+            - name: ConnectionStrings__ohmline
+              valueFrom:
+                secretKeyRef: { name: ohmline-db-owner, key: ohmline }
+            - name: ConnectionStrings__billing
+              valueFrom:
+                secretKeyRef: { name: ohmline-db-owner, key: billing }
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { memory: 256Mi }

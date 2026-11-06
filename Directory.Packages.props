@@ -21,6 +21,11 @@
     <PackageVersion Include="Akka.Persistence.Sql.Hosting" Version="$(AkkaVersion)" />
     <!-- The read side of the in-memory journal: fast projection runner tests (section 14.7). -->
     <PackageVersion Include="Akka.Persistence.Query.InMemory" Version="$(AkkaVersion)" />
+    <!-- On Kubernetes (section 21.6): cluster bootstrap over Akka.Management's HTTP endpoint,
+         contact points from the Kubernetes API, and a lease for the split-brain resolver. -->
+    <PackageVersion Include="Akka.Coordination.KubernetesApi" Version="$(AkkaVersion)" />
+    <PackageVersion Include="Akka.Discovery.KubernetesApi" Version="$(AkkaVersion)" />
+    <PackageVersion Include="Akka.Management" Version="$(AkkaVersion)" />
   </ItemGroup>
 
   <ItemGroup Label="Hosting and Aspire">
