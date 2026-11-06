@@ -4,14 +4,13 @@
     "net11.0": {
       "Akka.Hosting": {
         "type": "Direct",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "hNusiiMsuo6nDmydBdOO6x+jK7ARFMIJv/tq8sNTdJRBjNxb67VGlQ4RX6sip3RcXXrmsk2qytXik5n5/VG9Sg==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "QFVSgUy8tm6SV6u/g8p+yYBL8X2vWBRsZpdkmVFHTqbKQ5MGTHFIlZ0lQ8mCNBPOqAMupSqSyJr8ECPvd15a+A==",
         "dependencies": {
-          "Akka.DependencyInjection": "1.5.73",
-          "Akka.Streams": "1.5.73",
-          "OpenTelemetry": "1.12.0",
-          "OpenTelemetry.Api": "1.15.3"
+          "Akka.DependencyInjection": "1.6.0-beta5",
+          "Akka.Streams": "1.6.0-beta5",
+          "OpenTelemetry": "1.15.3"
         }
       },
       "MinVer": {
@@ -27,26 +26,26 @@
       },
       "Akka.DependencyInjection": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "dBqN35kaK/gXuvVbhnihK6lB40zCd6PwjrkXFiIC2poALlwyHZCdlGPpjiRVZqJgGTUJzshb7T/OT1Aw7Eu2Qw==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "ZI8CZ02JWV8wjH95wpOQMSat2Wo/lreb7cvJ8w4zmQn9e6TxeL7AHAkZ6Wg66N33qumwKJzEpOcDIx0JqdRAcA==",
         "dependencies": {
-          "Akka": "1.5.73"
+          "Akka": "1.6.0-beta5"
         }
       },
       "Akka.Streams": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "nqLVy9JFcifnXvzJPWzmHD0siU6NUukx1q5uHlOYyFp5iCM/n/QYhp4euhn07sLY7rD8HHr7QmNV2iB1A5jP+g==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "HO/9N3gBpgs0UIzd86rDPWINsN5Km415cuqQhTJQaqJNLonq/fwU5bhw4tAYZZoB29AJHCbfJD7RtLjyreGvSA==",
         "dependencies": {
-          "Akka": "1.5.73",
-          "Google.Protobuf": "3.26.1",
+          "Akka": "1.6.0-beta5",
+          "Google.Protobuf": "3.36.2",
           "Reactive.Streams": "1.0.4"
         }
       },
       "Google.Protobuf": {
         "type": "Transitive",
-        "resolved": "3.26.1",
-        "contentHash": "CHZX8zXqhF/fdUtd+AYzew8T2HFkAoe5c7lbGxZY/qryAlQXckDvM5BfOJjXlMS7kyICqQTMszj4w1bX5uBJ/w=="
+        "resolved": "3.36.2",
+        "contentHash": "Ci1q1iJg74qAE5riTA2FbMS0wPbpruPQI/JQ9DrAsRo2VsSxgt1e/pmxGxgrci+pXJEgrSYg2vPl8rrStZkclQ=="
       },
       "Microsoft.Win32.SystemEvents": {
         "type": "Transitive",
@@ -60,10 +59,10 @@
       },
       "OpenTelemetry": {
         "type": "Transitive",
-        "resolved": "1.12.0",
-        "contentHash": "aIEu2O3xFOdwIVH0AJsIHPIMH1YuX18nzu7BHyaDNQ6NWSk4Zyrs9Pp6y8SATuSbvdtmvue4mj/QZ3838srbwA==",
+        "resolved": "1.15.3",
+        "contentHash": "N0i6WjPoHPbZyms1ugbDIFAJFuGlpeExJMU/+XSL0lQRUkg/D0utFkDoLXf8Z1km5B+xVZ2GyMXXiX8qdeNmPg==",
         "dependencies": {
-          "OpenTelemetry.Api.ProviderBuilderExtensions": "1.12.0"
+          "OpenTelemetry.Api.ProviderBuilderExtensions": "1.15.3"
         }
       },
       "OpenTelemetry.Api": {
@@ -73,10 +72,10 @@
       },
       "OpenTelemetry.Api.ProviderBuilderExtensions": {
         "type": "Transitive",
-        "resolved": "1.12.0",
-        "contentHash": "t6Vk1143BfiisCWYbRcyzkAuN6Aq5RkYtfOSMoqCIRMvtN9p1e1xzc0nWQ+fccNGOVgHn3aMK5xFn2+iWMcr8A==",
+        "resolved": "1.15.3",
+        "contentHash": "SYn0lqYDwLMWhv/zlNGsQcl2yX++yTumanX46bmOZE/ZDOd1WjPBO2kZaZgKLEZTZk48pavIFGJ6vOvxXgWVFQ==",
         "dependencies": {
-          "OpenTelemetry.Api": "1.12.0"
+          "OpenTelemetry.Api": "1.15.3"
         }
       },
       "Reactive.Streams": {
@@ -124,9 +123,9 @@
       },
       "Akka": {
         "type": "CentralTransitive",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "llceOuVtuaVF11csQAVkAvJ9SLzDDgTrnqxt6sLQ4GMrzbVPl3VtwjMZt3swHJdHq+pNLUZ+TK6M5E28XFSrrw==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "+l8SkDtjPUky6ShYXEVNS5xkTB/sPGGrCDUmNGOaCPxAmbu2zPEeqMFrFNF+Hu0ZsMnETw4NS+u3jtt1OM132w==",
         "dependencies": {
           "Akka.Analyzers": "0.3.3",
           "Newtonsoft.Json": "13.0.1",

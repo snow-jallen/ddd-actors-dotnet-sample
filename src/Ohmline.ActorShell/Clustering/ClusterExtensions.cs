@@ -66,6 +66,8 @@ public static class ClusterExtensions
                 .WithDistributedPubSub(role: "")
                 // A traced message may be sent to any node, from any node (section 17.4).
                 .WithTraceEnvelopes()
+                // Akka.NET 1.6 changes neither the wire nor rebalancing by itself (21.10).
+                .WithUpgradePins()
                 .AddHocon(
                     "akka.cluster.split-brain-resolver.stable-after = 20s",
                     HoconAddMode.Prepend);

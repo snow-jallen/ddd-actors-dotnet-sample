@@ -46,28 +46,28 @@
       },
       "Akka.Persistence": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "MxMuAHUvGKIlFHcciwL7t8G8c4iVRyuD8LYKt047eFxdoe+CbubUQGOucTZRyLA4Uec3RLP6jEua5dAfmK57+A==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "PEGFLi76klosJASNIocFUxe28rIGCXB2c4B8w7Pzseg3bHLuSt+wrkl6cS4LAjEi0k8BCSd9nxUiyA5Q/iW7gw==",
         "dependencies": {
-          "Akka": "1.5.73",
-          "Google.Protobuf": "3.26.1"
+          "Akka": "1.6.0-beta5",
+          "Google.Protobuf": "3.36.2"
         }
       },
       "Akka.Persistence.TestKit": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "aIXDFMVgJAdYFB9vd+yLirpByIoTzsqcyhCT0riVwNtF/ZHf3Rq+Plgd/7trczigXxjNCnWjO0P/fsgnTuWyRA==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "dD2L4IQsI/B4Aai6e0x9QGMp7WJ9PSvrVEvgsZx6PBx3rtGxLujk5NjB7/3zF74Vsi9yj+l+//m8OiPBK0BDsQ==",
         "dependencies": {
-          "Akka.Persistence": "1.5.73",
-          "Akka.TestKit": "1.5.73"
+          "Akka.Persistence": "1.6.0-beta5",
+          "Akka.TestKit": "1.6.0-beta5"
         }
       },
       "Akka.TestKit": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "jvctTSmT5L3/GheOedK2Sr/wj1eF2daH40Q+VoFE9lxNCiqk5oMfm/qF0sg8O4J3S+o04GP9ABvdlQfeG9Hf0A==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "TH697wFSzgasXOB5y1WWV+ZpE94+h88Oj77hma81yA/gSeJrY0AGilGRxoz2ZBHj+ineTNzJAo8MSietgEsa+g==",
         "dependencies": {
-          "Akka": "1.5.73",
+          "Akka": "1.6.0-beta5",
           "Nito.AsyncEx.Context": "5.1.2",
           "Nito.AsyncEx.Coordination": "5.1.2"
         }
@@ -88,8 +88,8 @@
       },
       "Google.Protobuf": {
         "type": "Transitive",
-        "resolved": "3.26.1",
-        "contentHash": "CHZX8zXqhF/fdUtd+AYzew8T2HFkAoe5c7lbGxZY/qryAlQXckDvM5BfOJjXlMS7kyICqQTMszj4w1bX5uBJ/w=="
+        "resolved": "3.36.2",
+        "contentHash": "Ci1q1iJg74qAE5riTA2FbMS0wPbpruPQI/JQ9DrAsRo2VsSxgt1e/pmxGxgrci+pXJEgrSYg2vPl8rrStZkclQ=="
       },
       "Microsoft.ApplicationInsights": {
         "type": "Transitive",
@@ -103,8 +103,8 @@
       },
       "Microsoft.Extensions.ObjectPool": {
         "type": "Transitive",
-        "resolved": "6.0.36",
-        "contentHash": "WHwL2Src2pAiLGEmzq6htW+jeKIkrifT3Q6nZROY6EG8EbSGli//XpAh9WpITRsTda3VVUBegvc2QdBWyNn+zg=="
+        "resolved": "10.0.0",
+        "contentHash": "bpeCq0IYmVLACyEUMzFIOQX+zZUElG1t+nu1lSxthe7B+1oNYking7b91305+jNB6iwojp9fqTY9O+Nh7ULQxg=="
       },
       "Microsoft.Testing.Extensions.Telemetry": {
         "type": "Transitive",
@@ -329,8 +329,8 @@
       "ohmline.testing": {
         "type": "Project",
         "dependencies": {
-          "Akka": "[1.5.73, )",
-          "Akka.Persistence.TestKit.Xunit": "[1.5.73, )",
+          "Akka": "[1.6.0-beta5, )",
+          "Akka.Persistence.TestKit.Xunit": "[1.6.0-beta5, )",
           "CsCheck": "[5.0.1, )",
           "Ohmline.SharedKernel": "[1.0.0, )",
           "Shouldly": "[4.3.0, )"
@@ -338,34 +338,34 @@
       },
       "Akka": {
         "type": "CentralTransitive",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "llceOuVtuaVF11csQAVkAvJ9SLzDDgTrnqxt6sLQ4GMrzbVPl3VtwjMZt3swHJdHq+pNLUZ+TK6M5E28XFSrrw==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "+l8SkDtjPUky6ShYXEVNS5xkTB/sPGGrCDUmNGOaCPxAmbu2zPEeqMFrFNF+Hu0ZsMnETw4NS+u3jtt1OM132w==",
         "dependencies": {
           "Akka.Analyzers": "0.3.3",
-          "Microsoft.Extensions.ObjectPool": "6.0.36",
+          "Microsoft.Extensions.ObjectPool": "10.0.0",
           "Newtonsoft.Json": "13.0.1",
           "System.Configuration.ConfigurationManager": "6.0.1"
         }
       },
       "Akka.Persistence.TestKit.Xunit": {
         "type": "CentralTransitive",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "gdH7wom3IZreic2Xv1lotsqPAuECZS/F1B2w4Lpt/ekbodAFjS3KkPZv5zPHXnTyI3oYewASfZPRJTDOTDQBRA==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "oqK+o0+0RzYu8WX/1PLImQ6VRxArs5qGGhU2hbfJDmhw9phOJCsOeBE16FfZcqXizyCAJndpvwqO6vcav8S6ww==",
         "dependencies": {
-          "Akka.Persistence.TestKit": "1.5.73",
-          "Akka.TestKit": "1.5.73",
-          "Akka.TestKit.Xunit": "1.5.73"
+          "Akka.Persistence.TestKit": "1.6.0-beta5",
+          "Akka.TestKit": "1.6.0-beta5",
+          "Akka.TestKit.Xunit": "1.6.0-beta5"
         }
       },
       "Akka.TestKit.Xunit": {
         "type": "CentralTransitive",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "njm/76aZjSL3v/Xad+8ptVFlw30NxgtHaZhwP5hVi6G67yW1+RMslOZ7owzeAlF5hZ+Np003PBpYKBmODicsmg==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "VDo0MWzC5YsRivAKwpadVHsXjOcYEPmwOGdGDBPB83w/RemxVKD2U9RHXEGMfsXSMBzAR5za5z0bRtsc9iAzbQ==",
         "dependencies": {
-          "Akka.TestKit": "1.5.73",
+          "Akka.TestKit": "1.6.0-beta5",
           "xunit.v3.assert": "3.2.2",
           "xunit.v3.extensibility.core": "3.2.2"
         }

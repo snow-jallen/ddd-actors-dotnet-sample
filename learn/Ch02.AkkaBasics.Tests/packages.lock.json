@@ -4,23 +4,23 @@
     "net11.0": {
       "Akka": {
         "type": "Direct",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "llceOuVtuaVF11csQAVkAvJ9SLzDDgTrnqxt6sLQ4GMrzbVPl3VtwjMZt3swHJdHq+pNLUZ+TK6M5E28XFSrrw==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "+l8SkDtjPUky6ShYXEVNS5xkTB/sPGGrCDUmNGOaCPxAmbu2zPEeqMFrFNF+Hu0ZsMnETw4NS+u3jtt1OM132w==",
         "dependencies": {
           "Akka.Analyzers": "0.3.3",
-          "Microsoft.Extensions.ObjectPool": "6.0.36",
+          "Microsoft.Extensions.ObjectPool": "10.0.0",
           "Newtonsoft.Json": "13.0.1",
           "System.Configuration.ConfigurationManager": "6.0.1"
         }
       },
       "Akka.TestKit.Xunit": {
         "type": "Direct",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "njm/76aZjSL3v/Xad+8ptVFlw30NxgtHaZhwP5hVi6G67yW1+RMslOZ7owzeAlF5hZ+Np003PBpYKBmODicsmg==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "VDo0MWzC5YsRivAKwpadVHsXjOcYEPmwOGdGDBPB83w/RemxVKD2U9RHXEGMfsXSMBzAR5za5z0bRtsc9iAzbQ==",
         "dependencies": {
-          "Akka.TestKit": "1.5.73",
+          "Akka.TestKit": "1.6.0-beta5",
           "xunit.v3.assert": "3.2.2",
           "xunit.v3.extensibility.core": "3.2.2"
         }
@@ -57,10 +57,10 @@
       },
       "Akka.TestKit": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "jvctTSmT5L3/GheOedK2Sr/wj1eF2daH40Q+VoFE9lxNCiqk5oMfm/qF0sg8O4J3S+o04GP9ABvdlQfeG9Hf0A==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "TH697wFSzgasXOB5y1WWV+ZpE94+h88Oj77hma81yA/gSeJrY0AGilGRxoz2ZBHj+ineTNzJAo8MSietgEsa+g==",
         "dependencies": {
-          "Akka": "1.5.73",
+          "Akka": "1.6.0-beta5",
           "Nito.AsyncEx.Context": "5.1.2",
           "Nito.AsyncEx.Coordination": "5.1.2"
         }
@@ -91,8 +91,8 @@
       },
       "Microsoft.Extensions.ObjectPool": {
         "type": "Transitive",
-        "resolved": "6.0.36",
-        "contentHash": "WHwL2Src2pAiLGEmzq6htW+jeKIkrifT3Q6nZROY6EG8EbSGli//XpAh9WpITRsTda3VVUBegvc2QdBWyNn+zg=="
+        "resolved": "10.0.0",
+        "contentHash": "bpeCq0IYmVLACyEUMzFIOQX+zZUElG1t+nu1lSxthe7B+1oNYking7b91305+jNB6iwojp9fqTY9O+Nh7ULQxg=="
       },
       "Microsoft.Testing.Extensions.Telemetry": {
         "type": "Transitive",

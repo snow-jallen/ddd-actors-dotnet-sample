@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Learning tests for Akka.NET 1.6's source-generated serializer (section 21.10), on a
+    message with a C# 15 union field, which no 1.5 serializer round-trips. On the branch
+    upgrade/akka-1.6 only. References nothing from src/.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Akka" />
+    <PackageReference Include="Akka.Serialization.V2" />
+  </ItemGroup>
+
+</Project>

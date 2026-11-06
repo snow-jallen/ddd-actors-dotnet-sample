@@ -4,15 +4,14 @@
     "net11.0": {
       "Akka.Hosting.TestKit": {
         "type": "Direct",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "fCyriVxHDcvqm+GKNT9VesgvKwqtOjweeMVHWrRIJW/tBW2NjNQYZSbor6BwpasZkDa8P6Nih0jvBa3h8A7nGQ==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "0ZpCqBPkgJhcMLSM8miehaZ4eu10dfUhdrrZWbbnZE2MMRDjjd7qhiAvreM8QoaYW9pkueMhuqmff6Yp0ZnGXQ==",
         "dependencies": {
-          "Akka.Hosting": "1.5.73",
-          "Akka.Persistence.Hosting": "1.5.73",
-          "Akka.Persistence.TestKit": "1.5.73",
-          "Akka.TestKit.Xunit": "1.5.73",
-          "Microsoft.Bcl.AsyncInterfaces": "9.0.0",
+          "Akka.Hosting": "1.6.0-beta5",
+          "Akka.Persistence.Hosting": "1.6.0-beta5",
+          "Akka.Persistence.TestKit": "1.6.0-beta5",
+          "Akka.TestKit.Xunit": "1.6.0-beta5",
           "xunit.v3.extensibility.core": "3.2.2"
         }
       },
@@ -54,112 +53,111 @@
       },
       "Akka.Cluster": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "H4cNkzwbxAlxgi8NDYcIcQBSY3GoG9lxCuPEWdNmikn+TgUlflrTzl4bdl2gmiiybcP8glKcmYhSQ5jWEqLNYQ==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "U211EMSV8IFsjtu3T5uNEdGmJ1Rbl0dnqT0uZ45UUZzT0PyJ/Ta888RDUPj6R+TYJ7uloYSZWQcd6HYGAKdV8Q==",
         "dependencies": {
-          "Akka.Coordination": "1.5.73",
-          "Akka.Remote": "1.5.73"
+          "Akka.Coordination": "1.6.0-beta5",
+          "Akka.Remote": "1.6.0-beta5"
         }
       },
       "Akka.Cluster.Sharding": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "7eGX2cM+PN41kOvVYmKPo6WYGm+v153SAg/QQli1GV1yNUPFGfYMYYaF/bMg2wyrHHfsZaYVrzumxh+mRFwVWA==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "KZ4bFU32PsfPtycNMdFv/ZirPNuvKriw6UnIlkzeFrcacFkdlXKi8WeLQI1a/rbwwxq/ydzzB6/6ZF53ONMg8Q==",
         "dependencies": {
-          "Akka.Cluster.Tools": "1.5.73",
-          "Akka.Coordination": "1.5.73",
-          "Akka.DistributedData": "1.5.73",
-          "Akka.DistributedData.LightningDB": "1.5.73",
-          "Akka.Persistence": "1.5.73"
+          "Akka.Cluster.Tools": "1.6.0-beta5",
+          "Akka.Coordination": "1.6.0-beta5",
+          "Akka.DistributedData": "1.6.0-beta5",
+          "Akka.DistributedData.LightningDB": "1.6.0-beta5",
+          "Akka.Persistence": "1.6.0-beta5"
         }
       },
       "Akka.Cluster.Tools": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "GJYJh8VpWIsTCYMFO1t0dT/XA2fKGfvIDpi6qYqV4bsxkF/qlmYiDM0U0kfYmFFOM+s41sEm17Z3xrfBWUJP9g==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "CjX8/fv23fHwGg7U+gFGbHxx7hWKYsb9t5m5nTGwu4yI50QuXQpKpYu8N/Foq6AS6EjKGQTGDOFwy3k8gcTppg==",
         "dependencies": {
-          "Akka.Cluster": "1.5.73",
-          "Akka.Coordination": "1.5.73",
-          "Akka.Discovery": "1.5.73"
+          "Akka.Cluster": "1.6.0-beta5",
+          "Akka.Coordination": "1.6.0-beta5",
+          "Akka.Discovery": "1.6.0-beta5"
         }
       },
       "Akka.Coordination": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "0bn5/p2RoVdoCyNvE+LNhvfYcFVweI8JBNie8vL+XuHBHlrkk9p738x9q4/xiRSnMLFIoqdKtxfxNhMS9K3Mig==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "O0/lZa3NayoaP1Rdm9Dd2VJ0r5CvaG5zqXNW8MoSR7DgUAhn/d+xwsP1eLEi+zyJwW3I/hUabw719aBLtTh9pg==",
         "dependencies": {
-          "Akka": "1.5.73"
+          "Akka": "1.6.0-beta5"
         }
       },
       "Akka.DependencyInjection": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "dBqN35kaK/gXuvVbhnihK6lB40zCd6PwjrkXFiIC2poALlwyHZCdlGPpjiRVZqJgGTUJzshb7T/OT1Aw7Eu2Qw==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "ZI8CZ02JWV8wjH95wpOQMSat2Wo/lreb7cvJ8w4zmQn9e6TxeL7AHAkZ6Wg66N33qumwKJzEpOcDIx0JqdRAcA==",
         "dependencies": {
-          "Akka": "1.5.73"
+          "Akka": "1.6.0-beta5"
         }
       },
       "Akka.Discovery": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "iPZde3kS1WrIkyKeJEqtQDnzjmC0zqbmqLwRft4Q9KYBSAWM/9xIMgimuqWzr44eNV6YZS6LX4xkpkfgv7JaFA==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "UNHBrdOuEq7t7aRROyCUD5v1atREtvIrfFtr5VRW9Ug4TEd7nsb+M84B28s/EipbVRBqwHdRHYfCPioAtl0JeQ==",
         "dependencies": {
-          "Akka": "1.5.73"
+          "Akka": "1.6.0-beta5"
         }
       },
       "Akka.DistributedData": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "iZcWObxHCLxLIU/YiGnzh5ofP++b5xUZ2UdCY8L5qu/V4/dyXsK9biPpeQJOabph723yhSfqHVx4RfOXQWwVVA==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "WQ8zBR0Jb+ENShFubO5A2fi2MOlMH3+BqiSnlOIEUNZsuh/j8IVG6VydhwrUcvECdIrGOwuJPtyDKXefcxD1NQ==",
         "dependencies": {
-          "Akka.Cluster": "1.5.73"
+          "Akka.Cluster": "1.6.0-beta5"
         }
       },
       "Akka.DistributedData.LightningDB": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "vTsq1apYvGkqH3out6MDUbvcXD7CLK5KUyRQUFuYTXQb1vlOjKHZ29/u9XkgYASSVlcJx77aNtJr7qiuWXzcHg==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "pPf9A5MWCeYrCJBT3ZOI3PBWstVoYEvAHHZFCdB3XUfuosNFp2z0pGY347jtGeTjrN/oV9Thz/zDQ5KwcKf+Rg==",
         "dependencies": {
-          "Akka.DistributedData": "1.5.73",
-          "LightningDB": "0.16.0"
+          "Akka.DistributedData": "1.6.0-beta5",
+          "LightningDB": "0.23.1"
         }
       },
       "Akka.Http.Shim": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "gW4MtN0OA1UBY4kyDAkyNbOww5xaZYqbaAnXmNMacr74Q7s2N0HnDxEj1jNRUM5JbsQaCqqJ63F6n+ZkROKbqg==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "twpnY9SNv7nU9HjHCNujDuQT1OCPfXjM11+YqiiEho/oeMUS1EvMUnmjIvkRMufBxCpqwQMHdHNh12j9iuIG+g==",
         "dependencies": {
-          "Akka": "1.5.73",
+          "Akka": "1.6.0-beta5",
           "Ceen.Httpd": "0.9.9"
         }
       },
       "Akka.Persistence": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "MxMuAHUvGKIlFHcciwL7t8G8c4iVRyuD8LYKt047eFxdoe+CbubUQGOucTZRyLA4Uec3RLP6jEua5dAfmK57+A==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "PEGFLi76klosJASNIocFUxe28rIGCXB2c4B8w7Pzseg3bHLuSt+wrkl6cS4LAjEi0k8BCSd9nxUiyA5Q/iW7gw==",
         "dependencies": {
-          "Akka": "1.5.73",
-          "Google.Protobuf": "3.26.1"
+          "Akka": "1.6.0-beta5",
+          "Google.Protobuf": "3.36.2"
         }
       },
       "Akka.Persistence.Query": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "D6/m55WtKxvfFyP2l7trWq94mUnvrPmgMg75c4kqCzzwOR/Z6LIQQJH78x58cvXD4cGCol3mFLy6nKeln0AMlg==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "SLDKpBTkCCfbr2f/VThT3UcQ/b3ss85Ww12CmRzF77N8aulEvWk/Qepjkn2Uip3z0CM0TBJJ1wzzqH4MCTYQtA==",
         "dependencies": {
-          "Akka.Persistence": "1.5.73",
-          "Akka.Streams": "1.5.73"
+          "Akka.Persistence": "1.6.0-beta5",
+          "Akka.Streams": "1.6.0-beta5"
         }
       },
       "Akka.Persistence.Sql": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "nvNEvlIcvt1Wz1NL/Jv5+jbbTw86g+9/RQLVe0rrW27FnMXlpMU4VSOuNwEMmGEj9FlG7gwcXmSQovAKeqE2Zw==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "aldMHZ7CtSjG8hH+VyrGCh2YhU+jxQDhgLVgW1uPlFAUXakF4GKgJChllBudvzV+ALRxhW0aG4oZeX8Je0ZksA==",
         "dependencies": {
-          "Akka.Persistence.Query": "1.5.73",
-          "Akka.Streams": "1.5.73",
+          "Akka.Persistence.Query": "1.6.0-beta5",
+          "Akka.Streams": "1.6.0-beta5",
           "LanguageExt.Core": "4.4.9",
-          "Microsoft.Bcl.HashCode": "1.1.1",
           "System.Linq.Async": "6.0.1",
           "System.Reactive.Linq": "6.0.1",
           "linq2db": "6.5.1"
@@ -167,48 +165,50 @@
       },
       "Akka.Persistence.TestKit": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "aIXDFMVgJAdYFB9vd+yLirpByIoTzsqcyhCT0riVwNtF/ZHf3Rq+Plgd/7trczigXxjNCnWjO0P/fsgnTuWyRA==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "dD2L4IQsI/B4Aai6e0x9QGMp7WJ9PSvrVEvgsZx6PBx3rtGxLujk5NjB7/3zF74Vsi9yj+l+//m8OiPBK0BDsQ==",
         "dependencies": {
-          "Akka.Persistence": "1.5.73",
-          "Akka.TestKit": "1.5.73"
+          "Akka.Persistence": "1.6.0-beta5",
+          "Akka.TestKit": "1.6.0-beta5"
         }
       },
       "Akka.Remote": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "VvzN0zWapAdiW9Mn5XFm+27O1aJDpaxfg7C/VyzGjpIHq41qtMPb3EwJBx6qdm0/zSvgNHkDmm4r7soUyTuyXg==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "sLsevDczaY/WPl6Z2NtFvrsNELy3wOTz7EcNVmfqw72JK+Uj27GFLM49VV6Kw9GBxIVSyMRnPhh1K1hJDxvbSQ==",
         "dependencies": {
-          "Akka": "1.5.73",
+          "Akka": "1.6.0-beta5",
+          "Akka.Serialization.V2": "1.6.0-beta5",
+          "Akka.Streams": "1.6.0-beta5",
           "DotNetty.Handlers": "0.7.6",
-          "Google.Protobuf": "3.26.1"
+          "Google.Protobuf": "3.36.2"
         }
       },
       "Akka.Remote.Hosting": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "pWZjYWacmt8TrQy51zDA18ykedQ02tQio5iiLna/3A+dKLYEhVaUjn0M3VLdN3SwTrhsMivSBBAoS4Ji0YNROA==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "QEIoIMjdC/vV+r3MCo1QHqkebw0AqbL7Ki1DrfKdPmw6CyUwSUUuSVKHa3tvOxu7isZU2b8rOTyJKqhK0HXsUw==",
         "dependencies": {
-          "Akka.Hosting": "1.5.73",
-          "Akka.Remote": "1.5.73"
+          "Akka.Hosting": "1.6.0-beta5",
+          "Akka.Remote": "1.6.0-beta5"
         }
       },
       "Akka.Streams": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "nqLVy9JFcifnXvzJPWzmHD0siU6NUukx1q5uHlOYyFp5iCM/n/QYhp4euhn07sLY7rD8HHr7QmNV2iB1A5jP+g==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "HO/9N3gBpgs0UIzd86rDPWINsN5Km415cuqQhTJQaqJNLonq/fwU5bhw4tAYZZoB29AJHCbfJD7RtLjyreGvSA==",
         "dependencies": {
-          "Akka": "1.5.73",
-          "Google.Protobuf": "3.26.1",
+          "Akka": "1.6.0-beta5",
+          "Google.Protobuf": "3.36.2",
           "Reactive.Streams": "1.0.4"
         }
       },
       "Akka.TestKit": {
         "type": "Transitive",
-        "resolved": "1.5.73",
-        "contentHash": "jvctTSmT5L3/GheOedK2Sr/wj1eF2daH40Q+VoFE9lxNCiqk5oMfm/qF0sg8O4J3S+o04GP9ABvdlQfeG9Hf0A==",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "TH697wFSzgasXOB5y1WWV+ZpE94+h88Oj77hma81yA/gSeJrY0AGilGRxoz2ZBHj+ineTNzJAo8MSietgEsa+g==",
         "dependencies": {
-          "Akka": "1.5.73",
+          "Akka": "1.6.0-beta5",
           "Nito.AsyncEx.Context": "5.1.2",
           "Nito.AsyncEx.Coordination": "5.1.2"
         }
@@ -282,8 +282,8 @@
       },
       "Google.Protobuf": {
         "type": "Transitive",
-        "resolved": "3.26.1",
-        "contentHash": "CHZX8zXqhF/fdUtd+AYzew8T2HFkAoe5c7lbGxZY/qryAlQXckDvM5BfOJjXlMS7kyICqQTMszj4w1bX5uBJ/w=="
+        "resolved": "3.36.2",
+        "contentHash": "Ci1q1iJg74qAE5riTA2FbMS0wPbpruPQI/JQ9DrAsRo2VsSxgt1e/pmxGxgrci+pXJEgrSYg2vPl8rrStZkclQ=="
       },
       "KubernetesClient": {
         "type": "Transitive",
@@ -304,8 +304,8 @@
       },
       "LightningDB": {
         "type": "Transitive",
-        "resolved": "0.16.0",
-        "contentHash": "nwv4HpV9rc5NMjHJdWqOZGzGgCZH1/NTL+GeNHMUB2O0nbS+N8+qIKYATZJ9DL51SaHPnV7eYy29ITy0R02evA=="
+        "resolved": "0.23.1",
+        "contentHash": "CPEnq2DcqFRuPP5CYXnFhzjN+J1A+8hpo1KAhreOymC2K76rtNf/4Ed7ef3HfLQ2Ag1heRUu0Lml8y3mj+jh6w=="
       },
       "linq2db": {
         "type": "Transitive",
@@ -320,6 +320,26 @@
         "resolved": "6.5.1",
         "contentHash": "ttsakXkP48Ea4j9OcbfTwL3CMTS6ojAN2q7YDBKh40CiNEyJfA5YgCd28jx5Mfk6ePPM3ph6tSuVCsWFsym1dQ=="
       },
+      "MessagePack": {
+        "type": "Transitive",
+        "resolved": "3.1.12",
+        "contentHash": "m1QEsd59gUj82ji5tEQbZiyjV6y0F7cYfGVhil6pAlNZpyzR7ze9TucMu4lPpi8cZAV8aNl3D9/T9J1HbFz15Q==",
+        "dependencies": {
+          "MessagePack.Annotations": "3.1.12",
+          "MessagePackAnalyzer": "3.1.12",
+          "Microsoft.NET.StringTools": "17.11.4"
+        }
+      },
+      "MessagePack.Annotations": {
+        "type": "Transitive",
+        "resolved": "3.1.12",
+        "contentHash": "LdI67sY7F3KK+JsrG02+DP1XFkowaZSoyfL2M88hjm1MOOsjf8amBLAJolV+zxoPUZf3uGbKzq1cMQD8PlpSpA=="
+      },
+      "MessagePackAnalyzer": {
+        "type": "Transitive",
+        "resolved": "3.1.12",
+        "contentHash": "iNSNatPh6bafRUbkQKlClExjpPpd8hiZgfZsodGf7bheIlkizGbMzsJ2mPui8jOHRe4Ky9eg5ou/fFzI7CT3fg=="
+      },
       "Microsoft.ApplicationInsights": {
         "type": "Transitive",
         "resolved": "2.23.0",
@@ -327,13 +347,8 @@
       },
       "Microsoft.Bcl.AsyncInterfaces": {
         "type": "Transitive",
-        "resolved": "9.0.0",
-        "contentHash": "owmu2Cr3IQ8yQiBleBHlGk8dSQ12oaF2e7TpzwJKEl4m84kkZJjEY1n33L67Y3zM5jPOjmmbdHjbfiL0RqcMRQ=="
-      },
-      "Microsoft.Bcl.HashCode": {
-        "type": "Transitive",
-        "resolved": "1.1.1",
-        "contentHash": "MalY0Y/uM/LjXtHfX/26l2VtN4LDNZ2OE3aumNOHDLsT4fNYy2hiHXI4CXCqKpNUNm7iJ2brrc4J89UdaL56FA=="
+        "resolved": "7.0.0",
+        "contentHash": "3aeMZ1N0lJoSyzqiP03hqemtb1BijhsJADdobn/4nsMJ8V1H+CrpuduUe4hlRdx+ikBQju1VGjMD1GJ3Sk05Eg=="
       },
       "Microsoft.Data.Sqlite.Core": {
         "type": "Transitive",
@@ -409,6 +424,11 @@
         "type": "Transitive",
         "resolved": "4.8.0",
         "contentHash": "p1dzpXano+DTet2/hQGb+J91QonETabPYmO5BdqpsWOPq2C3WsWbm1BICTNlWqL81EVGrRrjpQh9mRNX55ZKmQ=="
+      },
+      "Microsoft.NET.StringTools": {
+        "type": "Transitive",
+        "resolved": "17.11.4",
+        "contentHash": "mudqUHhNpeqIdJoUx2YDWZO/I9uEDYVowan89R6wsomfnUJQk6HteoQTlNjZDixhT2B4IXMkMtgZtoceIjLRmA=="
       },
       "Microsoft.Testing.Extensions.Telemetry": {
         "type": "Transitive",
@@ -730,12 +750,12 @@
       "ohmline.actorshell": {
         "type": "Project",
         "dependencies": {
-          "Akka": "[1.5.73, )",
-          "Akka.Cluster.Hosting": "[1.5.73, )",
-          "Akka.Coordination.KubernetesApi": "[1.5.73, )",
-          "Akka.Discovery.KubernetesApi": "[1.5.73, )",
-          "Akka.Management": "[1.5.73, )",
-          "Akka.Persistence.Hosting": "[1.5.73, )",
+          "Akka": "[1.6.0-beta5, )",
+          "Akka.Cluster.Hosting": "[1.6.0-beta5, )",
+          "Akka.Coordination.KubernetesApi": "[1.6.0-beta5, )",
+          "Akka.Discovery.KubernetesApi": "[1.6.0-beta5, )",
+          "Akka.Management": "[1.6.0-beta5, )",
+          "Akka.Persistence.Hosting": "[1.6.0-beta5, )",
           "Ohmline.SharedKernel": "[1.0.0, )"
         }
       },
@@ -748,8 +768,8 @@
       "ohmline.charging.actors": {
         "type": "Project",
         "dependencies": {
-          "Akka.Cluster.Hosting": "[1.5.73, )",
-          "Akka.Persistence.Hosting": "[1.5.73, )",
+          "Akka.Cluster.Hosting": "[1.6.0-beta5, )",
+          "Akka.Persistence.Hosting": "[1.6.0-beta5, )",
           "Ohmline.ActorShell": "[1.0.0, )",
           "Ohmline.Billing.Contracts": "[1.0.0, )",
           "Ohmline.Charging.Contracts": "[1.0.0, )",
@@ -759,8 +779,8 @@
       "ohmline.charging.api": {
         "type": "Project",
         "dependencies": {
-          "Akka.Cluster.Hosting": "[1.5.73, )",
-          "Akka.Hosting": "[1.5.73, )",
+          "Akka.Cluster.Hosting": "[1.6.0-beta5, )",
+          "Akka.Hosting": "[1.6.0-beta5, )",
           "Npgsql": "[10.0.3, )",
           "Ohmline.ActorShell": "[1.0.0, )",
           "Ohmline.Charging.Client.Contracts": "[1.0.0, )",
@@ -790,8 +810,8 @@
       "ohmline.charging.readmodels": {
         "type": "Project",
         "dependencies": {
-          "Akka.Cluster.Hosting": "[1.5.73, )",
-          "Akka.Persistence.Sql.Hosting": "[1.5.73, )",
+          "Akka.Cluster.Hosting": "[1.6.0-beta5, )",
+          "Akka.Persistence.Sql.Hosting": "[1.6.0-beta5, )",
           "Npgsql": "[10.0.3, )",
           "Ohmline.ActorShell": "[1.0.0, )",
           "Ohmline.Charging.Actors": "[1.0.0, )",
@@ -805,8 +825,8 @@
       "ohmline.driveraccounts.actors": {
         "type": "Project",
         "dependencies": {
-          "Akka.Cluster.Hosting": "[1.5.73, )",
-          "Akka.Persistence.Hosting": "[1.5.73, )",
+          "Akka.Cluster.Hosting": "[1.6.0-beta5, )",
+          "Akka.Persistence.Hosting": "[1.6.0-beta5, )",
           "Ohmline.ActorShell": "[1.0.0, )",
           "Ohmline.DriverAccounts.Contracts": "[1.0.0, )",
           "Ohmline.DriverAccounts.Domain": "[1.0.0, )"
@@ -815,7 +835,7 @@
       "ohmline.driveraccounts.api": {
         "type": "Project",
         "dependencies": {
-          "Akka.Hosting": "[1.5.73, )",
+          "Akka.Hosting": "[1.6.0-beta5, )",
           "Ohmline.ActorShell": "[1.0.0, )",
           "Ohmline.DriverAccounts.Contracts": "[1.0.0, )"
         }
@@ -836,9 +856,9 @@
       "ohmline.node": {
         "type": "Project",
         "dependencies": {
-          "Akka.Cluster.Hosting": "[1.5.73, )",
-          "Akka.Persistence.Hosting": "[1.5.73, )",
-          "Akka.Persistence.Sql.Hosting": "[1.5.73, )",
+          "Akka.Cluster.Hosting": "[1.6.0-beta5, )",
+          "Akka.Persistence.Hosting": "[1.6.0-beta5, )",
+          "Akka.Persistence.Sql.Hosting": "[1.6.0-beta5, )",
           "Microsoft.Data.Sqlite": "[10.0.14, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.8.0, )",
           "Npgsql": "[10.0.3, )",
@@ -875,7 +895,7 @@
       "ohmline.siteenergy.acl.gridoperator": {
         "type": "Project",
         "dependencies": {
-          "Akka.Cluster.Hosting": "[1.5.73, )",
+          "Akka.Cluster.Hosting": "[1.6.0-beta5, )",
           "Ohmline.ActorShell": "[1.0.0, )",
           "Ohmline.SharedKernel": "[1.0.0, )",
           "Ohmline.SiteEnergy.Contracts": "[1.0.0, )"
@@ -884,8 +904,8 @@
       "ohmline.siteenergy.actors": {
         "type": "Project",
         "dependencies": {
-          "Akka.Cluster.Hosting": "[1.5.73, )",
-          "Akka.Persistence.Hosting": "[1.5.73, )",
+          "Akka.Cluster.Hosting": "[1.6.0-beta5, )",
+          "Akka.Persistence.Hosting": "[1.6.0-beta5, )",
           "Ohmline.ActorShell": "[1.0.0, )",
           "Ohmline.SiteEnergy.Contracts": "[1.0.0, )",
           "Ohmline.SiteEnergy.Domain": "[1.0.0, )"
@@ -894,7 +914,7 @@
       "ohmline.siteenergy.api": {
         "type": "Project",
         "dependencies": {
-          "Akka.Hosting": "[1.5.73, )",
+          "Akka.Hosting": "[1.6.0-beta5, )",
           "Ohmline.ActorShell": "[1.0.0, )",
           "Ohmline.SiteEnergy.Contracts": "[1.0.0, )"
         }
@@ -915,8 +935,8 @@
       "ohmline.tariffs.actors": {
         "type": "Project",
         "dependencies": {
-          "Akka.Cluster.Hosting": "[1.5.73, )",
-          "Akka.Persistence.Hosting": "[1.5.73, )",
+          "Akka.Cluster.Hosting": "[1.6.0-beta5, )",
+          "Akka.Persistence.Hosting": "[1.6.0-beta5, )",
           "Ohmline.ActorShell": "[1.0.0, )",
           "Ohmline.Tariffs.Contracts": "[1.0.0, )",
           "Ohmline.Tariffs.Domain": "[1.0.0, )"
@@ -938,8 +958,8 @@
       "ohmline.testing": {
         "type": "Project",
         "dependencies": {
-          "Akka": "[1.5.73, )",
-          "Akka.Persistence.TestKit.Xunit": "[1.5.73, )",
+          "Akka": "[1.6.0-beta5, )",
+          "Akka.Persistence.TestKit.Xunit": "[1.6.0-beta5, )",
           "CsCheck": "[5.0.1, )",
           "Ohmline.SharedKernel": "[1.0.0, )",
           "Shouldly": "[4.3.0, )"
@@ -947,9 +967,9 @@
       },
       "Akka": {
         "type": "CentralTransitive",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "llceOuVtuaVF11csQAVkAvJ9SLzDDgTrnqxt6sLQ4GMrzbVPl3VtwjMZt3swHJdHq+pNLUZ+TK6M5E28XFSrrw==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "+l8SkDtjPUky6ShYXEVNS5xkTB/sPGGrCDUmNGOaCPxAmbu2zPEeqMFrFNF+Hu0ZsMnETw4NS+u3jtt1OM132w==",
         "dependencies": {
           "Akka.Analyzers": "0.3.3",
           "Newtonsoft.Json": "13.0.1",
@@ -958,105 +978,112 @@
       },
       "Akka.Cluster.Hosting": {
         "type": "CentralTransitive",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "w5676GzQE7T6t0QGTZL3KGbxYJ1HoAM4VVPLlpFNbCWfTA+sl7489kmnD10E46hSEWQ5ag05rwoUUyxXE6qOaQ==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "0bEwgxwD52XkE3hGkKG1ecN/IrEBjq8usz7OKB0TIC1BHA/IDZE982Dz6eifKbv5ZtTAuu7CRhSyTx0/HH7hPQ==",
         "dependencies": {
-          "Akka.Cluster.Sharding": "1.5.73",
-          "Akka.DistributedData": "1.5.73",
-          "Akka.Persistence.Hosting": "1.5.73",
-          "Akka.Remote.Hosting": "1.5.73"
+          "Akka.Cluster.Sharding": "1.6.0-beta5",
+          "Akka.DistributedData": "1.6.0-beta5",
+          "Akka.Persistence.Hosting": "1.6.0-beta5",
+          "Akka.Remote.Hosting": "1.6.0-beta5"
         }
       },
       "Akka.Coordination.KubernetesApi": {
         "type": "CentralTransitive",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "ZGrKNd5zLKLJU+E1QkMIv/FVVnohExKoY/sAhjEjhDWwtBijKDFvwILFnFuUgTbwDgXvp6lssPIh8pvd1KCVYg==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "KSOS6uThp1AzfUA6t4wKfUN0OB7aYNhyJZdkzk++52MY0wtU1jVzea3DJCmq8JUYM1eTI6FE96hUZkO+XzIJEg==",
         "dependencies": {
-          "Akka.Cluster.Hosting": "1.5.73",
-          "Akka.Coordination": "1.5.73",
-          "Akka.Hosting": "1.5.73",
-          "KubernetesClient": "17.0.14",
-          "OpenTelemetry.Api": "1.15.3"
+          "Akka.Cluster.Hosting": "1.6.0-beta5",
+          "Akka.Coordination": "1.6.0-beta5",
+          "Akka.Hosting": "1.6.0-beta5",
+          "KubernetesClient": "17.0.14"
         }
       },
       "Akka.Discovery.KubernetesApi": {
         "type": "CentralTransitive",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "yC42NcvEevhGebpfvHwSDvy7VxUxLpWJrZPpOCnmt20v2R8/3X+dKheYmLoEdYTkCK5mh/eo2Zt4+yM1A2E2RQ==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "f2THu4T1SLYMZz7tg6NBzJ1gJoLCv+irzOlqfhjgIEd3JPAZqWXMqz0IBI3OcHrsJF4Gj8r9VmZ7gntLZ+KPIg==",
         "dependencies": {
-          "Akka.Discovery": "1.5.73",
-          "Akka.Hosting": "1.5.73",
-          "KubernetesClient": "17.0.14",
-          "OpenTelemetry.Api": "1.15.3"
+          "Akka.Discovery": "1.6.0-beta5",
+          "Akka.Hosting": "1.6.0-beta5",
+          "KubernetesClient": "17.0.14"
         }
       },
       "Akka.Hosting": {
         "type": "CentralTransitive",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "hNusiiMsuo6nDmydBdOO6x+jK7ARFMIJv/tq8sNTdJRBjNxb67VGlQ4RX6sip3RcXXrmsk2qytXik5n5/VG9Sg==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "QFVSgUy8tm6SV6u/g8p+yYBL8X2vWBRsZpdkmVFHTqbKQ5MGTHFIlZ0lQ8mCNBPOqAMupSqSyJr8ECPvd15a+A==",
         "dependencies": {
-          "Akka.DependencyInjection": "1.5.73",
-          "Akka.Streams": "1.5.73",
-          "OpenTelemetry": "1.12.0",
-          "OpenTelemetry.Api": "1.15.3"
+          "Akka.DependencyInjection": "1.6.0-beta5",
+          "Akka.Streams": "1.6.0-beta5",
+          "OpenTelemetry": "1.15.3"
         }
       },
       "Akka.Management": {
         "type": "CentralTransitive",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "RPZAYvCuFNFQ9fbxu8zcAsOzcGzzBIHTV95eLSRQuSz2uzsDuF8CImoig2DZdn95O/R/jRMOWPzNkd1jDuMLsg==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "WR8hZQF7Nu8kW31TMnZClD+v1JOhr4lJgzEH8SWnbv331yLcHneeeJCmoEZ0wKscty5odLtGK9l5w5KUr7Sc9w==",
         "dependencies": {
-          "Akka": "1.5.73",
-          "Akka.Cluster": "1.5.73",
-          "Akka.Discovery": "1.5.73",
-          "Akka.Hosting": "1.5.73",
-          "Akka.Http.Shim": "1.5.73",
-          "OpenTelemetry.Api": "1.15.3"
+          "Akka": "1.6.0-beta5",
+          "Akka.Cluster": "1.6.0-beta5",
+          "Akka.Discovery": "1.6.0-beta5",
+          "Akka.Hosting": "1.6.0-beta5",
+          "Akka.Http.Shim": "1.6.0-beta5"
         }
       },
       "Akka.Persistence.Hosting": {
         "type": "CentralTransitive",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "w9jfLihjlBZ1o+mmKZClU2hwrNugm80hzxXD5iqkMZf4WOSsQn+v0NMn6ocucjM6+3f8mhMlXJIBYb6ugzDYsQ==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "DJz7KAIyAyfUgeKgI1SDc4LjmcjiovUJVRyp9ZLQ4oZLK+7Ycgis+ZE1u12rGfkOdZqWlhxIkiD7R97uAmP0zw==",
         "dependencies": {
-          "Akka.Hosting": "1.5.73",
-          "Akka.Persistence": "1.5.73"
+          "Akka.Hosting": "1.6.0-beta5",
+          "Akka.Persistence": "1.6.0-beta5",
+          "Akka.Persistence.Query": "1.6.0-beta5"
         }
       },
       "Akka.Persistence.Sql.Hosting": {
         "type": "CentralTransitive",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "OjTk5P0ne5+iIX37jj1aY2ZUrtc3oCaC/7jB0pQ7GLSUKKii1wTGLOfgCsLYbFk05FrDtFlhO0RoZKoPo70Cbg==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "YgzFBq7haqw9yGSXgYzZ3vZsAiqDyR4tfuBkdbA0McTZOC7BmjrZafFwxsVcOsanWFEizZm03jgMdlM3lcspHA==",
         "dependencies": {
-          "Akka.Persistence.Hosting": "1.5.73",
-          "Akka.Persistence.Sql": "1.5.73"
+          "Akka.Persistence.Hosting": "1.6.0-beta5",
+          "Akka.Persistence.Sql": "1.6.0-beta5"
         }
       },
       "Akka.Persistence.TestKit.Xunit": {
         "type": "CentralTransitive",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "gdH7wom3IZreic2Xv1lotsqPAuECZS/F1B2w4Lpt/ekbodAFjS3KkPZv5zPHXnTyI3oYewASfZPRJTDOTDQBRA==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "oqK+o0+0RzYu8WX/1PLImQ6VRxArs5qGGhU2hbfJDmhw9phOJCsOeBE16FfZcqXizyCAJndpvwqO6vcav8S6ww==",
         "dependencies": {
-          "Akka.Persistence.TestKit": "1.5.73",
-          "Akka.TestKit": "1.5.73",
-          "Akka.TestKit.Xunit": "1.5.73"
+          "Akka.Persistence.TestKit": "1.6.0-beta5",
+          "Akka.TestKit": "1.6.0-beta5",
+          "Akka.TestKit.Xunit": "1.6.0-beta5"
+        }
+      },
+      "Akka.Serialization.V2": {
+        "type": "CentralTransitive",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "P5H1MeltNXTIRUHyqVOJrhSAsBHbk5WWugVqKeaBZbDm/Qj2F8mDKgY79QWbDhrHfNTL0n9rxXYLwo2Hp8hlcw==",
+        "dependencies": {
+          "Akka": "1.6.0-beta5",
+          "MessagePack": "3.1.12"
         }
       },
       "Akka.TestKit.Xunit": {
         "type": "CentralTransitive",
-        "requested": "[1.5.73, )",
-        "resolved": "1.5.73",
-        "contentHash": "njm/76aZjSL3v/Xad+8ptVFlw30NxgtHaZhwP5hVi6G67yW1+RMslOZ7owzeAlF5hZ+Np003PBpYKBmODicsmg==",
+        "requested": "[1.6.0-beta5, )",
+        "resolved": "1.6.0-beta5",
+        "contentHash": "VDo0MWzC5YsRivAKwpadVHsXjOcYEPmwOGdGDBPB83w/RemxVKD2U9RHXEGMfsXSMBzAR5za5z0bRtsc9iAzbQ==",
         "dependencies": {
-          "Akka.TestKit": "1.5.73",
+          "Akka.TestKit": "1.6.0-beta5",
           "xunit.v3.assert": "3.2.2",
           "xunit.v3.extensibility.core": "3.2.2"
         }
