@@ -111,7 +111,10 @@ public static class TariffEndpoints
             case "session-fee":
                 return new SessionFee(price);
             case "idle-fee":
-                return new IdleFee(price, TimeSpan.FromMinutes(component.GraceMinutes ?? 0));
+                return new IdleFee(
+                    price,
+                    TimeSpan.FromMinutes(component.GraceMinutes ?? 0),
+                    component.Cap is { } cap ? new Money(cap, currency) : null);
             default:
                 fields.Invalid(
                     $"{field}.kind",
@@ -134,8 +137,11 @@ public static class TariffEndpoints
         EnergyRate rate => new("energy-rate", rate.PricePerKwh.Amount, Band: BandOf(rate.Band)),
         TimeRate rate => new("time-rate", rate.PricePerMinute.Amount, Band: BandOf(rate.Band)),
         SessionFee fee => new("session-fee", fee.Amount.Amount),
-        IdleFee fee =>
-            new("idle-fee", fee.PricePerMinute.Amount, (int)fee.GracePeriod.TotalMinutes),
+        IdleFee fee => new(
+            "idle-fee",
+            fee.PricePerMinute.Amount,
+            (int)fee.GracePeriod.TotalMinutes,
+            Cap: fee.Cap?.Amount),
     };
 
     private static BandDto? BandOf(TimeOfUseBand? band) =>

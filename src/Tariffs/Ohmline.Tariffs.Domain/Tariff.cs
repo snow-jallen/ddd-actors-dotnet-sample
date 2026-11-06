@@ -171,6 +171,8 @@ public sealed record Tariff
             EnergyRate rate => [("Energy rate", rate.PricePerKwh)],
             TimeRate rate => [("Time rate", rate.PricePerMinute)],
             SessionFee fee => [("Session fee", fee.Amount)],
+            IdleFee { Cap: { } cap } fee =>
+                [("Idle fee", fee.PricePerMinute), ("Idle fee cap", cap)],
             IdleFee fee => [("Idle fee", fee.PricePerMinute)],
         };
 }

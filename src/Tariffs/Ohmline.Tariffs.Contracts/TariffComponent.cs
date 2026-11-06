@@ -25,6 +25,11 @@ public sealed record SessionFee(Money Amount) : TariffComponent;
 
 /// <summary>
 /// A price per minute that the car stays plugged in after it has stopped charging, once the
-/// grace period is over.
+/// grace period is over, up to the cap if the tariff sets one.
 /// </summary>
-public sealed record IdleFee(Money PricePerMinute, TimeSpan GracePeriod) : TariffComponent;
+/// <param name="Cap">
+/// The most the idle fee of one session can come to, added in release 1.0.0. Optional, because
+/// every tariff published before then was stored without it, and has no cap.
+/// </param>
+public sealed record IdleFee(Money PricePerMinute, TimeSpan GracePeriod, Money? Cap = null)
+    : TariffComponent;

@@ -49,6 +49,13 @@ public sealed class TariffTests
     }
 
     [Fact]
+    public void Given_an_idle_fee_cap_in_another_currency_then_it_is_not_a_tariff()
+    {
+        Create(BaseRate, Idle with { Cap = new Money(5.00m, Currency.Eur) }).ShouldBe(Invalid(
+            new Malformed("Idle fee cap currency", "EUR", "USD, the tariff's")));
+    }
+
+    [Fact]
     public void Given_a_negative_price_then_it_is_not_a_tariff()
     {
         Create(new EnergyRate(Usd(-0.10m))).ShouldBe(Invalid(

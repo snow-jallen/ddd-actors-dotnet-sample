@@ -50,9 +50,15 @@ public static class PriceCalculator
                 : [],
             SessionFee fee => [new SessionFeeCharge(fee.Amount)],
             IdleFee fee => WholeMinutes(usage.Idle - fee.GracePeriod) is var minutes and > 0
-                ? [new IdleFeeCharge(minutes, fee.PricePerMinute, fee.PricePerMinute * minutes)]
+                ? [new IdleFeeCharge(minutes, fee.PricePerMinute, IdleAmount(fee, minutes))]
                 : [],
         };
+
+    /// <summary>Every idle minute at the fee's price, but never more than its cap.</summary>
+    private static Money IdleAmount(IdleFee fee, int minutes) =>
+        fee.PricePerMinute * minutes is var amount && fee.Cap is { } cap && amount > cap
+            ? cap
+            : amount;
 
     private static PriceBreakdown Capped(PriceBreakdown breakdown, Money? cap) =>
         cap is { } most && breakdown.Total > most

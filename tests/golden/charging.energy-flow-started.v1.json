@@ -45,7 +45,8 @@
           "amount": 0.40,
           "currency": "USD"
         },
-        "gracePeriod": "00:10:00"
+        "gracePeriod": "00:10:00",
+        "cap": null
       }
     ],
     "priceCap": {

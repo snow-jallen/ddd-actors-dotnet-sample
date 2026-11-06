@@ -22,7 +22,10 @@ public sealed class TariffEndpointsTests(ITestOutputHelper output) : EdgeTestKit
             new EnergyRate(
                 new Money(0.29m, Currency.Usd),
                 new TimeOfUseBand("night", new TimeOnly(22, 0), new TimeOnly(6, 0))),
-            new IdleFee(new Money(0.40m, Currency.Usd), TimeSpan.FromMinutes(15)),
+            new IdleFee(
+                new Money(0.40m, Currency.Usd),
+                TimeSpan.FromMinutes(15),
+                Cap: new Money(12.00m, Currency.Usd)),
         ],
         PriceCap: null,
         RoundingPolicy.Cents,
@@ -36,7 +39,7 @@ public sealed class TariffEndpointsTests(ITestOutputHelper output) : EdgeTestKit
             new ComponentDto("energy-rate", 0.39m),
             new ComponentDto(
                 "energy-rate", 0.29m, Band: new BandDto("night", new(22, 0), new(6, 0))),
-            new ComponentDto("idle-fee", 0.40m, GraceMinutes: 15),
+            new ComponentDto("idle-fee", 0.40m, GraceMinutes: 15, Cap: 12.00m),
         ]);
 
     [Fact]

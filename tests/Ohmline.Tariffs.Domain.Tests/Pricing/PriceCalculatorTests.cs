@@ -89,6 +89,27 @@ public sealed class PriceCalculatorTests
     }
 
     [Fact]
+    public void Given_an_idle_fee_cap_then_the_idle_fee_stops_at_it()
+    {
+        var capped = Version1(BaseRate, Fee, Idle with { Cap = Usd(2.50m) }).Snapshot();
+
+        var price = PriceCalculator.Price(capped, PrimersCharge);
+
+        price.Lines.OfType<IdleFeeCharge>().ShouldHaveSingleItem()
+            .ShouldBe(new IdleFeeCharge(10, Usd(0.40m), Usd(2.50m)));
+        price.Total.ShouldBe(Usd(15.09m));
+    }
+
+    [Fact]
+    public void Given_an_idle_fee_cap_above_the_fee_then_the_fee_is_charged_in_full()
+    {
+        var capped = Version1(BaseRate, Fee, Idle with { Cap = Usd(12.00m) }).Snapshot();
+
+        PriceCalculator.Price(capped, PrimersCharge).Lines.OfType<IdleFeeCharge>()
+            .ShouldHaveSingleItem().Amount.ShouldBe(Usd(4.00m));
+    }
+
+    [Fact]
     public void Given_a_price_above_the_cap_then_the_cap_takes_off_the_difference()
     {
         var capped = Version1().Snapshot() with { PriceCap = Usd(10.00m) };
